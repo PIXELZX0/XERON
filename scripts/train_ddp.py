@@ -15,6 +15,8 @@ import random
 import sys
 import time
 
+from tqdm import tqdm
+
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -198,7 +200,9 @@ def main():
     if rank == 0:
         print(f"XERON DDP training: {len(all_items)} items | {len(my_items)}/rank "
               f"| {EPOCHS} epochs | eff batch {MICRO_BATCH * world_size * GRAD_ACCUM}")
+        print("실시간 진행률/손실/남은 시간(ETA)이 표시됩니다...")
     t0 = time.time()
+    t_epoch = t0
 
     for epoch in range(start_epoch, EPOCHS):
         random.seed(42 + epoch + rank)
@@ -206,9 +210,23 @@ def main():
         epoch_loss, n_batches = 0.0, 0
         optimizer.zero_grad(set_to_none=True)
         accum_step = 0
+        t_epoch = time.time()  # 에폭별 시간 측정 시작
 
         progress = epoch / max(1, EPOCHS - 1)
         sigma = SIGMA_START + (SIGMA_END - SIGMA_START) * progress
+
+        # 실시간 진행바 (rank 0만): 진행률 + 손실 + ETA 자동 표시
+        pbar = None
+        if rank == 0:
+            done_pct = (epoch - start_epoch) / max(1, EPOCHS - start_epoch) * 100
+            pbar = tqdm(
+                total=len(my_items),
+                desc=f"Epoch {epoch+1}/{EPOCHS} (전체 {done_pct:.0f}%)",
+                unit="seq",
+                dynamic_ncols=True,
+                leave=True,
+                mininterval=1.0,
+            )
 
         for b_idx in range(0, len(my_items), MICRO_BATCH):
             chunk = my_items[b_idx : b_idx + MICRO_BATCH]
@@ -264,14 +282,27 @@ def main():
             epoch_loss += loss.item() * GRAD_ACCUM
             n_batches += 1
 
-            if rank == 0 and (n_batches % 50) == 0:
+            if pbar is not None:
+                pbar.set_postfix(loss=f"{loss.item()*GRAD_ACCUM:.4f}",
+                                 reward=f"{r.mean().item():.3f}",
+                                 lr=f"{scheduler.get_last_lr()[0]:.1e}")
+                pbar.update(len(chunk))
+
+            if rank == 0 and (n_batches % 100) == 0:
                 cur_lr = scheduler.get_last_lr()[0]
                 print(f"  Epoch {epoch+1}/{EPOCHS} | Step {n_batches} | Loss: "
                       f"{loss.item()*GRAD_ACCUM:.4f} | Reward: {r.mean().item():.3f} | LR: {cur_lr:.2e}")
 
         if rank == 0:
-            print(f"=== Epoch {epoch+1}/{EPOCHS} done in {time.time()-t0:.1f}s | "
-                  f"Avg Loss: {epoch_loss/max(1, n_batches):.4f} ===")
+            if pbar is not None:
+                pbar.close()
+            epoch_secs = time.time() - t_epoch
+            done_epochs = epoch + 1 - start_epoch
+            todo_epochs = EPOCHS - start_epoch
+            eta_min = epoch_secs * max(0, todo_epochs - done_epochs) / 60.0
+            print(f"=== Epoch {epoch+1}/{EPOCHS} done in {epoch_secs:.1f}s | "
+                  f"Avg Loss: {epoch_loss/max(1, n_batches):.4f} | "
+                  f"예상 남은 시간: 약 {eta_min:.0f}분 (총 경과 {(time.time()-t0)/60:.0f}분) ===")
             if CHECKPOINT_EVERY and (epoch + 1) % CHECKPOINT_EVERY == 0:
                 os.makedirs(output_dir, exist_ok=True)
                 ck_path = os.path.join(output_dir, f"checkpoint_epoch{epoch}.pt")
