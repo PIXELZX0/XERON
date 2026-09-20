@@ -91,8 +91,10 @@ SETTINGS = {
     # ── 컨텍스트 확장 (MAX_LEN) ────────────────────────────────
     # multilingual 베이스는 RoPE 기반(제한 없음), 인코더 한도 8192
     # 전처리/학습 동일 값 필수! 길이 ↑ = 메모리 ↑ → MICRO_BATCH ↓
-    "MAX_LEN": "2048",            # 컨텍스트 (1024 기본 → 2048 확장, 최대 8192)
+    #   프로필: 2048(B권장, MICRO_BATCH=4) / 4096(장문 대비, MICRO_BATCH=2, MAX_TOKENS_BATCH=8192)
+    "MAX_LEN": "2048",            # 컨텍스트 (1024 기본 → 2048/4096 확장, 최대 8192)
     "HEAD_MAX_LEN": "256",        # 결정 헤드 마커 윈도우
+    "MAX_TOKENS_BATCH": "4096",   # 마이크로배치당 토큰 상한 (4096프로필은 8192)
 
     # ── 결과 ───────────────────────────────────────────────────
     "OUTPUT_NAME": "xeron-all-v2",
@@ -263,6 +265,7 @@ os.environ["CHECKPOINT_EVERY"] = SETTINGS["CHECKPOINT_EVERY"]
 os.environ["RESUME"]           = SETTINGS["RESUME"]
 os.environ["MAX_LEN"]          = SETTINGS["MAX_LEN"]
 os.environ["HEAD_MAX_LEN"]     = SETTINGS["HEAD_MAX_LEN"]
+os.environ["MAX_TOKENS_BATCH"] = SETTINGS.get("MAX_TOKENS_BATCH", "4096")
 
 OUT_DIR = f"/content/output/{SETTINGS['OUTPUT_NAME']}"
 print("유효 배치:", int(SETTINGS["MICRO_BATCH"]) * int(SETTINGS["GRAD_ACCUM"]),
