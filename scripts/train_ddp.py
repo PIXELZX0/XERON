@@ -42,6 +42,35 @@ LR_ENCODER = _env_float("LR_ENCODER", 2.5e-5)
 LR_HEAD = _env_float("LR_HEAD", 1.0e-4)
 SIGMA_START = _env_float("SIGMA_START", 0.4)  # exploration noise
 SIGMA_END = _env_float("SIGMA_END", 0.1)
+CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
+RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
+
+
+def _latest_checkpoint(output_dir):
+    import glob
+    cks = sorted(glob.glob(os.path.join(output_dir, "checkpoint_epoch*.pt")))
+    return cks[-1] if cks else None
+
+
+def save_checkpoint(path, model, optimizer, scheduler, scaler, epoch):
+    sd = {k: v.half().contiguous().cpu() for k, v in model.state_dict().items()}
+    torch.save({
+        "model": sd,
+        "optimizer": optimizer.state_dict(),
+        "scheduler": scheduler.state_dict(),
+        "scaler": scaler.state_dict(),
+        "epoch": epoch,
+    }, path)
+
+
+def load_checkpoint(path, model, optimizer, scheduler, scaler, device):
+    ck = torch.load(path, map_location=device, weights_only=False)
+    model.load_state_dict(ck["model"], strict=True)
+    model.float()  # ckpt stored in fp16 -> back to fp32 for stable training
+    optimizer.load_state_dict(ck["optimizer"])
+    scheduler.load_state_dict(ck["scheduler"])
+    scaler.load_state_dict(ck["scaler"])
+    return ck["epoch"] + 1
 
 
 # ---------------------------------------------------------------- utilities
@@ -144,12 +173,25 @@ def main():
     )
     scaler = torch.amp.GradScaler("cuda", enabled=True)
 
+    # ---- checkpoint resume (all ranks load the same file) ----
+    start_epoch = 0
+    if RESUME:
+        ck_path = RESUME if RESUME != "auto" else _latest_checkpoint(output_dir)
+        if ck_path and os.path.exists(ck_path):
+            start_epoch = load_checkpoint(ck_path, ddp_model.module, optimizer,
+                                          scheduler, scaler, device)
+            dist.barrier()
+            if rank == 0:
+                print(f"[XERON] resumed from {ck_path} at epoch {start_epoch}")
+        elif rank == 0:
+            print(f"[XERON] RESUME={RESUME} but no checkpoint found; training from scratch")
+
     if rank == 0:
         print(f"XERON DDP training: {len(all_items)} items | {len(my_items)}/rank "
               f"| {EPOCHS} epochs | eff batch {MICRO_BATCH * world_size * GRAD_ACCUM}")
     t0 = time.time()
 
-    for epoch in range(EPOCHS):
+    for epoch in range(start_epoch, EPOCHS):
         random.seed(42 + epoch + rank)
         random.shuffle(my_items)
         epoch_loss, n_batches = 0.0, 0
@@ -221,8 +263,12 @@ def main():
         if rank == 0:
             print(f"=== Epoch {epoch+1}/{EPOCHS} done in {time.time()-t0:.1f}s | "
                   f"Avg Loss: {epoch_loss/max(1, n_batches):.4f} ===")
-
-    dist.barrier()
+            if CHECKPOINT_EVERY and (epoch + 1) % CHECKPOINT_EVERY == 0:
+                os.makedirs(output_dir, exist_ok=True)
+                ck_path = os.path.join(output_dir, f"checkpoint_epoch{epoch}.pt")
+                save_checkpoint(ck_path, model, optimizer, scheduler, scaler, epoch)
+                print(f"[XERON] checkpoint saved: {ck_path}")
+        dist.barrier()
 
     # Post-training temperature calibration on rank 0
     if rank == 0:

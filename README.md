@@ -162,6 +162,44 @@ torchrun --standalone --nproc_per_node=2 \
 
 하이퍼파라미터는 `configs/finetune.json`에서 조정하거나 환경변수(`EPOCHS`, `MICRO_BATCH`, `GRAD_ACCUM`, `LR_ENCODER` ...)로 오버라이드할 수 있습니다.
 
+### 학습 환경변수 (파라미터 확장)
+
+| 변수 | 기본 | 설명 |
+|---|---|---|
+| `EPOCHS` | 4 | 학습 에폭 |
+| `MICRO_BATCH` | 8 | GPU당 1회 forward 배치 |
+| `GRAD_ACCUM` | 4 | 그래디언트 누적 — 유효 배치 = MICRO_BATCH × GPU 수 × GRAD_ACCUM |
+| `GROUP_SIZE` | 4 | GRPO baseline 샘플 수 |
+| `LR_ENCODER` / `LR_HEAD` | 2.5e-5 / 1e-4 | 인코더/헤드 학습률 |
+| `SIGMA_START` / `SIGMA_END` | 0.4 / 0.1 | 탐색 노이즈 |
+| `CHECKPOINT_EVERY` | 0 | N 에폭마다 체크포인트 저장 (Colab 등 세션 끊김 대비: 1) |
+| `RESUME` | (없음) | 체크포인트 경로 또는 `auto`(output_dir 최신 체크포인트)로 이어서 학습 |
+
+```bash
+# 예: 세션 끊김 대비 1 에폭마다 저장 + 재개 가능한 학습
+CHECKPOINT_EVERY=1 RESUME=auto torchrun ...
+```
+
+## 🚀 Google Colab 파인튜닝 (T4 1-GPU)
+
+무료 T4에서 돌릴 수 있도록 준비된 노트북: **`notebooks/XERON_finetune_colab.ipynb`**
+([Colab에서 열기](https://colab.research.google.com/github/PIXELZX0/XERON/blob/main/notebooks/XERON_finetune_colab.ipynb))
+
+1. Drive에 `train_items_all_v2.pt`(136MB) 업로드 → `xeron/` 폴더
+2. 노트북 셀 1~6 실행 (GPU 확인 → 설치 → 모델 다운로드 → 설정)
+3. 셀 7: 학습 실행 (1 GPU 전용 GRAD_ACCUM 확장, 에폭마다 체크포인트)
+4. 셀 8: 평가 + 결과 Drive 복사 · 셀 9: HF 업로드
+
+**1-GPU 파라미터 확장 실험 매트릭스** (원본 2×T4 유효배치 64와 동일 기준):
+
+| 실험 | EPOCHS | GRAD_ACCUM | 유효배치 | 예상 시간 (T4) |
+|---|---|---|---|---|
+| A (빠른 검증) | 1 | 4 | 32 | ~30–45분 |
+| **B (권장)** | **2** | **8** | **64** | ~1.5–3시간 |
+| C (정밀) | 3 | 8 | 64 | Pro 권장 |
+
+> 💡 Colab 세션이 끊기면: 상단 셀 재실행 후 학습 셀에서 `RESUME="auto"`로 바꿔 실행하면 마지막 에폭 체크포인트부터 이어집니다.
+
 ### 4) 평가
 
 ```bash
