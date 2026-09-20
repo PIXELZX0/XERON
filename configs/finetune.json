@@ -1,0 +1,14 @@
+{
+  "EPOCHS": 4,
+  "MICRO_BATCH": 8,
+  "GRAD_ACCUM": 4,
+  "GROUP_SIZE": 4,
+  "LR_ENCODER": 2.5e-05,
+  "LR_HEAD": 0.0001,
+  "SIGMA_START": 0.4,
+  "SIGMA_END": 0.1,
+  "WEIGHT_DECAY": 0.01,
+  "W_SPH": 0.75,
+  "W_RPS": 1.0,
+  "NOTE": "Effective batch = MICRO_BATCH * num_GPUs * GRAD_ACCUM. Reference run: T4 x2, ~4-6 min."
+}

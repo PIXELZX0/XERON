@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pt
+*.safetensors
+output/
+.env
+.venv/
+train_items.pt
+eval_results.json
+.DS_Store

@@ -1,0 +1,13 @@
+# XERON fine-tuning dependencies
+laya>=0.1.6
+transformers>=4.48.0
+datasets>=3.0.0
+torch>=2.1
+safetensors
+huggingface_hub
+pyarrow
+pandas
+scipy
+accelerate
+tabulate
+numpy
