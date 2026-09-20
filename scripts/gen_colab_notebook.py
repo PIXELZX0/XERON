@@ -89,10 +89,11 @@ SETTINGS = {
     "RESUME": "",                 # 재개 시 "auto"
 
     # ── 컨텍스트 확장 (MAX_LEN) ────────────────────────────────
-    # multilingual 베이스는 RoPE 기반(제한 없음), 인코더 한도 8192
+    # multilingual 베이스는 RoPE 기반(위치임베딩 없음) — 기본 한도는
+    # 스크립트가 자동으로 32768(4096x8)까지 상향해둠 (CTX_CAP)
     # 전처리/학습 동일 값 필수! 길이 ↑ = 메모리 ↑ → MICRO_BATCH ↓
-    #   프로필: 2048(B권장, MICRO_BATCH=4) / 4096(장문 대비, MICRO_BATCH=2, MAX_TOKENS_BATCH=8192)
-    "MAX_LEN": "2048",            # 컨텍스트 (1024 기본 → 2048/4096 확장, 최대 8192)
+    #   프로필: 2048(B권장, MICRO_BATCH=4) / 4096(장문, MICRO_BATCH=2, MAX_TOKENS_BATCH=8192)
+    "MAX_LEN": "2048",            # 실제 학습 컨텍스트 (1024~32768 사이 선택)
     "HEAD_MAX_LEN": "256",        # 결정 헤드 마커 윈도우
     "MAX_TOKENS_BATCH": "4096",   # 마이크로배치당 토큰 상한 (4096프로필은 8192)
 

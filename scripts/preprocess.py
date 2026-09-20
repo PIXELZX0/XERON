@@ -24,6 +24,7 @@ from huggingface_hub import snapshot_download
 
 from laya.agent import _fix_tokenizer_config
 from laya.common import build_sequence, render_options, QTYPES
+from ctx_extend import ensure_long_context
 
 MODEL_ID = "convaiinnovations/laya"
 
@@ -84,14 +85,12 @@ def main():
     _fix_tokenizer_config(model_dir)
 
     tok = AutoTokenizer.from_pretrained(os.path.join(model_dir, "tokenizer"))
-    with open(os.path.join(model_dir, "rl_agent_config.json")) as f:
-        cfg = json.load(f)
-
-    # Context extension: override max lengths via env (must match train_ddp.py)
-    if os.environ.get("MAX_LEN"):
-        cfg["max_len"] = int(os.environ["MAX_LEN"])
-    if os.environ.get("HEAD_MAX_LEN"):
-        cfg["head_max_len"] = int(os.environ["HEAD_MAX_LEN"])
+    # Context extension: raise encoder cap (up to 32768) + config max_len
+    max_len = int(os.environ.get("MAX_LEN") or 1024)
+    head_max_len = int(os.environ.get("HEAD_MAX_LEN") or 256)
+    cfg = ensure_long_context(model_dir, max_len, head_max_len=head_max_len)
+    cfg["max_len"] = max_len
+    cfg["head_max_len"] = head_max_len
     print(f"Context: max_len={cfg['max_len']} head_max_len={cfg['head_max_len']}")
 
     if args.data_files:

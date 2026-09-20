@@ -174,18 +174,23 @@ torchrun --standalone --nproc_per_node=2 \
 | `SIGMA_START` / `SIGMA_END` | 0.4 / 0.1 | 탐색 노이즈 |
 | `CHECKPOINT_EVERY` | 0 | N 에폭마다 체크포인트 저장 (Colab 등 세션 끊김 대비: 1) |
 | `RESUME` | (없음) | 체크포인트 경로 또는 `auto`(output_dir 최신 체크포인트)로 이어서 학습 |
-| `MAX_LEN` | 1024 | **컨텍스트 길이** — 인코더 한도 8192 (ModernBERT RoPE). English 베이스 기본 512 → 2048/4096 확장 가능 |
+| `MAX_LEN` | 2048 | **실제 학습 컨텍스트** — 기본 한도는 preprocess/train이 자동으로 **32,768(4096×8)**까지 상향 |
 | `HEAD_MAX_LEN` | 256 | 결정 헤드 마커 윈도우 |
 | `MAX_TOKENS_BATCH` | 4096 | 마이크로배치당 최대 토큰 (메모리 상한 — 컨텍스트↑면 MICRO_BATCH↓) |
+| `CTX_CAP` | 32768 | 인코더 `max_position_embeddings` 상한 (RoPE, 4096×8) |
 
 ### 📏 컨텍스트 확장 방법
 
+0. **기본 한도는 자동 상향됨**: `preprocess.py`와 `train_ddp.py`가 실행 시 `ctx_extend.ensure_long_context()`로
+   인코더 `max_position_embeddings`를 **32,768**까지, `rl_agent_config.max_len`을 기본값으로 올립니다 (멱등).
+   `CTX_CAP` env로 한도 조절 가능.
 1. **전처리와 학습 양쪽에서 동일한 `MAX_LEN` 사용** (토크나이즈 길이가 달라지면 안 됨):
    ```bash
-   MAX_LEN=2048 python scripts/preprocess.py --model-id <영어베이스> --data-files data.jsonl --output items.pt
-   MAX_LEN=2048 torchrun --standalone --nproc_per_node=1 scripts/train_ddp.py <영어베이스> ./output/xeron items.pt
+   MAX_LEN=8192 python scripts/preprocess.py --model-id <베이스> --data-files data.jsonl --output items.pt
+   MAX_LEN=8192 torchrun --standalone --nproc_per_node=1 scripts/train_ddp.py <베이스> ./output/xeron items.pt
    ```
-2. **English 베이스 권장** (`layaroot`, 512→무제한 확장): ModernBERT는 RoPE 기반이라 2048/4096/8192 모두 동작
+2. **RoPE 기반 베이스 권장** (multilingual/english 모두 ModernBERT): 위치 임베딩 테이블이 없어
+   2048/4096/8192/32768 모두 구조 변경 없이 동작 (4,000 토큰 포워드 검증 완료)
 3. **메모리 트레이드오프**: 시퀀스 2배 = attention 메모리 약 4배 → `MICRO_BATCH`를 반으로 (예: 8→4), `MAX_TOKENS_BATCH` 조정
 4. Colab 노트북 ⚙️ 설정의 `MAX_LEN` 항목만 바꾸면 전 과정 자동 반영
 

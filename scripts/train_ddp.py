@@ -23,6 +23,7 @@ from safetensors.torch import load_file, save_file
 from transformers import AutoTokenizer
 
 from laya.common import build_model, proper_reward, QTYPES
+from ctx_extend import ensure_long_context
 
 
 # ---------------------------------------------------------------- hyperparams
@@ -44,9 +45,10 @@ SIGMA_START = _env_float("SIGMA_START", 0.4)  # exploration noise
 SIGMA_END = _env_float("SIGMA_END", 0.1)
 CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
 RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
-MAX_LEN = _env_int("MAX_LEN", 1024)                # context: seq length (ModernBERT supports up to 8192)
+MAX_LEN = _env_int("MAX_LEN", 2048)                # context: seq length (RoPE up to 32768)
 HEAD_MAX_LEN = _env_int("HEAD_MAX_LEN", 256)       # decision-head marker window
 MAX_TOKENS_BATCH = _env_int("MAX_TOKENS_BATCH", 4096)  # max tokens per micro-batch (memory bound)
+CTX_CAP = _env_int("CTX_CAP", 32768)                # encoder max_position_embeddings ceiling (4096x8)
 
 
 def _latest_checkpoint(output_dir):
@@ -140,8 +142,8 @@ def main():
 
     # model_id is expected to be a LOCAL directory (e.g. from snapshot_download
     # of convaiinnovations/laya, or a previous fine-tune output)
-    with open(os.path.join(model_id, "rl_agent_config.json")) as f:
-        cfg = json.load(f)
+    # ---- context extension: raise encoder cap + config lengths ----
+    cfg = ensure_long_context(model_id, MAX_LEN, CTX_CAP, HEAD_MAX_LEN)
     cfg["gradient_checkpointing"] = True
     cfg["max_tokens_per_batch"] = MAX_TOKENS_BATCH
     cfg["max_len"] = MAX_LEN
