@@ -2,7 +2,9 @@
 
 **XERON** — [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) 기반 파인튜닝 결정(decision) 모델 프로젝트.
 
-> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. 기본 학습 데이터는 [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4개 workflow: invoice / security incidents / customer service / agent-trace)이며, 이후 커스텀 범용 데이터를 추가해 계속 개선한다.
+> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. **영어 + 한국어 입력 모두 지원**.
+> - 영어 트랙: English 체크포인트 + [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4개 workflow: invoice / security incidents / customer service / agent-trace)
+> - 한국어 트랙: 멀티링궈얼 체크포인트 + 한국어 데이터 (KLUE 기반 82,344 시퀀스 + 영어 데이터 혼합)
 
 Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상태(text/email/ticket/JSON)와 타입이 지정된 질문(choice / score / noul)을 받아 **단일 forward pass**로 타입화된 답변과 보정된 확률을 반환합니다. 텍스트를 생성하지 않으므로 파싱이 필요 없고 할루시네이션이 없습니다.
 
@@ -18,8 +20,19 @@ Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상�
 | 체크포인트 | Backbone | Params | Context | 용도 |
 |---|---|---|---|---|
 | `laya` (root) | ModernBERT-large | 421M | 512 | English |
-| `laya-multilingual` | mmBERT-base | 322M | 1024 | 100+ languages |
+| `laya-multilingual` | mmBERT-base | 322M | 1024 | 100+ languages (**한국어 포함**) |
 | `laya-typed-decisions` | ModernBERT-large | 421M | 1024 | typed-decisions workflows |
+
+## 🌐 학습 트랙 (Language Tracks)
+
+| 트랙 | 베이스 | 데이터 | 시퀀스 | items 파일 |
+|---|---|---|---|---|
+| **XERON-EN** | `laya` (English) | typed-decisions train | 6,000 | `train_items.pt` |
+| **XERON-KR** | `laya-multilingual` | 한국어 KLUE (ynat 45,678 + nli 24,998 + sts 11,668) | 82,344 | `train_items_kr.pt` |
+| **XERON-MIX** 🎯 | `laya-multilingual` | EN typed-decisions + KR KLUE | 88,344 | `train_items_mix.pt` |
+
+> 🎯 **기본 학습은 XERON-MIX**: 멀티링궈얼 베이스에 영어+한국어 혼합 데이터로 파인튜닝하면 두 언어 모두 처리하는 단일 범용 모델이 됩니다.
+> Laya `Router`는 언어를 자동 감지하므로, English/멀티링궈얼 체크포인트를 함께 배포하면 언어별 라우팅도 가능합니다.
 
 ## 🏗 파인튜닝 파이프라인
 
@@ -45,9 +58,38 @@ scripts/train_ddp.py  ──► torchrun DDP (RLCD policy gradient + soft CE gui
 |---|---|
 | GitHub 레포 | ✅ PIXELZX0/XERON (public) |
 | 로컬 venv + 의존성 | ✅ `.venv` (laya 0.3.3 / transformers 5.17 / torch 2.14) |
-| 베이스 모델 | ✅ `/home/yuchan/laya-models/laya-base` (2.2GB) |
-| 범용 데이터 전처리 | ✅ `train_items.pt` — 6,000 sequences (1,200 케이스) |
-| 실제 학습 | ⏳ GPU 필요 (T4 x2 기준 ~4–6분) |
+| 베이스 모델 (EN + Multilingual) | ✅ `/home/yuchan/laya-models/laya-base` (2.3GB) |
+| 영어 데이터 전처리 | ✅ `train_items.pt` — 6,000 seq (typed-decisions) |
+| 한국어 데이터 구축 | ✅ `data/korean_typed.jsonl` — 82,344행 (KLUE ynat/nli/sts) |
+| 한국어 전처리 | ✅ `train_items_kr.pt` — 82,344 seq |
+| MIX 전처리 (EN+KR) | ✅ `train_items_mix.pt` — 88,344 seq |
+| 실제 학습 | ⏳ GPU 필요 (T4 x2 기준 EN만 ~4–6분, MIX는 수십 분 내외) |
+
+### XERON-MIX (권장 — 영어 + 한국어 범용)
+
+```bash
+# 1) 한국어 데이터셋 빌드 (KLUE) — 82,344행 JSONL 생성
+python scripts/build_korean_dataset.py --output data/korean_typed.jsonl
+
+# 2) 영어 + 한국어를 multilingual 토크나이저로 전처리
+python scripts/preprocess.py \
+  --model-id /home/yuchan/laya-models/laya-base/multilingual \
+  --dataset LocalLLaMA/typed-decisions --config-name all --split train \
+  --output train_items_en_multi.pt
+python scripts/preprocess.py \
+  --model-id /home/yuchan/laya-models/laya-base/multilingual \
+  --data-files data/korean_typed.jsonl --output train_items_kr.pt
+
+# 3) 병합 (선택)
+python -c "import torch; torch.save(torch.load('train_items_en_multi.pt')+torch.load('train_items_kr.pt'),'train_items_mix.pt')"
+
+# 4) MIX 학습 (GPU 2x, 데이터 규모상 EPOCHS=2 권장)
+EPOCHS=2 torchrun --standalone --nproc_per_node=2 \
+  scripts/train_ddp.py \
+  /home/yuchan/laya-models/laya-base/multilingual \
+  ./output/xeron-mix \
+  train_items_mix.pt
+```
 
 ### 요구 환경
 

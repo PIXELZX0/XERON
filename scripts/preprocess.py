@@ -67,20 +67,35 @@ def main():
     ap.add_argument("--dataset", default="LocalLLaMA/typed-decisions")
     ap.add_argument("--config-name", default="all")
     ap.add_argument("--split", default="train")
+    ap.add_argument("--data-files", default=None,
+                    help="Local JSON/JSONL file(s) to load instead of a HF dataset "
+                         "(e.g. data/korean_typed.jsonl)")
+    ap.add_argument("--limit", type=int, default=0,
+                    help="Cap number of rows processed (0 = all)")
     ap.add_argument("--output", default="train_items.pt")
     ap.add_argument("--model-id", default=MODEL_ID)
     args = ap.parse_args()
 
     print(f"Fetching tokenizer and config from {args.model_id}...")
-    model_dir = snapshot_download(args.model_id)
+    if os.path.isdir(args.model_id):
+        model_dir = args.model_id
+    else:
+        model_dir = snapshot_download(args.model_id)
     _fix_tokenizer_config(model_dir)
 
     tok = AutoTokenizer.from_pretrained(os.path.join(model_dir, "tokenizer"))
     with open(os.path.join(model_dir, "rl_agent_config.json")) as f:
         cfg = json.load(f)
 
-    print(f"Loading dataset {args.dataset} ({args.config_name} / {args.split})...")
-    ds = load_dataset(args.dataset, args.config_name, split=args.split)
+    if args.data_files:
+        print(f"Loading local data from {args.data_files}...")
+        ds = load_dataset("json", data_files=args.data_files, split="train")
+    else:
+        print(f"Loading dataset {args.dataset} ({args.config_name} / {args.split})...")
+        ds = load_dataset(args.dataset, args.config_name, split=args.split)
+    if args.limit:
+        ds = ds.select(range(min(args.limit, len(ds))))
+        print(f"Limited to {len(ds)} rows")
 
     items = []
     for row in ds:

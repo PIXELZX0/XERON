@@ -8,3 +8,7 @@ output/
 train_items.pt
 eval_results.json
 .DS_Store
+# 재생성 가능한 대용량 데이터는 커밋 제외 (scripts/build_korean_dataset.py로 재생성)
+data/*.jsonl
+data/*.json
+data/*.parquet
