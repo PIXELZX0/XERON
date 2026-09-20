@@ -2,10 +2,11 @@
 
 **XERON** — [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) 기반 파인튜닝 결정(decision) 모델 프로젝트.
 
-> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. **영어 + 한국어 입력 + 브라우저 사용(웹 결정)까지 지원**.
+> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. **영어 + 한국어 입력 + 브라우저 사용(웹 결정 + 웹 에이전트 액션)까지 지원**.
 > - 영어 트랙: English 체크포인트 + [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4개 workflow: invoice / security incidents / customer service / agent-trace)
 > - 한국어 트랙: 멀티링궈얼 체크포인트 + 한국어 데이터 (KLUE 기반 82,344 시퀀스)
 > - 브라우저 트랙: 웹 페이지 주제 분류(BBC/AG News) + 스팸/피싱 탐지 (28,899 시퀀스)
+> - 웹 에이전트 트랙: [Mind2Web](https://huggingface.co/datasets/osunlp/Mind2Web) 기반 다음 액션/요소 결정 (14,724 시퀀스)
 
 Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상태(text/email/ticket/JSON)와 타입이 지정된 질문(choice / score / noul)을 받아 **단일 forward pass**로 타입화된 답변과 보정된 확률을 반환합니다. 텍스트를 생성하지 않으므로 파싱이 필요 없고 할루시네이션이 없습니다.
 
@@ -32,9 +33,11 @@ Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상�
 | **XERON-KR** | `laya-multilingual` | 한국어 KLUE (ynat 45,678 + nli 24,998 + sts 11,668) | 82,344 | `train_items_kr.pt` |
 | **XERON-MIX** 🎯 | `laya-multilingual` | EN typed-decisions + KR KLUE | 88,344 | `train_items_mix.pt` |
 | **XERON-BROWSE** | `laya-multilingual` | 웹 페이지 분류(BBC 1,225 + AG 20,000) + 스팸 5,574 + 피싱 2,100 | 28,899 | `train_items_browser.pt` |
-| **XERON-ALL** 🏆 | `laya-multilingual` | EN + KR + Browser 전체 혼합 | 117,243 | `train_items_all.pt` |
+| **XERON-WEBAGENT** | `laya-multilingual` | Mind2Web 다음 액션(op) + 요소 선택 (7,362 스텝) | 14,724 | `train_items_webagent.pt` |
+| **XERON-ALL** 🏆 | `laya-multilingual` | EN + KR + Browser 혼합 | 117,243 | `train_items_all.pt` |
+| **XERON-ALL-v2** 🚀 | `laya-multilingual` | EN + KR + Browser + WebAgent 전체 | 131,967 | `train_items_all_v2.pt` |
 
-> 🎯 **기본 학습은 XERON-MIX 또는 XERON-ALL**: 멀티링궈얼 베이스에 영어+한국어(+브라우저) 혼합 데이터로 파인튜닝하면 모든 입력을 처리하는 단일 범용 모델이 됩니다.
+> 🎯 **기본 학습은 XERON-ALL-v2**: 멀티링궈얼 베이스에 영어+한국어+브라우저+웹 에이전트 데이터로 파인튜닝하면 일반 결정부터 웹 브라우저 액션 결정까지 처리하는 단일 범용 모델이 됩니다.
 > Laya `Router`는 언어를 자동 감지하므로, English/멀티링궈얼 체크포인트를 함께 배포하면 언어별 라우팅도 가능합니다.
 
 ## 🏗 파인튜닝 파이프라인
@@ -68,7 +71,10 @@ scripts/train_ddp.py  ──► torchrun DDP (RLCD policy gradient + soft CE gui
 | MIX 전처리 (EN+KR) | ✅ `train_items_mix.pt` — 88,344 seq |
 | 브라우저 데이터 구축 | ✅ `data/browser_typed.jsonl` — 28,899행 (웹 분류 BBC/AG + 스팸/피싱) |
 | 브라우저 전처리 | ✅ `train_items_browser.pt` — 28,899 seq |
+| Mind2Web 웹 에이전트 | ✅ `data/mind2web_typed.jsonl` — 14,724행 (다음 액션/요소 선택) |
+| 웹 에이전트 전처리 | ✅ `train_items_webagent.pt` — 14,724 seq |
 | ALL 전처리 (EN+KR+Browser) | ✅ `train_items_all.pt` — 117,243 seq |
+| ALL-v2 (EN+KR+Browser+WebAgent) 🚀 | ✅ `train_items_all_v2.pt` — 131,967 seq |
 | 실제 학습 | ⏳ GPU 필요 (T4 x2 기준 EN만 ~4–6분, MIX/ALL은 수십 분~시간 내외) |
 
 ### XERON-MIX (권장 — 영어 + 한국어 범용)
