@@ -2,6 +2,8 @@
 
 **XERON** — [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) 기반 파인튜닝 결정(decision) 모델 프로젝트.
 
+> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. 기본 학습 데이터는 [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4개 workflow: invoice / security incidents / customer service / agent-trace)이며, 이후 커스텀 범용 데이터를 추가해 계속 개선한다.
+
 Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상태(text/email/ticket/JSON)와 타입이 지정된 질문(choice / score / noul)을 받아 **단일 forward pass**로 타입화된 답변과 보정된 확률을 반환합니다. 텍스트를 생성하지 않으므로 파싱이 필요 없고 할루시네이션이 없습니다.
 
 | 항목 | 값 |
@@ -36,6 +38,16 @@ scripts/train_ddp.py  ──► torchrun DDP (RLCD policy gradient + soft CE gui
         ├──► scripts/evaluate.py   (벤치마크: accuracy, Brier, ECE, score MAE)
         └──► scripts/upload_hf.py  (HuggingFace Hub 업로드)
 ```
+
+### 현재 준비 상태 (2026-09-20)
+
+| 항목 | 상태 |
+|---|---|
+| GitHub 레포 | ✅ PIXELZX0/XERON (public) |
+| 로컬 venv + 의존성 | ✅ `.venv` (laya 0.3.3 / transformers 5.17 / torch 2.14) |
+| 베이스 모델 | ✅ `/home/yuchan/laya-models/laya-base` (2.2GB) |
+| 범용 데이터 전처리 | ✅ `train_items.pt` — 6,000 sequences (1,200 케이스) |
+| 실제 학습 | ⏳ GPU 필요 (T4 x2 기준 ~4–6분) |
 
 ### 요구 환경
 
