@@ -28,7 +28,7 @@ cells.append(md(
 - 1 GPU용으로 GRAD_ACCUM을 확장해 2xT4(64 유효배치)와 동일한 유효 배치를 유지합니다
 - 체크포인트를 에폭마다 저장하므로 **세션이 끊겨도 재개**할 수 있습니다
 
-> ⚠️ 무료 T4 세션은 런타임이 끊길 수 있습니다. 완료 후 반드시 결과를 Drive로 복사하세요.
+> ⚠️ 무료 T4 세션은 런타임이 끊길 수 있습니다. 완료 후 반드시 결과를 저장하세요.
 """))
 
 cells.append(code(
@@ -43,7 +43,7 @@ if torch.cuda.is_available():
 
 cells.append(code(
 """# 2) 의존성 설치
-!pip install -q "laya>=0.1.6" "transformers>=4.48.0" "datasets>=3.0.0" safetensors huggingface_hub pyarrow pandas scipy accelerate tabulate
+!pip install -q "laya>=0.1.6" "transformers>=4.48.0" "datasets>=3.0.0" safetensors huggingface_hub pyarrow pandas scipy accelerate tabulate boto3
 import laya, transformers, torch
 print("laya", laya.__version__, "| transformers", transformers.__version__, "| torch", torch.__version__)
 """))
@@ -57,49 +57,104 @@ import sys; sys.path.insert(0, "/content/XERON")
 """))
 
 cells.append(md(
-"""## 4) 학습 데이터 준비 — 3가지 경로 (우선순위 순)
+"""## ⚙️ 설정 — 여기서 값을 넣어주세요
 
-**경로 A (권장): S3 호환 저장소** — Colab Secrets(🔑)에 자격 증명을 등록하면 바로 다운로드.
-`S3_ENDPOINT` / `S3_BUCKET` / `S3_KEY` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`
-
-**경로 B:** Google Drive — 로컬에서 생성한 `train_items_all_v2.pt`를 Drive `xeron/` 폴더에 업로드.
-
-**경로 C:** 소스 JSONL에서 Colab에서 직접 전처리 (몇 분 소요).
+아래 셀의 `SETTINGS` 딕셔너리를 수정하면 나머지 과정이 자동 반영됩니다.
+- **빈 값으로 두면** Colab Secrets(🔑 아이콘 → + New secret)에서 같은 이름으로 읽습니다
+- ⚠️ **S3 자격 증명을 이 셀에 직접 넣어도 동작하지만, GitHub에 노트북을 커밋하지 마세요**
+  (이 레포는 public이라 키가 노출됩니다 — Colab Secrets 사용을 권장)
 """))
 
 cells.append(code(
-"""# 4A) 학습 데이터 확보 — S3 호환 (권장) → Drive → 재구성 순으로 자동 시도
-from google.colab import userdata
-import os
+"""# ⚙️ 설정 (Settings) — 값을 직접 넣거나 Secrets에서 읽습니다
+SETTINGS = {
+    # ── 데이터: S3 호환(MinIO 등) ──────────────────────────────
+    "S3_ENDPOINT": "",            # 예: http://192.168.0.100:9000 (빈 값 = Secrets)
+    "S3_BUCKET": "xeron",
+    "S3_KEY": "train_items_all_v2.pt",
+    "AWS_ACCESS_KEY_ID": "",      # 빈 값 = Secrets
+    "AWS_SECRET_ACCESS_KEY": "",  # 빈 값 = Secrets
 
+    # ── 베이스 모델 ────────────────────────────────────────────
+    "BASE_MODEL": "multilingual", # multilingual(322M, 한/영/웹) | english(421M)
+
+    # ── 학습 하이퍼파라미터 (파라미터 확장) ────────────────────
+    "EPOCHS": "2",                # 1~3 권장 (131K 규모)
+    "MICRO_BATCH": "8",           # T4 fp16 + grad checkpoint 안전값
+    "GRAD_ACCUM": "8",            # 1 GPU 확장 → 유효배치 = 8×1×8 = 64
+    "GROUP_SIZE": "4",
+    "LR_ENCODER": "2.5e-5",
+    "LR_HEAD": "1e-4",
+    "CHECKPOINT_EVERY": "1",      # N 에폭마다 체크포인트 (세션 끊김 대비)
+    "RESUME": "",                 # 재개 시 "auto"
+
+    # ── 결과 ───────────────────────────────────────────────────
+    "OUTPUT_NAME": "xeron-all-v2",
+}
+
+# 설정창(Secrets) 폴백 헬퍼
+try:
+    from google.colab import userdata
+    def _sec(name, default=""):
+        try:
+            return userdata.get(name, default) or default
+        except Exception:
+            return default
+except ImportError:
+    userdata = None
+    def _sec(name, default=""):
+        return default
+
+for k in ["S3_ENDPOINT", "S3_BUCKET", "S3_KEY", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]:
+    if not SETTINGS.get(k):
+        SETTINGS[k] = _sec(k, SETTINGS.get(k, ""))
+
+import os
+os.environ.update({k: str(v) for k, v in SETTINGS.items() if v})
+print("✅ 설정 적용됨")
+print("   S3:", SETTINGS["S3_ENDPOINT"] or "(미설정 — Drive 모드)", "| bucket:", SETTINGS["S3_BUCKET"])
+print("   BASE_MODEL:", SETTINGS["BASE_MODEL"], "| EPOCHS:", SETTINGS["EPOCHS"],
+      "| GRAD_ACCUM:", SETTINGS["GRAD_ACCUM"])
+"""))
+
+cells.append(md(
+"""## 4) 학습 데이터 준비 — 3가지 경로 (자동 우선순위)
+
+**① S3 호환(MinIO 등)** → **② Google Drive** → **③ JSONL 재구성**
+
+- S3 설정을 넣었거나 Secrets에 있으면 자동으로 S3에서 다운로드합니다
+- S3 미설정이면 Drive 마운트를 시도합니다
+- 둘 다 없으면 마지막 셀이 JSONL에서 직접 재구성합니다
+"""))
+
+cells.append(code(
+"""# 4A) 학습 데이터 확보 (S3 → Drive → 재구성 자동 시도)
+import os
 ITEMS = "/content/train_items_all_v2.pt"
 
-# ---- 옵션 1: S3 호환 저장소 (Colab Secrets 등록 필요) ----
-#   S3_ENDPOINT(예: https://s3.ap-northeast-2.amazonaws.com 또는 R2/MinIO 엔드포인트)
-#   S3_BUCKET / S3_KEY / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
-S3_ENDPOINT = userdata.get("S3_ENDPOINT", "")
-S3_BUCKET   = userdata.get("S3_BUCKET", "xeron")
-S3_KEY      = userdata.get("S3_KEY", "train_items_all_v2.pt")
-
-if S3_ENDPOINT and not os.path.exists(ITEMS):
+# ① S3 호환 (MinIO 등)
+if not os.path.exists(ITEMS) and SETTINGS.get("S3_ENDPOINT"):
     import boto3
-    is_aws = "amazonaws.com" in S3_ENDPOINT
-    client_kwargs = dict(
-        aws_access_key_id=userdata.get("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=userdata.get("AWS_SECRET_ACCESS_KEY"),
+    ep = SETTINGS["S3_ENDPOINT"]
+    ck = dict(
+        aws_access_key_id=SETTINGS["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=SETTINGS["AWS_SECRET_ACCESS_KEY"],
     )
-    if not is_aws:  # R2 / Backblaze / MinIO 등 S3 호환은 엔드포인트 직접 지정
-        client_kwargs["endpoint_url"] = S3_ENDPOINT
-        client_kwargs["region_name"] = "us-east-1"  # R2 등은 기본 리전
-    s3 = boto3.client("s3", **{k: v for k, v in client_kwargs.items() if v})
-    s3.download_file(S3_BUCKET, S3_KEY, ITEMS)
-    print("☁️ S3에서 다운로드 완료:", ITEMS)
+    if "amazonaws.com" not in ep:  # MinIO/R2/B2 등 S3 호환
+        ck["endpoint_url"] = ep
+        ck["region_name"] = "us-east-1"
+    s3 = boto3.client("s3", **{k: v for k, v in ck.items() if v})
+    try:
+        s3.download_file(SETTINGS["S3_BUCKET"], SETTINGS["S3_KEY"], ITEMS)
+        print("☁️ S3에서 다운로드 완료:", ITEMS)
+    except Exception as e:
+        print("⚠️ S3 다운로드 실패:", str(e)[:200], "→ Drive 모드로 전환")
 
-# ---- 옵션 2: Google Drive ----
+# ② Google Drive
 if not os.path.exists(ITEMS):
     from google.colab import drive
     drive.mount("/content/drive")
-    GDRIVE = "/content/drive/MyDrive/xeron/train_items_all_v2.pt"
+    GDRIVE = "/content/drive/MyDrive/xeron/" + SETTINGS["S3_KEY"]
     if os.path.exists(GDRIVE):
         !cp "$GDRIVE" "$ITEMS"
         print("📁 Drive에서 복사 완료")
@@ -109,7 +164,7 @@ print("ITEMS exists:", os.path.exists(ITEMS),
 """))
 
 cells.append(code(
-"""# 4B) 경로 C 전용: JSONL/HF에서 items 재구성 (items가 없을 때만 실행)
+"""# 4B) 경로 ③ 전용: JSONL/HF에서 items 재구성 (items가 없을 때만 실행)
 import os, torch, subprocess
 
 def run_preprocess(model_dir, out_path, data_files=None):
@@ -123,12 +178,11 @@ def run_preprocess(model_dir, out_path, data_files=None):
     subprocess.run(cmd, check=True, cwd="/content/XERON")
     return torch.load(out_path, weights_only=False)
 
-GDRIVE = "/content/drive/MyDrive/xeron"
-KR_JSONL  = os.path.join(GDRIVE, "korean_typed.jsonl")
-BR_JSONL  = os.path.join(GDRIVE, "browser_typed.jsonl")
-M2W_JSONL = os.path.join(GDRIVE, "mind2web_typed.jsonl")
-
 if not os.path.exists(ITEMS):
+    GDRIVE = "/content/drive/MyDrive/xeron"
+    KR_JSONL  = os.path.join(GDRIVE, "korean_typed.jsonl")
+    BR_JSONL  = os.path.join(GDRIVE, "browser_typed.jsonl")
+    M2W_JSONL = os.path.join(GDRIVE, "mind2web_typed.jsonl")
     os.makedirs("/content/items", exist_ok=True)
     print("items 없음 → JSONL/HF에서 재구성 (몇 분 소요)")
     en = run_preprocess(BASE_MODEL, "/content/items/en.pt")
@@ -143,23 +197,29 @@ else:
 """))
 
 cells.append(md(
-"""## 5) 베이스 모델 (multilingual 체크포인트) 다운로드
+"""## 5) 베이스 모델 다운로드
 
-`convaiinnovations/laya`의 `multilingual/` 서브폴더(mmBERT-base, 322M)만 받습니다 (약 650MB).
+`SETTINGS["BASE_MODEL"]`에 따라 받습니다:
+- `multilingual` → `multilingual/` 서브폴더 (mmBERT-base, 322M, 한국어 포함, 권장)
+- `english` → repo root (ModernBERT-large, 421M)
 """))
 
 cells.append(code(
-"""# 5) multilingual 베이스 모델 다운로드
+"""# 5) 베이스 모델 다운로드
 import os
 from huggingface_hub import snapshot_download
 from laya.agent import _fix_tokenizer_config
 
-MODEL_ROOT = "/content/laya-multilingual"
-if not os.path.exists(os.path.join(MODEL_ROOT, "multilingual", "model.safetensors")):
-    snapshot_download("convaiinnovations/laya", local_dir=MODEL_ROOT,
-                      allow_patterns=["multilingual/*"])
+MODEL_ROOT = "/content/laya-model"
+if SETTINGS["BASE_MODEL"] == "english":
+    pattern = ["*.safetensors", "encoder/*", "tokenizer/*", "rl_agent_config.json"]
+else:
+    pattern = ["multilingual/*"]
 
-BASE_MODEL = os.path.join(MODEL_ROOT, "multilingual")
+if not os.path.exists(os.path.join(MODEL_ROOT, SETTINGS["BASE_MODEL"] == "english" and "model.safetensors" or "multilingual", "model.safetensors")):
+    snapshot_download("convaiinnovations/laya", local_dir=MODEL_ROOT, allow_patterns=pattern)
+
+BASE_MODEL = MODEL_ROOT if SETTINGS["BASE_MODEL"] == "english" else os.path.join(MODEL_ROOT, "multilingual")
 _fix_tokenizer_config(os.path.join(BASE_MODEL, "tokenizer"))
 from transformers import AutoTokenizer
 tok = AutoTokenizer.from_pretrained(os.path.join(BASE_MODEL, "tokenizer"))
@@ -168,7 +228,7 @@ print("KR smoke test:", tok.encode("안녕하세요, 주문한 상품이 아직 
 """))
 
 cells.append(md(
-"""## 6) 하이퍼파라미터 설정 (파라미터 확장 🚀)
+"""## 6) 하이퍼파라미터 — 파라미터 확장 🚀
 
 1 GPU(T4) 기준. **2xT4(유효배치 64)와 동일한 유효 배치를 1 GPU로 확장**합니다:
 - `GRAD_ACCUM=8` (2 GPU 기준 4 → 8로 확장) → 유효 배치 = 8 × 1 × 8 = **64**
@@ -180,30 +240,32 @@ cells.append(md(
 | A (빠른 검증) | 1 | 4 | 32 | ~30~45분 |
 | **B (권장)** | **2** | **8** | **64** | ~1.5~3시간 |
 | C (정밀) | 3 | 8 | 64 | Pro 권장 |
+
+> 값은 위 ⚙️ 설정 셀에서 변경하면 됩니다 (여기서는 그 값을 env로 전달).
 """))
 
 cells.append(code(
-"""# 6) 하이퍼파라미터 확장 설정 (env로 전달)
+"""# 6) ⚙️ 설정 값을 학습 환경변수로 전달
 import os
-os.environ["EPOCHS"]           = "2"    # 2-3 권장
-os.environ["MICRO_BATCH"]      = "8"    # T4 fp16 + grad checkpoint 안전값
-os.environ["GRAD_ACCUM"]       = "8"    # 1 GPU 확장: 유효배치 64 (= 2xT4 원본)
-os.environ["GROUP_SIZE"]       = "4"
-os.environ["LR_ENCODER"]       = "2.5e-5"
-os.environ["LR_HEAD"]          = "1e-4"
-os.environ["CHECKPOINT_EVERY"] = "1"    # 에폭마다 체크포인트
-os.environ["RESUME"]           = ""     # 재개 시 "auto"로 변경
+os.environ["EPOCHS"]           = SETTINGS["EPOCHS"]
+os.environ["MICRO_BATCH"]      = SETTINGS["MICRO_BATCH"]
+os.environ["GRAD_ACCUM"]       = SETTINGS["GRAD_ACCUM"]
+os.environ["GROUP_SIZE"]       = SETTINGS["GROUP_SIZE"]
+os.environ["LR_ENCODER"]       = SETTINGS["LR_ENCODER"]
+os.environ["LR_HEAD"]          = SETTINGS["LR_HEAD"]
+os.environ["CHECKPOINT_EVERY"] = SETTINGS["CHECKPOINT_EVERY"]
+os.environ["RESUME"]           = SETTINGS["RESUME"]
 
-OUT_DIR = "/content/output/xeron-all-v2"
-print("유효 배치:", int(os.environ["MICRO_BATCH"]) * int(os.environ["GRAD_ACCUM"]),
-      "| EPOCHS:", os.environ["EPOCHS"])
+OUT_DIR = f"/content/output/{SETTINGS['OUTPUT_NAME']}"
+print("유효 배치:", int(SETTINGS["MICRO_BATCH"]) * int(SETTINGS["GRAD_ACCUM"]),
+      "| EPOCHS:", SETTINGS["EPOCHS"], "| OUT:", OUT_DIR)
 """))
 
 cells.append(md(
 """## 7) 학습 실행
 
 - 처음 실행: 그대로 실행
-- **런타임이 끊겼다면**: 상단 셀들을 다시 실행한 뒤 아래에서 `RESUME="auto"`로 바꿔 재개
+- **런타임이 끊겼다면**: ⚙️ 설정 셀에서 `RESUME`을 `"auto"`로 바꾸고 상단 셀들을 재실행
 """))
 
 cells.append(code(
@@ -214,25 +276,43 @@ cells.append(code(
 """))
 
 cells.append(md(
-"""## 8) 평가 + 결과 저장
-
-eval은 test split 400 케이스(2,000 결정) 기준입니다. 타 데이터셋은 `--dataset`으로 지정 가능.
-"""))
+"""## 8) 평가 + 결과 저장"""))
 
 cells.append(code(
 """# 8A) 벤치마크 평가
 %cd /content/XERON
 !python scripts/evaluate.py --model "$OUT_DIR" --device cuda --output /content/eval_results.json
 import json
-print(json.dumps(json.load(open("/content/eval_results.json"))["summary"], indent=2))
+try:
+    print(json.dumps(json.load(open("/content/eval_results.json"))["summary"], indent=2))
+except Exception as e:
+    print("평가 결과 파싱 실패:", e)
 """))
 
 cells.append(code(
-"""# 8B) 결과를 Drive로 복사 (필수 — 세션 종료 대비)
-!mkdir -p "$BASE/output"
-!cp -r "$OUT_DIR" "$BASE/output/"
-!cp /content/eval_results.json "$BASE/output/eval_results.json"
-print("Saved to Drive:", "$BASE/output/")
+"""# 8B) 결과 저장 — S3 (설정 시) 또는 Drive
+import os
+if SETTINGS.get("S3_ENDPOINT"):
+    import boto3
+    ck = dict(aws_access_key_id=SETTINGS["AWS_ACCESS_KEY_ID"],
+              aws_secret_access_key=SETTINGS["AWS_SECRET_ACCESS_KEY"])
+    if "amazonaws.com" not in SETTINGS["S3_ENDPOINT"]:
+        ck["endpoint_url"] = SETTINGS["S3_ENDPOINT"]
+        ck["region_name"] = "us-east-1"
+    s3 = boto3.client("s3", **{k: v for k, v in ck.items() if v})
+    # 모델 디렉토리 통째로 업로드
+    for root, _dirs, files in os.walk(OUT_DIR):
+        for f in files:
+            local = os.path.join(root, f)
+            key = f"output/{os.path.basename(OUT_DIR)}/{os.path.relpath(local, OUT_DIR)}"
+            s3.upload_file(local, SETTINGS["S3_BUCKET"], key)
+    s3.upload_file("/content/eval_results.json", SETTINGS["S3_BUCKET"], "output/eval_results.json")
+    print("☁️ 결과를 S3에 업로드 완료")
+else:
+    !mkdir -p "/content/drive/MyDrive/xeron/output"
+    !cp -r "$OUT_DIR" "/content/drive/MyDrive/xeron/output/"
+    !cp /content/eval_results.json "/content/drive/MyDrive/xeron/output/"
+    print("📁 결과를 Drive에 복사 완료")
 """))
 
 cells.append(code(
@@ -245,14 +325,16 @@ cells.append(md(
 """## 📋 빠른 체크리스트
 
 1. 런타임 → 런타임 유형 변경 → **T4 GPU** ✅
-2. Drive에 `xeron/train_items_all_v2.pt` 업로드 ✅
+2. **⚙️ 설정 셀**에서 값 확인 (S3 미설정 시 Drive에 `xeron/train_items_all_v2.pt` 업로드) ✅
 3. 셀 1~6 순서대로 실행 ✅
 4. 학습 실행 (셀 7) — 에폭마다 체크포인트 자동 저장 ✅
-5. 평가 + Drive 복사 (셀 8) ✅
-6. 끊기면 RESUME="auto"로 재개 ✅
+5. 평가 + 결과 저장 (셀 8) — S3/Drive 자동 ✅
+6. 끊기면 `RESUME="auto"`로 재개 ✅
 
-> 데이터 파일이 없으면: 로컬 `/home/yuchan/laya-models/` 에서
-> `train_items_all_v2.pt`(136MB) / `korean_typed.jsonl` / `browser_typed.jsonl` / `mind2web_typed.jsonl` 을 Drive에 업로드하세요.
+### S3(MinIO) 사용 시 참고
+- 노트북 왼쪽 🔑 **Secrets**에 등록: `S3_ENDPOINT`, `S3_BUCKET`, `S3_KEY`,
+  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (설정 셀에 직접 넣어도 동작)
+- MinIO 접근은 Colab 외부망에서 가능해야 합니다 (퍼블릭 IP/포트포워딩/터널)
 """))
 
 nb = {
