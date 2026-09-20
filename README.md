@@ -174,6 +174,20 @@ torchrun --standalone --nproc_per_node=2 \
 | `SIGMA_START` / `SIGMA_END` | 0.4 / 0.1 | 탐색 노이즈 |
 | `CHECKPOINT_EVERY` | 0 | N 에폭마다 체크포인트 저장 (Colab 등 세션 끊김 대비: 1) |
 | `RESUME` | (없음) | 체크포인트 경로 또는 `auto`(output_dir 최신 체크포인트)로 이어서 학습 |
+| `MAX_LEN` | 1024 | **컨텍스트 길이** — 인코더 한도 8192 (ModernBERT RoPE). English 베이스 기본 512 → 2048/4096 확장 가능 |
+| `HEAD_MAX_LEN` | 256 | 결정 헤드 마커 윈도우 |
+| `MAX_TOKENS_BATCH` | 4096 | 마이크로배치당 최대 토큰 (메모리 상한 — 컨텍스트↑면 MICRO_BATCH↓) |
+
+### 📏 컨텍스트 확장 방법
+
+1. **전처리와 학습 양쪽에서 동일한 `MAX_LEN` 사용** (토크나이즈 길이가 달라지면 안 됨):
+   ```bash
+   MAX_LEN=2048 python scripts/preprocess.py --model-id <영어베이스> --data-files data.jsonl --output items.pt
+   MAX_LEN=2048 torchrun --standalone --nproc_per_node=1 scripts/train_ddp.py <영어베이스> ./output/xeron items.pt
+   ```
+2. **English 베이스 권장** (`layaroot`, 512→무제한 확장): ModernBERT는 RoPE 기반이라 2048/4096/8192 모두 동작
+3. **메모리 트레이드오프**: 시퀀스 2배 = attention 메모리 약 4배 → `MICRO_BATCH`를 반으로 (예: 8→4), `MAX_TOKENS_BATCH` 조정
+4. Colab 노트북 ⚙️ 설정의 `MAX_LEN` 항목만 바꾸면 전 과정 자동 반영
 
 ```bash
 # 예: 세션 끊김 대비 1 에폭마다 저장 + 재개 가능한 학습

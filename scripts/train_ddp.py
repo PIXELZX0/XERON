@@ -44,6 +44,9 @@ SIGMA_START = _env_float("SIGMA_START", 0.4)  # exploration noise
 SIGMA_END = _env_float("SIGMA_END", 0.1)
 CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
 RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
+MAX_LEN = _env_int("MAX_LEN", 1024)                # context: seq length (ModernBERT supports up to 8192)
+HEAD_MAX_LEN = _env_int("HEAD_MAX_LEN", 256)       # decision-head marker window
+MAX_TOKENS_BATCH = _env_int("MAX_TOKENS_BATCH", 4096)  # max tokens per micro-batch (memory bound)
 
 
 def _latest_checkpoint(output_dir):
@@ -140,9 +143,9 @@ def main():
     with open(os.path.join(model_id, "rl_agent_config.json")) as f:
         cfg = json.load(f)
     cfg["gradient_checkpointing"] = True
-    cfg["max_tokens_per_batch"] = 4096
-    cfg["max_len"] = 1024
-    cfg["head_max_len"] = 256
+    cfg["max_tokens_per_batch"] = MAX_TOKENS_BATCH
+    cfg["max_len"] = MAX_LEN
+    cfg["head_max_len"] = HEAD_MAX_LEN
 
     tok = AutoTokenizer.from_pretrained(os.path.join(model_id, "tokenizer"))
     model = build_model(cfg, encoder_dir=os.path.join(model_id, "encoder"))

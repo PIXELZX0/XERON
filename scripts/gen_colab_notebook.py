@@ -88,6 +88,12 @@ SETTINGS = {
     "CHECKPOINT_EVERY": "1",      # N 에폭마다 체크포인트 (세션 끊김 대비)
     "RESUME": "",                 # 재개 시 "auto"
 
+    # ── 컨텍스트 확장 (MAX_LEN) ────────────────────────────────
+    # English 베이스: 기본 512 → 2048/4096 확장 가능 (RoPE, 인코더 한도 8192)
+    # multilingual: 기본 1024 → 2048 가능. 길이 ↑ = 메모리 ↑ → MICRO_BATCH ↓ 필요
+    "MAX_LEN": "2048",            # 시퀀스 최대 길이 (전처리+학습 동일 값 필수!)
+    "HEAD_MAX_LEN": "256",        # 결정 헤드 마커 윈도우
+
     # ── 결과 ───────────────────────────────────────────────────
     "OUTPUT_NAME": "xeron-all-v2",
 }
@@ -255,10 +261,13 @@ os.environ["LR_ENCODER"]       = SETTINGS["LR_ENCODER"]
 os.environ["LR_HEAD"]          = SETTINGS["LR_HEAD"]
 os.environ["CHECKPOINT_EVERY"] = SETTINGS["CHECKPOINT_EVERY"]
 os.environ["RESUME"]           = SETTINGS["RESUME"]
+os.environ["MAX_LEN"]          = SETTINGS["MAX_LEN"]
+os.environ["HEAD_MAX_LEN"]     = SETTINGS["HEAD_MAX_LEN"]
 
 OUT_DIR = f"/content/output/{SETTINGS['OUTPUT_NAME']}"
 print("유효 배치:", int(SETTINGS["MICRO_BATCH"]) * int(SETTINGS["GRAD_ACCUM"]),
-      "| EPOCHS:", SETTINGS["EPOCHS"], "| OUT:", OUT_DIR)
+      "| EPOCHS:", SETTINGS["EPOCHS"], "| MAX_LEN(컨텍스트):", SETTINGS["MAX_LEN"],
+      "| OUT:", OUT_DIR)
 """))
 
 cells.append(md(

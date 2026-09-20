@@ -87,6 +87,13 @@ def main():
     with open(os.path.join(model_dir, "rl_agent_config.json")) as f:
         cfg = json.load(f)
 
+    # Context extension: override max lengths via env (must match train_ddp.py)
+    if os.environ.get("MAX_LEN"):
+        cfg["max_len"] = int(os.environ["MAX_LEN"])
+    if os.environ.get("HEAD_MAX_LEN"):
+        cfg["head_max_len"] = int(os.environ["HEAD_MAX_LEN"])
+    print(f"Context: max_len={cfg['max_len']} head_max_len={cfg['head_max_len']}")
+
     if args.data_files:
         print(f"Loading local data from {args.data_files}...")
         ds = load_dataset("json", data_files=args.data_files, split="train")
