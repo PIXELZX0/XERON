@@ -57,37 +57,59 @@ import sys; sys.path.insert(0, "/content/XERON")
 """))
 
 cells.append(md(
-"""## 4) 학습 데이터 준비 — 둘 중 하나 선택
+"""## 4) 학습 데이터 준비 — 3가지 경로 (우선순위 순)
 
-**경로 A (권장):** 로컬 컴퓨터에서 생성한 `train_items_all_v2.pt` (~136MB)를
-[Google Drive](https://drive.google.com)의 `xeron/` 폴더에 업로드합니다.
+**경로 A (권장): S3 호환 저장소** — Colab Secrets(🔑)에 자격 증명을 등록하면 바로 다운로드.
+`S3_ENDPOINT` / `S3_BUCKET` / `S3_KEY` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`
 
-**경로 B:** 소스 JSONL에서 Colab에서 직접 전처리 (데이터 빌드 스크립트 실행, 몇 분 소요).
+**경로 B:** Google Drive — 로컬에서 생성한 `train_items_all_v2.pt`를 Drive `xeron/` 폴더에 업로드.
+
+**경로 C:** 소스 JSONL에서 Colab에서 직접 전처리 (몇 분 소요).
 """))
 
 cells.append(code(
-"""# 4A) Google Drive 마운트 + items 파일 경로
-from google.colab import drive
-drive.mount("/content/drive")
-
+"""# 4A) 학습 데이터 확보 — S3 호환 (권장) → Drive → 재구성 순으로 자동 시도
+from google.colab import userdata
 import os
-BASE = "/content/drive/MyDrive/xeron"
-os.makedirs(BASE, exist_ok=True)
-ITEMS = os.path.join(BASE, "train_items_all_v2.pt")
 
-# 데이터 빌드 스크립트 경로 (경로 B용)
-KR_JSONL  = os.path.join(BASE, "korean_typed.jsonl")
-BR_JSONL  = os.path.join(BASE, "browser_typed.jsonl")
-M2W_JSONL = os.path.join(BASE, "mind2web_typed.jsonl")
+ITEMS = "/content/train_items_all_v2.pt"
 
-print("items exists:", os.path.exists(ITEMS))
-print("korean jsonl:", os.path.exists(KR_JSONL))
-print("브라우저 jsonl:", os.path.exists(BR_JSONL))
-print("mind2web jsonl:", os.path.exists(M2W_JSONL))
+# ---- 옵션 1: S3 호환 저장소 (Colab Secrets 등록 필요) ----
+#   S3_ENDPOINT(예: https://s3.ap-northeast-2.amazonaws.com 또는 R2/MinIO 엔드포인트)
+#   S3_BUCKET / S3_KEY / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+S3_ENDPOINT = userdata.get("S3_ENDPOINT", "")
+S3_BUCKET   = userdata.get("S3_BUCKET", "xeron")
+S3_KEY      = userdata.get("S3_KEY", "train_items_all_v2.pt")
+
+if S3_ENDPOINT and not os.path.exists(ITEMS):
+    import boto3
+    is_aws = "amazonaws.com" in S3_ENDPOINT
+    client_kwargs = dict(
+        aws_access_key_id=userdata.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=userdata.get("AWS_SECRET_ACCESS_KEY"),
+    )
+    if not is_aws:  # R2 / Backblaze / MinIO 등 S3 호환은 엔드포인트 직접 지정
+        client_kwargs["endpoint_url"] = S3_ENDPOINT
+        client_kwargs["region_name"] = "us-east-1"  # R2 등은 기본 리전
+    s3 = boto3.client("s3", **{k: v for k, v in client_kwargs.items() if v})
+    s3.download_file(S3_BUCKET, S3_KEY, ITEMS)
+    print("☁️ S3에서 다운로드 완료:", ITEMS)
+
+# ---- 옵션 2: Google Drive ----
+if not os.path.exists(ITEMS):
+    from google.colab import drive
+    drive.mount("/content/drive")
+    GDRIVE = "/content/drive/MyDrive/xeron/train_items_all_v2.pt"
+    if os.path.exists(GDRIVE):
+        !cp "$GDRIVE" "$ITEMS"
+        print("📁 Drive에서 복사 완료")
+
+print("ITEMS exists:", os.path.exists(ITEMS),
+      "| size:", (os.path.getsize(ITEMS) // 1048576) if os.path.exists(ITEMS) else 0, "MB")
 """))
 
 cells.append(code(
-"""# 4B) 경로 B 전용: JSONL/HF에서 items 재구성 (경로 A를 쓰면 그냥 통과)
+"""# 4B) 경로 C 전용: JSONL/HF에서 items 재구성 (items가 없을 때만 실행)
 import os, torch, subprocess
 
 def run_preprocess(model_dir, out_path, data_files=None):
@@ -101,6 +123,11 @@ def run_preprocess(model_dir, out_path, data_files=None):
     subprocess.run(cmd, check=True, cwd="/content/XERON")
     return torch.load(out_path, weights_only=False)
 
+GDRIVE = "/content/drive/MyDrive/xeron"
+KR_JSONL  = os.path.join(GDRIVE, "korean_typed.jsonl")
+BR_JSONL  = os.path.join(GDRIVE, "browser_typed.jsonl")
+M2W_JSONL = os.path.join(GDRIVE, "mind2web_typed.jsonl")
+
 if not os.path.exists(ITEMS):
     os.makedirs("/content/items", exist_ok=True)
     print("items 없음 → JSONL/HF에서 재구성 (몇 분 소요)")
@@ -112,7 +139,7 @@ if not os.path.exists(ITEMS):
     torch.save(all_items, ITEMS)
     print(f"재구성 완료: {len(all_items)} 시퀀스 -> {ITEMS}")
 else:
-    print("items 존재 — 경로 A 사용:", ITEMS)
+    print("items 존재 — 재구성 불필요:", ITEMS)
 """))
 
 cells.append(md(

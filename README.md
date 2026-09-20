@@ -185,10 +185,13 @@ CHECKPOINT_EVERY=1 RESUME=auto torchrun ...
 무료 T4에서 돌릴 수 있도록 준비된 노트북: **`notebooks/XERON_finetune_colab.ipynb`**
 ([Colab에서 열기](https://colab.research.google.com/github/PIXELZX0/XERON/blob/main/notebooks/XERON_finetune_colab.ipynb))
 
-1. Drive에 `train_items_all_v2.pt`(136MB) 업로드 → `xeron/` 폴더
-2. 노트북 셀 1~6 실행 (GPU 확인 → 설치 → 모델 다운로드 → 설정)
+1. **데이터 준비 (3경로 중 1)**:
+   - ☁️ **S3 호환 (권장)**: `scripts/upload_s3.py`로 데이터 업로드 → Colab Secrets에 `S3_ENDPOINT/S3_BUCKET/AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY` 등록
+   - 📁 Drive: `train_items_all_v2.pt`(117MB)를 `xeron/` 폴더에 업로드
+   - 🔧 Colab에서 JSONL 재구성 (백업 경로)
+2. 노트북 셀 1~6 실행 (GPU 확인 → 설치 → 모델 다운로드 → 데이터 확보 → 설정)
 3. 셀 7: 학습 실행 (1 GPU 전용 GRAD_ACCUM 확장, 에폭마다 체크포인트)
-4. 셀 8: 평가 + 결과 Drive 복사 · 셀 9: HF 업로드
+4. 셀 8: 평가 + Drive 복사 · 셀 9: HF 업로드
 
 **1-GPU 파라미터 확장 실험 매트릭스** (원본 2×T4 유효배치 64와 동일 기준):
 
