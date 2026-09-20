@@ -34,8 +34,10 @@ Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상�
 | **XERON-MIX** 🎯 | `laya-multilingual` | EN typed-decisions + KR KLUE | 88,344 | `train_items_mix.pt` |
 | **XERON-BROWSE** | `laya-multilingual` | 웹 페이지 분류(BBC 1,225 + AG 20,000) + 스팸 5,574 + 피싱 2,100 | 28,899 | `train_items_browser.pt` |
 | **XERON-WEBAGENT** | `laya-multilingual` | Mind2Web 다음 액션(op) + 요소 선택 (7,362 스텝) | 14,724 | `train_items_webagent.pt` |
+| **XERON-LONG** 🧾 | `laya-multilingual` | **장문**: SCOTUS 대법원 판례 판사 분류(5,000) + 20 Newsgroups(11,314) | 16,314 | `train_items_long4096.pt` |
 | **XERON-ALL** 🏆 | `laya-multilingual` | EN + KR + Browser 혼합 | 117,243 | `train_items_all.pt` |
 | **XERON-ALL-v2** 🚀 | `laya-multilingual` | EN + KR + Browser + WebAgent 전체 | 131,967 | `train_items_all_v2.pt` |
+| **XERON-ALL-4096+LONG** 🏆 | `laya-multilingual` | 4096 전처리 ALL + 장문(SCOTUS/Newsgroups) — **22%가 4096 트렁크** | 148,281 | `train_items_all_multi4096_long.pt` |
 
 > 🎯 **기본 학습은 XERON-ALL-v2**: 멀티링궈얼 베이스에 영어+한국어+브라우저+웹 에이전트 데이터로 파인튜닝하면 일반 결정부터 웹 브라우저 액션 결정까지 처리하는 단일 범용 모델이 됩니다.
 > Laya `Router`는 언어를 자동 감지하므로, English/멀티링궈얼 체크포인트를 함께 배포하면 언어별 라우팅도 가능합니다.

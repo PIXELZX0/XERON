@@ -69,9 +69,13 @@ cells.append(code(
 """# ⚙️ 설정 (Settings) — 값을 직접 넣거나 Secrets에서 읽습니다
 SETTINGS = {
     # ── 데이터: S3 호환(MinIO 등) ──────────────────────────────
+    # S3_KEY 선택 옵션:
+    #   train_items_all_multi4096_long.pt  (148,281 seq, 장문 포함 — 권장)
+    #   train_items_all_multi4096.pt       (131,967 seq)
+    #   train_items_long4096.pt            (16,314 seq — 장문 전용)
     "S3_ENDPOINT": "https://s3.flyingcart.kr",  # 예시; 빈 값 = Secrets
     "S3_BUCKET": "xeron",
-    "S3_KEY": "train_items_all_multi2048.pt",  # multilingual 2048 통합 (131,967 seq)
+    "S3_KEY": "train_items_all_multi4096_long.pt",
     "AWS_ACCESS_KEY_ID": "",      # 빈 값 = Secrets
     "AWS_SECRET_ACCESS_KEY": "",  # 빈 값 = Secrets
 
