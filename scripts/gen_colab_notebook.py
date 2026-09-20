@@ -269,10 +269,17 @@ cells.append(md(
 """))
 
 cells.append(code(
-"""# 7) DDP 학습 실행 (1 GPU)
-%cd /content/XERON
-!torchrun --standalone --nproc_per_node=1 --max_restarts=0 \\
-  scripts/train_ddp.py "$BASE_MODEL" "$OUT_DIR" "$ITEMS"
+"""# 7) DDP 학습 실행 (1 GPU) — Python subprocess 방식
+import subprocess, os
+
+env = dict(os.environ)
+cmd = [
+    "torchrun", "--standalone", "--nproc_per_node=1", "--max_restarts=0",
+    "scripts/train_ddp.py", BASE_MODEL, OUT_DIR, ITEMS,
+]
+print(" ".join(cmd))
+subprocess.run(cmd, env=env, check=True, cwd="/content/XERON")
+print("✅ 학습 완료:", OUT_DIR)
 """))
 
 cells.append(md(
