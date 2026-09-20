@@ -83,12 +83,17 @@ SETTINGS = {
     "BASE_MODEL": "multilingual", # ✅ multilingual(권장, 한/영/웹 전부) | english(421M)
 
     # ── 학습 하이퍼파라미터 (파라미터 확장) ────────────────────
-    "EPOCHS": "2",                # 1~3 권장 (131K 규모)
-    "MICRO_BATCH": "4",           # MAX_LEN 2048 + T4 fp16 → 4 권장 (8이면 OOM 위험)
-    "GRAD_ACCUM": "16",           # 1 GPU 확장 → 유효배치 = 4×1×16 = 64
+    # 런타임별 프로필 (MAX_LEN 4096 + 유효배치 64 기준):
+    #   T4   (15GB): MICRO_BATCH=2,  GRAD_ACCUM=32, DTYPE=fp16
+    #   A100 (40GB): MICRO_BATCH=8,  GRAD_ACCUM=8,  DTYPE=bf16  ← 권장
+    #   A100 (80GB): MICRO_BATCH=16, GRAD_ACCUM=4,  DTYPE=bf16
+    "EPOCHS": "2",                # 1~3 권장 (148K 규모)
+    "MICRO_BATCH": "8",           # GPU 메모리 따라 조정 (A100 40GB 기준)
+    "GRAD_ACCUM": "8",            # 유효배치 = MICRO_BATCH × GPU수 × GRAD_ACCUM = 64
     "GROUP_SIZE": "4",
     "LR_ENCODER": "2.5e-5",
     "LR_HEAD": "1e-4",
+    "DTYPE": "fp16",             # fp16(T4/V100) | bf16(A100/H100 권장)
     "CHECKPOINT_EVERY": "1",      # N 에폭마다 체크포인트 (세션 끊김 대비)
     "RESUME": "",                 # 재개 시 "auto"
 
@@ -268,6 +273,7 @@ os.environ["LR_ENCODER"]       = SETTINGS["LR_ENCODER"]
 os.environ["LR_HEAD"]          = SETTINGS["LR_HEAD"]
 os.environ["CHECKPOINT_EVERY"] = SETTINGS["CHECKPOINT_EVERY"]
 os.environ["RESUME"]           = SETTINGS["RESUME"]
+os.environ["DTYPE"]            = SETTINGS.get("DTYPE", "fp16")
 os.environ["MAX_LEN"]          = SETTINGS["MAX_LEN"]
 os.environ["HEAD_MAX_LEN"]     = SETTINGS["HEAD_MAX_LEN"]
 os.environ["MAX_TOKENS_BATCH"] = SETTINGS.get("MAX_TOKENS_BATCH", "4096")

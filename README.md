@@ -180,6 +180,19 @@ torchrun --standalone --nproc_per_node=2 \
 | `HEAD_MAX_LEN` | 256 | 결정 헤드 마커 윈도우 |
 | `MAX_TOKENS_BATCH` | 4096 | 마이크로배치당 최대 토큰 (메모리 상한 — 컨텍스트↑면 MICRO_BATCH↓) |
 | `CTX_CAP` | 32768 | 인코더 `max_position_embeddings` 상한 (RoPE, 4096×8) |
+| `DTYPE` | fp16 | fp16(T4/V100) · **bf16(A100/H100 — 네이티브, GradScaler 불필요)** |
+
+### 🚀 GPU별 권장 설정 (MAX_LEN=4096, 장문 데이터 148K, 유효배치 64 기준)
+
+| GPU | 메모리 | DTYPE | MICRO_BATCH | GRAD_ACCUM | MAX_TOKENS_BATCH | 예상 1에폭 |
+|---|---|---|---|---|---|---|
+| T4 (Colab 무료) | 15GB | fp16 | 2 | 32 | 8192 | ~3–4시간 |
+| **A100 (Colab Pro)** | **40GB** | **bf16** | **8** | **8** | **16384** | **~30–60분** |
+| A100 80GB | 80GB | bf16 | 16 | 4 | 32768 | ~25–45분 |
+| H100 | 80GB | bf16 | 16–24 | 2–4 | 32768 | ~15–30분 |
+
+> A100은 bf16 네이티브 + 메모리가 커서 T4 대비 **3~5배 빠릅니다**. MAX_LEN=8192 초장문 실험은
+> A100에서 MICRO_BATCH=4, MAX_TOKENS_BATCH=16384 로 조정하세요.
 
 ### 📏 컨텍스트 확장 방법
 

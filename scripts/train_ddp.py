@@ -49,6 +49,10 @@ MAX_LEN = _env_int("MAX_LEN", 2048)                # context: seq length (RoPE u
 HEAD_MAX_LEN = _env_int("HEAD_MAX_LEN", 256)       # decision-head marker window
 MAX_TOKENS_BATCH = _env_int("MAX_TOKENS_BATCH", 4096)  # max tokens per micro-batch (memory bound)
 CTX_CAP = _env_int("CTX_CAP", 32768)                # encoder max_position_embeddings ceiling (4096x8)
+DTYPE = os.environ.get("DTYPE", "fp16").lower()    # fp16 (T4/V100) | bf16 (A100/H100, native, no scaler)
+assert DTYPE in ("fp16", "bf16"), f"DTYPE must be fp16 or bf16, got {DTYPE}"
+AMP_DTYPE = torch.bfloat16 if DTYPE == "bf16" else torch.float16
+STORE_DTYPE = torch.bfloat16 if DTYPE == "bf16" else torch.float16
 
 
 def _latest_checkpoint(output_dir):
@@ -58,7 +62,7 @@ def _latest_checkpoint(output_dir):
 
 
 def save_checkpoint(path, model, optimizer, scheduler, scaler, epoch):
-    sd = {k: v.half().contiguous().cpu() for k, v in model.state_dict().items()}
+    sd = {k: v.to(STORE_DTYPE).contiguous().cpu() for k, v in model.state_dict().items()}
     torch.save({
         "model": sd,
         "optimizer": optimizer.state_dict(),
@@ -176,7 +180,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=max(1, total_updates), eta_min=1e-6
     )
-    scaler = torch.amp.GradScaler("cuda", enabled=True)
+    scaler = torch.amp.GradScaler("cuda", enabled=(DTYPE == "fp16"))
 
     # ---- checkpoint resume (all ranks load the same file) ----
     start_epoch = 0
@@ -213,7 +217,7 @@ def main():
 
             batch = collate_train_batch(chunk, tok.pad_token_id)
 
-            with torch.autocast("cuda", dtype=torch.float16):
+            with torch.autocast("cuda", dtype=AMP_DTYPE):
                 logits, act = ddp_model(
                     batch["input_ids"].to(device),
                     batch["attention_mask"].to(device),
@@ -287,7 +291,7 @@ def main():
             for c_idx in range(0, len(calib_items), 16):
                 c_chunk = calib_items[c_idx : c_idx + 16]
                 cb = collate_train_batch(c_chunk, tok.pad_token_id)
-                with torch.autocast("cuda", dtype=torch.float16):
+                with torch.autocast("cuda", dtype=AMP_DTYPE):
                     l_sub, _ = model(
                         cb["input_ids"].to(device),
                         cb["attention_mask"].to(device),
@@ -312,7 +316,7 @@ def main():
             print("Temperature fitting fallback:", e)
 
         os.makedirs(output_dir, exist_ok=True)
-        sd = {k: v.half().contiguous().cpu() for k, v in model.state_dict().items()}
+        sd = {k: v.to(STORE_DTYPE).contiguous().cpu() for k, v in model.state_dict().items()}
         save_file(sd, os.path.join(output_dir, "model.safetensors"))
         model.encoder.config.save_pretrained(os.path.join(output_dir, "encoder"))
         tok.save_pretrained(os.path.join(output_dir, "tokenizer"))
