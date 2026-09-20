@@ -69,19 +69,19 @@ cells.append(code(
 """# ⚙️ 설정 (Settings) — 값을 직접 넣거나 Secrets에서 읽습니다
 SETTINGS = {
     # ── 데이터: S3 호환(MinIO 등) ──────────────────────────────
-    "S3_ENDPOINT": "",            # 예: http://192.168.0.100:9000 (빈 값 = Secrets)
+    "S3_ENDPOINT": "https://s3.flyingcart.kr",  # 예시; 빈 값 = Secrets
     "S3_BUCKET": "xeron",
-    "S3_KEY": "train_items_all_v2.pt",
+    "S3_KEY": "train_items_all_multi2048.pt",  # multilingual 2048 통합 (131,967 seq)
     "AWS_ACCESS_KEY_ID": "",      # 빈 값 = Secrets
     "AWS_SECRET_ACCESS_KEY": "",  # 빈 값 = Secrets
 
     # ── 베이스 모델 ────────────────────────────────────────────
-    "BASE_MODEL": "multilingual", # multilingual(322M, 한/영/웹) | english(421M)
+    "BASE_MODEL": "multilingual", # ✅ multilingual(권장, 한/영/웹 전부) | english(421M)
 
     # ── 학습 하이퍼파라미터 (파라미터 확장) ────────────────────
     "EPOCHS": "2",                # 1~3 권장 (131K 규모)
-    "MICRO_BATCH": "8",           # T4 fp16 + grad checkpoint 안전값
-    "GRAD_ACCUM": "8",            # 1 GPU 확장 → 유효배치 = 8×1×8 = 64
+    "MICRO_BATCH": "4",           # MAX_LEN 2048 + T4 fp16 → 4 권장 (8이면 OOM 위험)
+    "GRAD_ACCUM": "16",           # 1 GPU 확장 → 유효배치 = 4×1×16 = 64
     "GROUP_SIZE": "4",
     "LR_ENCODER": "2.5e-5",
     "LR_HEAD": "1e-4",
@@ -89,9 +89,9 @@ SETTINGS = {
     "RESUME": "",                 # 재개 시 "auto"
 
     # ── 컨텍스트 확장 (MAX_LEN) ────────────────────────────────
-    # English 베이스: 기본 512 → 2048/4096 확장 가능 (RoPE, 인코더 한도 8192)
-    # multilingual: 기본 1024 → 2048 가능. 길이 ↑ = 메모리 ↑ → MICRO_BATCH ↓ 필요
-    "MAX_LEN": "2048",            # 시퀀스 최대 길이 (전처리+학습 동일 값 필수!)
+    # multilingual 베이스는 RoPE 기반(제한 없음), 인코더 한도 8192
+    # 전처리/학습 동일 값 필수! 길이 ↑ = 메모리 ↑ → MICRO_BATCH ↓
+    "MAX_LEN": "2048",            # 컨텍스트 (1024 기본 → 2048 확장, 최대 8192)
     "HEAD_MAX_LEN": "256",        # 결정 헤드 마커 윈도우
 
     # ── 결과 ───────────────────────────────────────────────────
