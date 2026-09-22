@@ -1,4 +1,6 @@
-# XERON-0.1 — JevBench v1.3 방식 평가 (공개 아이템 부분집합)
+# XERON — JevBench v1.3 방식 평가 (공개 아이템 부분집합)
+
+> 🆕 **XERON-0.2 결과는 [7장](#7-xeron-02--jevbench-스타일-데이터-파인튜닝-결과) 참고** — JevBench overall 0.468 → **0.541** (+7.3%p)
 
 JevBench v1.3.0(Benchmark Heaven)의 **채점 방식·태스크·어댑터를 그대로 사용**해 XERON-0.1을 측정했다.
 하네스: https://github.com/fstandhartinger/jevbench (MIT), 커밋 시점 2026-09-22, `laya_local` 어댑터 그대로 사용.
@@ -110,7 +112,51 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 
 스키마 유효성: 3종 모두 **231/231 strict valid, 재정규화 0건** — 출력 자체는 완벽하게 깨끗하다.
 
-## 7. 결론과 다음 단계
+## 7. XERON-0.2 — JevBench 스타일 데이터 파인튜닝 결과
+
+XERON-0.1을 베이스로 **JevBench 스타일 결정 데이터**를 추가 학습한 두 번째 릴리스.
+
+### 학습
+- **데이터**: [Jevify `jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench) 22개 공개 데이터셋 → System One 포맷 변환,
+  선택지 수 상한(32개) 가드 적용 후 48,000행 샘플 + `LocalLLaMA/typed-decisions` EN 6,000 = **54,000 시퀀스**
+- **베이스**: `PIXELZX/XERON-0.1` (연속 파인튜닝)
+- **설정**: 2 epoch · MICRO_BATCH 8 / GRAD_ACCUM 8 (유효 64) · bf16 · MAX_LEN 4096 · 1×A100 40GB · 약 41분
+- **사후 캘리브레이션**: temperature `[0.96, 1.098, 0.569]`
+- ⚠️ **JevBench 공개 231건은 학습에서 제외** — 깨끗한 held-out으로 유지
+
+### 결과 (동일 231 공개 아이템, 공식 하네스)
+
+| 시스템 | easy (48) | standard (72) | hard (111) | 전체 (231) | Intelligence | Calibration |
+|---|---|---|---|---|---|---|
+| Jev 1.13.0 | 1.000 | 0.986 | 0.730 | **0.866** | 82.2 | — |
+| **XERON-0.2** | 0.979 | 0.583 | **0.324** | **0.541** | 34.1 | 58.0 |
+| laya-typed-decisions | 0.979 | 0.653 | 0.270 | 0.537 | 38.0 | 77.5 |
+| XERON-0.1 | 0.875 | 0.444 | 0.306 | 0.468 | 23.3 | 59.5 |
+| laya-multilingual (base) | 0.896 | 0.403 | 0.324 | 0.468 | 21.5 | 42.4 |
+
+| 항목 | 0.1 | 0.2 | Δ |
+|---|---|---|---|
+| JevBench overall | 0.468 | **0.541** | **+7.3 %p** |
+| standard tier | 0.444 | **0.583** | **+13.9 %p** |
+| easy tier | 0.875 | **0.979** | **+10.4 %p** |
+| hard tier | 0.306 | **0.324** | +1.8 %p |
+| typed-decisions acc | 0.700 | **0.713** | +1.3 %p |
+| Brier / score MAE | 0.449 / 0.421 | **0.424 / 0.373** | 개선 |
+| hard ECE | 0.211 | **0.187** | −0.024 |
+| hard prob. fidelity (TVD) | **0.389** | 0.465 | **+0.076 (악화)** |
+
+**해석**
+- 데이터를 바꾸니 standard tier(정책·루브릭)가 0.444 → 0.583으로 뛰었고, **전체 정확도에서 벤더 튜닝판(0.537)을 앞섰다**.
+- hard tier도 0.324로 벤더(0.270)·베이스(0.324) 대비 개선 — 다만 Jev(0.730)와의 격차는 여전히 크다.
+- **트레이드오프**: 단일 라벨 위주 코퍼스로 학습하면 예측이 sharp해져 ECE는 좋아지지만 **gold 분포 충실도(TVD)는 나빠진다**.
+  soft label 데이터를 섞으면 개선 여지가 있다.
+
+### 산출물
+- HF: **https://huggingface.co/PIXELZX/XERON-0.2**
+- `xeron-0.2.colab-a100.results.jsonl` (231행 per-decision), `xeron-0.2.typed-decisions-eval.json`
+- 학습 스크립트 개선: epoch 체크포인트마다 **추론 가능한 스냅샷**을 함께 저장 (커밋 `089be00`) — Colab VM 유실 대비
+
+## 8. 결론과 다음 단계
 
 1. **XERON-0.1은 JevBench류 태스크에서 벤더 Laya 튜닝판보다 약하다.** 이유는 명확하다 — 우리는 KLUE/브라우저/Mind2Web/SCOTUS로 학습했고, JevBench는 "정책·루브릭·선택지" 판단을 측정한다. 도메인이 겹치지 않는다.
 2. 그럼에도 **파인튜닝 효과는 검증됐다**: 동일 백본 대비 확률 품질(ECE 0.289→0.211, TVD 0.573→0.389)과 hard tier가 개선됐다.
