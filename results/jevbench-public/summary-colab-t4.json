@@ -1,0 +1,78 @@
+{
+  "hardware": "Google Colab, Tesla T4 (cuda), laya 0.3.5, torch 2.11.0+cu128",
+  "xeron_0_1": {
+    "label": "PIXELZX/XERON-0.1",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.875,
+      "standard": 0.4444444444444444,
+      "hard": 0.3063063063063063
+    },
+    "overall_accuracy": 0.4675324675324675,
+    "ece_hard": 0.2105818181818182,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.38859000000000005,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.02967862499997409,
+    "latency_p95_raw_s": 0.13638481899999988,
+    "mean_input_tokens": 630.3679653679653,
+    "usd_per_1000_est": 0.006303679653679653,
+    "axes": {
+      "intelligence": 23.321588130203963,
+      "calibration": 59.51231818181817,
+      "speed": 90.53008204903887,
+      "cost": 76.0121759602929
+    },
+    "jevbench_score_partial": 12.094460509102724
+  },
+  "laya_typed_decisions": {
+    "label": "laya-typed-decisions",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.9791666666666666,
+      "standard": 0.6527777777777778,
+      "hard": 0.2702702702702703
+    },
+    "overall_accuracy": 0.5367965367965368,
+    "ece_hard": 0.07170476190476188,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.29602,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.03853836700000102,
+    "latency_p95_raw_s": 0.0854327329999478,
+    "mean_input_tokens": 338.0995670995671,
+    "usd_per_1000_est": 0.003380995670995671,
+    "axes": {
+      "intelligence": 38.00692533275156,
+      "calibration": 78.02852380952382,
+      "speed": 91.3750438326307,
+      "cost": 84.12866155904908
+    },
+    "jevbench_score_partial": 39.926146246916325
+  },
+  "laya_multilingual_base": {
+    "label": "laya-multilingual-base",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.8958333333333334,
+      "standard": 0.4027777777777778,
+      "hard": 0.3333333333333333
+    },
+    "overall_accuracy": 0.47186147186147187,
+    "ece_hard": 0.2957874458874458,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.52591,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.02792277200001081,
+    "latency_p95_raw_s": 0.049142814999981965,
+    "mean_input_tokens": 350.4199134199134,
+    "usd_per_1000_est": 0.0035041991341991344,
+    "axes": {
+      "intelligence": 21.51610814523923,
+      "calibration": 44.12575541125542,
+      "speed": 92.91506945199046,
+      "cost": 83.66233666050826
+    },
+    "jevbench_score_partial": 9.651735965237844
+  }
+}

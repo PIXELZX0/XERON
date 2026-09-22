@@ -43,6 +43,8 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 
 ## 3. 속도·비용 (동일 머신, 직렬, 모델 로드 후 측정)
 
+### 3a. 로컬 CPU (yuchan-server, 12 vCPU, 4 threads)
+
 | 시스템 | p50 (원시) | p95 (원시) | 보정 p50/p95 (×2+0.15s) | 결정당 입력 토큰 | USD/1,000 결정 (추정) | Speed 축 | Cost 축 |
 |---|---|---|---|---|---|---|---|
 | **XERON-0.1** | **0.129 s** | 5.683 s | 0.408 / 11.52 | 630 | $0.00630 | **73.3** | 76.0 |
@@ -53,7 +55,23 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 - 머신: yuchan-server (12 vCPU), CPU 4 threads, 동일 조건.
 - **비용 축은 토크나이저 아티팩트에 민감하다** — JevBench는 "시스템 자체 토큰 수 × $0.01/M" 추정을 쓴다. mmBERT(256k vocab)는 ModernBERT(50k vocab)보다 결정당 토큰을 ~1.9배 많이 세서 XERON의 Cost 축이 실제 GPU 비용 차이보다 낮게 나온다. 같은 크기 클래스(322M vs 421M)이므로 **실질 비용은 사실상 동일**하다고 보는 게 맞다.
 
-## 4. JevBench Score (부분 실행 — 순위 없음)
+## 4. Colab T4 재실행 (GPU) — 정확도 동일, 속도만 향상
+
+동일한 하네스·동일 어댑터(`laya_local`)를 **Google Colab Tesla T4**에서 그대로 재실행했다.
+어댑터는 수정하지 않았다 — `laya.load()`가 CUDA를 자동 감지한다 (`device=cuda` 확인).
+실행 경로: `colab` CLI (google-colab-cli 0.6.0) → `colab new -s xeron-jb --gpu T4` → `colab install laya` → 스크립트 실행 → `colab download` → `colab stop`.
+
+| 시스템 | p50 (T4) | p95 (T4) | p50 (로컬 CPU) | easy | standard | hard | 전체 | ECE hard |
+|---|---|---|---|---|---|---|---|---|
+| XERON-0.1 | 0.0297 s | 0.136 s | 0.129 s | 0.875 | 0.444 | 0.306 | 0.468 | 0.211 |
+| laya-typed-decisions | 0.0385 s | 0.085 s | 0.394 s | 0.979 | 0.653 | 0.270 | 0.537 | 0.072 |
+| laya-multilingual (base) | 0.0279 s | 0.049 s | 0.129 s | 0.896 | 0.403 | 0.333 | 0.472 | 0.296 |
+
+- **231개 전체 실행 시간: 14.1초** (로컬 CPU 276초) → GPU에서 **약 20배 빠름**. 모델 로드 34.5초 포함해도 1분 이내.
+- 정확도는 CPU 실행과 사실상 동일 (XERON easy/standard/hard 완전 일치). laya-multilingual hard가 0.324→0.333으로 미세하게 달라지는 것은 GPU/CPU 부동소수점 차이로 인한 근소한 동점(同點) 판정 변화다.
+- 원본: `*.colab-t4.results.jsonl`, 집계: `summary-colab-t4.json`
+
+## 5. JevBench Score (부분 실행 — 순위 없음)
 
 공개 아이템에 judge tier가 없으므로 공식 규칙대로 없는 tier는 가중치를 재정규화해 계산했다. **공식 보드 점수와 직접 비교 금지.**
 
@@ -65,7 +83,7 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 
 > Intelligence < 50 이면 공식 규칙상 `(Intelligence/50)²` 패널티가 곱해진다. XERON은 23.3 → ×0.217 적용됨. 이게 최종 점수를 크게 끌어내린 주 원인.
 
-## 5. 어디서 이기고 어디서 지는가 (family별 정확도, 231 공개 아이템)
+## 6. 어디서 이기고 어디서 지는가 (family별 정확도, 231 공개 아이템)
 
 | family (tier) | XERON-0.1 | laya-td | laya-ml |
 |---|---|---|---|
@@ -92,7 +110,7 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 
 스키마 유효성: 3종 모두 **231/231 strict valid, 재정규화 0건** — 출력 자체는 완벽하게 깨끗하다.
 
-## 6. 결론과 다음 단계
+## 7. 결론과 다음 단계
 
 1. **XERON-0.1은 JevBench류 태스크에서 벤더 Laya 튜닝판보다 약하다.** 이유는 명확하다 — 우리는 KLUE/브라우저/Mind2Web/SCOTUS로 학습했고, JevBench는 "정책·루브릭·선택지" 판단을 측정한다. 도메인이 겹치지 않는다.
 2. 그럼에도 **파인튜닝 효과는 검증됐다**: 동일 백본 대비 확률 품질(ECE 0.289→0.211, TVD 0.573→0.389)과 hard tier가 개선됐다.
