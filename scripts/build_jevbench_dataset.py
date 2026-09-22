@@ -44,10 +44,19 @@ def read_jsonl(path):
 
 
 def norm_soft(soft, keys):
-    """Normalize a soft-label dict over `keys`; returns None if unusable."""
-    if not isinstance(soft, dict):
+    """Normalize a soft label over `keys`; returns None if unusable.
+
+    jev-bench emits soft labels in three shapes: a dict keyed by option, a list aligned to
+    the option order (score levels / choice criteria), or — for noul — a scalar P(true).
+    """
+    if isinstance(soft, dict):
+        vals = {k: float(soft.get(k, 0.0) or 0.0) for k in keys}
+    elif isinstance(soft, (list, tuple)):
+        if len(soft) != len(keys):
+            return None
+        vals = {k: float(v or 0.0) for k, v in zip(keys, soft)}
+    else:
         return None
-    vals = {k: float(soft.get(k, 0.0) or 0.0) for k in keys}
     s = sum(vals.values())
     if s <= 0:
         return None
@@ -93,7 +102,12 @@ def convert_row(row, max_options, max_levels):
             p = 0.0
         else:
             return None
-        if isinstance(soft, dict) and soft:
+        # civil_comments ships a scalar: the fraction of annotators who said "true"
+        if isinstance(soft, bool):
+            p = float(soft)
+        elif isinstance(soft, (int, float)) and 0.0 <= float(soft) <= 1.0:
+            p = float(soft)
+        elif isinstance(soft, dict) and soft:
             sv = {k.lower(): float(v or 0.0) for k, v in soft.items()}
             if "true" in sv or "yes" in sv:
                 p = sv.get("true", sv.get("yes", p))

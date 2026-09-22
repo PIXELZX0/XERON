@@ -1,0 +1,18 @@
+{
+  "file": "train_items_x3.pt",
+  "sha256": "2bffef7448404f2077f0d96baa84ef373fed5d9f8cdae7ca37dfa5f851b8ac3f",
+  "bytes": 73166935,
+  "sequences": 62000,
+  "sources": {
+    "jevbench_full": 34000,
+    "anli": 8000,
+    "long_context": 4000,
+    "korean_klue": 5000,
+    "browser_use": 3000,
+    "web_agent_mind2web": 2000,
+    "typed_decisions_en": 6000
+  },
+  "soft_label_rows": 5530,
+  "max_len": 4096,
+  "head_max_len": 256
+}
