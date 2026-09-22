@@ -70,11 +70,18 @@ def main():
             if qid not in p["gold"]:
                 continue
             t = q["type"]
+            if qid not in (p["gold"] or {}):
+                continue
             gold_dist = p["gold"][qid]["probabilities"]
             gold_label = max(gold_dist, key=gold_dist.get)
+            _pe = (p["pred"] or {}).get(qid)
+            if not isinstance(_pe, dict):
+                continue
 
             if t == "choice":
-                pred_dist = p["pred"][qid]["probabilities"]
+                pred_dist = _pe.get("probabilities")
+                if not isinstance(pred_dist, dict) or not pred_dist:
+                    continue
                 pred_label = max(pred_dist, key=pred_dist.get)
                 n += 1
                 accs.append(pred_label == gold_label)
@@ -83,15 +90,19 @@ def main():
                     sum((pred_dist.get(k, 0.0) - 1.0 if k == gold_label else pred_dist.get(k, 0.0)) ** 2
                         for k in set(list(pred_dist) + list(gold_dist)))
                 )
+                _opts = sorted(set(list(pred_dist) + list(gold_dist)))
                 eces.append(ece_score(
-                    np.array([pred_dist.get(k, 0.0) for k in sorted(set(list(pred_dist) + list(gold_dist)))]),
-                    gold_label
+                    np.array([pred_dist.get(k, 0.0) for k in _opts]),
+                    np.array([k == gold_label for k in _opts], dtype=bool),
                 ))
             elif t == "score":
-                pred_dist = p["pred"][qid]["distribution"]
+                pred_dist = _pe.get("distribution") or _pe.get("probabilities") or {}
+                if not pred_dist:
+                    continue
                 gold_i = int(gold_label) if gold_label.isdigit() else gold_label
                 try:
-                    pred_label = int(max(pred_dist, key=lambda kv: kv[1])[0]) if isinstance(pred_dist, dict) else pred_dist
+                    pred_label = (int(max(pred_dist.items(), key=lambda kv: kv[1])[0])
+                                  if isinstance(pred_dist, dict) else pred_dist)
                 except Exception:
                     pred_label = gold_i
                 # score MAE against gold numeric level
@@ -115,6 +126,13 @@ def main():
     with open(args.output, "w") as f:
         json.dump({"summary": summary, "predictions": predictions}, f, indent=2)
     print(f"Saved results to {args.output}")
+
+    # raw predictions sidecar (survives any downstream metric change)
+    try:
+        with open(args.output.replace(".json", ".preds.json"), "w") as f:
+            json.dump(predictions, f)
+    except Exception as e:
+        print(f"sidecar note: {e}")
 
 
 if __name__ == "__main__":
