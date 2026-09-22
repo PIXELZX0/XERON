@@ -19,9 +19,21 @@ Usage:
         --soft-boost 1.5
 """
 import argparse
+import hashlib
 import json
 import os
 import random
+import re
+
+
+def _norm_state(state):
+    try:
+        s = json.loads(state)
+    except Exception:                                    # noqa: BLE001
+        s = state
+    if isinstance(s, dict):
+        s = " || ".join(f"{k}={v}" for k, v in sorted(s.items()))
+    return re.sub(r"\s+", " ", str(s).lower()).strip()
 
 
 def is_soft(row):
@@ -79,6 +91,8 @@ def main():
                     help=">1 oversamples rows with non-one-hot gold (calibration fidelity)")
     ap.add_argument("--max-soft-share", type=float, default=0.0,
                     help="if >0, cap the share of soft rows in the output")
+    ap.add_argument("--dedupe", action="store_true",
+                    help="drop rows whose (state, questions) pair was already emitted")
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
@@ -111,13 +125,23 @@ def main():
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)) or ".", exist_ok=True)
     n_soft = 0
+    dropped = 0
+    seen_exact = set()
     with open(args.out, "w") as f:
         for r in rows:
+            if args.dedupe:
+                k = hashlib.sha256((_norm_state(r["state"]) + "###" + r["questions"]).encode()).hexdigest()
+                if k in seen_exact:
+                    dropped += 1
+                    continue
+                seen_exact.add(k)
             n_soft += is_soft(r)
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
-    print(f"\nWrote {len(rows):,} rows -> {args.out}")
-    print(f"Soft-label rows: {n_soft:,} ({100 * n_soft / max(1, len(rows)):.1f}%)")
+    print(f"\nWrote {len(rows) - dropped:,} rows -> {args.out}")
+    if args.dedupe:
+        print(f"Exact (state, questions) duplicates dropped: {dropped:,}")
+    print(f"Soft-label rows: {n_soft:,} ({100 * n_soft / max(1, len(rows) - dropped):.1f}%)")
     missing = [p for p, _, _, s in report if s]
     if missing:
         print("MISSING SOURCES:", missing)
