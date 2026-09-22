@@ -63,6 +63,28 @@ def _latest_checkpoint(output_dir):
     return cks[-1] if cks else None
 
 
+def snapshot_model(output_dir, model, tok, cfg, temps=None):
+    """Write an inference-ready checkpoint (model + encoder cfg + tokenizer + agent cfg).
+
+    Called after every epoch checkpoint as well as at the end of training, so a lost
+    Colab VM never costs more than one epoch: the snapshot can be loaded directly with
+    `laya.load(path)` or used as the base of a resumed run.
+    """
+    os.makedirs(output_dir, exist_ok=True)
+    sd = {k: v.to(STORE_DTYPE).contiguous().cpu() for k, v in model.state_dict().items()}
+    save_file(sd, os.path.join(output_dir, "model.safetensors"))
+    model.encoder.config.save_pretrained(os.path.join(output_dir, "encoder"))
+    tok.save_pretrained(os.path.join(output_dir, "tokenizer"))
+    c = dict(cfg)
+    c["fine_tuned"] = True
+    c["model_name"] = "XERON"
+    if temps is not None:
+        c["temperature"] = temps
+    with open(os.path.join(output_dir, "rl_agent_config.json"), "w") as f:
+        json.dump(c, f, indent=2)
+    print(f"[XERON] inference-ready snapshot written to {output_dir}")
+
+
 def save_checkpoint(path, model, optimizer, scheduler, scaler, epoch):
     sd = {k: v.to(STORE_DTYPE).contiguous().cpu() for k, v in model.state_dict().items()}
     torch.save({
@@ -308,6 +330,8 @@ def main():
                 ck_path = os.path.join(output_dir, f"checkpoint_epoch{epoch}.pt")
                 save_checkpoint(ck_path, model, optimizer, scheduler, scaler, epoch)
                 print(f"[XERON] checkpoint saved: {ck_path}")
+                # inference-ready snapshot too: a lost VM costs at most one epoch
+                snapshot_model(output_dir, model, tok, cfg)
         dist.barrier()
 
     # Post-training temperature calibration on rank 0
@@ -346,17 +370,7 @@ def main():
         except Exception as e:
             print("Temperature fitting fallback:", e)
 
-        os.makedirs(output_dir, exist_ok=True)
-        sd = {k: v.to(STORE_DTYPE).contiguous().cpu() for k, v in model.state_dict().items()}
-        save_file(sd, os.path.join(output_dir, "model.safetensors"))
-        model.encoder.config.save_pretrained(os.path.join(output_dir, "encoder"))
-        tok.save_pretrained(os.path.join(output_dir, "tokenizer"))
-
-        cfg["fine_tuned"] = True
-        cfg["model_name"] = "XERON"
-        cfg["temperature"] = fitted_temps
-        with open(os.path.join(output_dir, "rl_agent_config.json"), "w") as f:
-            json.dump(cfg, f, indent=2)
+        snapshot_model(output_dir, model, tok, cfg, temps=fitted_temps)
         print(f"XERON model saved to {output_dir}!")
 
     dist.destroy_process_group()
