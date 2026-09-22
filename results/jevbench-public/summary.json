@@ -1,0 +1,173 @@
+{
+  "xeron_0_1": {
+    "label": "PIXELZX/XERON-0.1",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.875,
+      "standard": 0.4444444444444444,
+      "hard": 0.3063063063063063
+    },
+    "overall_accuracy": 0.4675324675324675,
+    "ece_hard": 0.2106627705627706,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.38900999999999997,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.129351491574198,
+    "latency_p95_raw_s": 5.683034160174429,
+    "mean_input_tokens": 630.3679653679653,
+    "usd_per_1000_est": 0.006303679653679653,
+    "axes": {
+      "intelligence": 23.321588130203963,
+      "calibration": 59.48322294372294,
+      "speed": 73.27287959620777,
+      "cost": 76.0121759602929
+    },
+    "jevbench_score_partial": 11.47020006924052
+  },
+  "laya_typed_decisions_local": {
+    "label": "laya-typed-decisions",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.9791666666666666,
+      "standard": 0.6527777777777778,
+      "hard": 0.2702702702702703
+    },
+    "overall_accuracy": 0.5367965367965368,
+    "ece_hard": 0.07689134199134198,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.29607,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.39364404464140534,
+    "latency_p95_raw_s": 3.60804799804464,
+    "mean_input_tokens": 338.0995670995671,
+    "usd_per_1000_est": 0.003380995670995671,
+    "axes": {
+      "intelligence": 38.00692533275156,
+      "calibration": 77.50736580086581,
+      "speed": 71.6088952744761,
+      "cost": 84.12866155904908
+    },
+    "jevbench_score_partial": 37.50288115834615
+  },
+  "laya_multilingual_base_local": {
+    "label": "laya-multilingual-base",
+    "n": 231,
+    "tier_accuracy": {
+      "easy": 0.8958333333333334,
+      "standard": 0.4027777777777778,
+      "hard": 0.32432432432432434
+    },
+    "overall_accuracy": 0.4675324675324675,
+    "ece_hard": 0.28933116883116883,
+    "n_calib_pairs": 231,
+    "mean_tvd": 0.573195,
+    "n_gold_dist": 10,
+    "latency_p50_raw_s": 0.1294278223067522,
+    "latency_p95_raw_s": 5.703909367788583,
+    "mean_input_tokens": 630.3679653679653,
+    "usd_per_1000_est": 0.006303679653679653,
+    "axes": {
+      "intelligence": 21.51610814523923,
+      "calibration": 42.40713311688312,
+      "speed": 73.25554123026362,
+      "cost": 76.0121759602929
+    },
+    "jevbench_score_partial": 8.791621813344062
+  },
+  "laya_board_official": {
+    "label": "Laya (Convai Innovations, ModernBERT-large 421M)",
+    "n": 231,
+    "tier_accuracy_public_matched": {
+      "easy": 0.9583333333333334,
+      "standard": 0.6944444444444444,
+      "judge": null,
+      "hard": 0.35135135135135137
+    },
+    "overall_accuracy_public_matched": 0.5844155844155844,
+    "intelligence_public_matched": 40.748765241974375,
+    "official_tiers_all_534": {
+      "easy": 0.9444444444444444,
+      "standard": 0.7291666666666666,
+      "judge": 0.6917808219178082,
+      "hard": 0.3409090909090909
+    },
+    "official_axes": {
+      "intelligence": 45.82464454274022,
+      "calibration": 62.46471590909091,
+      "speed": 71.05966297458822,
+      "cost": 86.20408526325653
+    },
+    "official_jevbench_score": 54.35373809070198,
+    "official_rank": 33,
+    "official_calibration": {
+      "score": 62.46471590909091,
+      "score_label_only_as_onehot": null,
+      "ece_hard": 0.20550909090909092,
+      "probability_fidelity": 66.03125,
+      "brier_hard": 0.7660523635454545,
+      "brier_standard_judge_v11": 0.41431437239669405,
+      "note": null
+    },
+    "official_speed": {
+      "p50_s_raw": 0.787067785859108,
+      "p95_s_raw": 2.197125389799475,
+      "p50_s_adjusted": 1.7241355717182159,
+      "p95_s_adjusted": 4.544250779598951,
+      "adjustment": "x2 + 0.15 s (assumption, not measured)",
+      "run": "serial 242-decision standard+judge run",
+      "hardware": "AMD Ryzen 5 3600 (Sandy), 4 threads",
+      "measured_where": "local, 4 CPU threads of a Ryzen 5 3600, model loaded before timing",
+      "hard_tier_p50_s": 1.9288412630558014,
+      "hard_tier_p95_s": 2.2888929322361946
+    },
+    "official_cost_usd_per_1000": 0.0028831273408239703
+  },
+  "jev_board_official": {
+    "label": "Jev 1.13.0 (TypeSafe AI)",
+    "n": 231,
+    "tier_accuracy_public_matched": {
+      "easy": 1.0,
+      "standard": 0.9861111111111112,
+      "judge": null,
+      "hard": 0.7297297297297297
+    },
+    "overall_accuracy_public_matched": 0.8658008658008658,
+    "intelligence_public_matched": 82.23861428641739,
+    "official_tiers_all_534": {
+      "easy": 1.0,
+      "standard": 0.9895833333333334,
+      "judge": 0.9452054794520548,
+      "hard": 0.740909090909091
+    },
+    "official_axes": {
+      "intelligence": 85.69176285262259,
+      "calibration": 82.6528888888889,
+      "speed": 83.26811926100174,
+      "cost": 51.96616538951724
+    },
+    "official_jevbench_score": 74.40448849535433,
+    "official_rank": 1,
+    "official_calibration": {
+      "score": 82.6528888888889,
+      "score_label_only_as_onehot": null,
+      "ece_hard": 0.06061111111111118,
+      "probability_fidelity": 77.42800000000001,
+      "brier_hard": 0.339603665766944,
+      "brier_standard_judge_v11": 0.05558677685950414,
+      "note": null
+    },
+    "official_speed": {
+      "p50_s_raw": 0.6524335257709026,
+      "p95_s_raw": 0.7221905551850795,
+      "p50_s_adjusted": 0.6524335257709026,
+      "p95_s_adjusted": 0.7221905551850795,
+      "adjustment": "none (production API)",
+      "run": "serial 242-decision standard+judge run",
+      "hardware": null,
+      "measured_where": "from a Hetzner server in Germany, network included",
+      "hard_tier_p50_s": 0.6717139892280102,
+      "hard_tier_p95_s": 0.8295219600200652
+    },
+    "official_cost_usd_per_1000": 0.03991423595505617
+  }
+}
