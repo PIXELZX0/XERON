@@ -45,6 +45,8 @@ LR_ENCODER = _env_float("LR_ENCODER", 2.5e-5)
 LR_HEAD = _env_float("LR_HEAD", 1.0e-4)
 SIGMA_START = _env_float("SIGMA_START", 0.4)  # exploration noise
 SIGMA_END = _env_float("SIGMA_END", 0.1)
+RL_WEIGHT = _env_float("RL_WEIGHT", 1.0)      # policy-gradient term weight (0 = pure CE/SFT)
+WEIGHT_DECAY = _env_float("WEIGHT_DECAY", 0.01)
 CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
 RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
 MAX_LEN = _env_int("MAX_LEN", 2048)                # context: seq length (RoPE up to 32768)
@@ -198,7 +200,7 @@ def main():
     optimizer = torch.optim.AdamW(
         [{"params": enc_params, "lr": LR_ENCODER},
          {"params": head_params, "lr": LR_HEAD}],
-        weight_decay=0.01,
+        weight_decay=WEIGHT_DECAY,
     )
     total_updates = (len(my_items) // (MICRO_BATCH * GRAD_ACCUM)) * EPOCHS
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -219,9 +221,32 @@ def main():
         elif rank == 0:
             print(f"[XERON] RESUME={RESUME} but no checkpoint found; training from scratch")
 
+    cfg["training"] = {
+        "updates": total_updates,
+        "epochs": EPOCHS,
+        "world_size": world_size,
+        "fine_tuned_from_checkpoint": True,
+        "base_model": os.path.basename(os.path.normpath(model_id)),
+        "train_sequences": len(all_items),
+        "max_len": MAX_LEN,
+        "dtype": DTYPE,
+        "micro_batch": MICRO_BATCH,
+        "grad_accum": GRAD_ACCUM,
+        "effective_batch": MICRO_BATCH * world_size * GRAD_ACCUM,
+        "group_size": GROUP_SIZE,
+        "lr_encoder": LR_ENCODER,
+        "lr_head": LR_HEAD,
+        "sigma_start": SIGMA_START,
+        "sigma_end": SIGMA_END,
+        "rl_weight": RL_WEIGHT,
+        "weight_decay": WEIGHT_DECAY,
+    }
+
     if rank == 0:
         print(f"XERON DDP training: {len(all_items)} items | {len(my_items)}/rank "
               f"| {EPOCHS} epochs | eff batch {MICRO_BATCH * world_size * GRAD_ACCUM}")
+        print(f"  lr_enc={LR_ENCODER} lr_head={LR_HEAD} sigma={SIGMA_START}->{SIGMA_END} "
+              f"rl_w={RL_WEIGHT} wd={WEIGHT_DECAY} dtype={DTYPE}")
         print("실시간 진행률/손실/남은 시간(ETA)이 표시됩니다...")
     t0 = time.time()
     t_epoch = t0
@@ -288,7 +313,7 @@ def main():
             logp = -(((z - logits.unsqueeze(0)) ** 2) * mask).sum(-1) / (2 * sigma ** 2)
             loss_rl = -(adv * logp).mean()
             loss_ce = -(target * torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
-            loss = (loss_rl + 1.0 * loss_ce) / GRAD_ACCUM + 0.0 * act.sum()
+            loss = (RL_WEIGHT * loss_rl + 1.0 * loss_ce) / GRAD_ACCUM + 0.0 * act.sum()
 
             scaler.scale(loss).backward()
             accum_step += 1
