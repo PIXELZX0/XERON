@@ -48,6 +48,7 @@ SIGMA_END = _env_float("SIGMA_END", 0.1)
 RL_WEIGHT = _env_float("RL_WEIGHT", 1.0)      # policy-gradient term weight (0 = pure CE/SFT)
 WEIGHT_DECAY = _env_float("WEIGHT_DECAY", 0.01)
 HEAD_LAYERS = _env_int("HEAD_LAYERS", 0)      # 0 = keep the base model's head depth; >0 rebuilds the head
+HEAD_SIZE = _env_int("HEAD_SIZE", 0)          # 0 = encoder width (768); >0 widens the head via a projection
 HEAD_DROPOUT = _env_float("HEAD_DROPOUT", 0.0)  # 0 = keep base value
 CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
 RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
@@ -186,7 +187,18 @@ def main():
     cfg["head_max_len"] = HEAD_MAX_LEN
 
     tok = AutoTokenizer.from_pretrained(os.path.join(model_id, "tokenizer"))
-    model = build_model(cfg, encoder_dir=os.path.join(model_id, "encoder"))
+    if HEAD_SIZE:
+        # widen the decision head beyond the encoder width (mmBERT has no `large`)
+        from model_xeron import build_wide_model
+        model = build_wide_model(cfg, os.path.join(model_id, "encoder"),
+                                 head_layers=cfg.get("head_layers", 2),
+                                 head_size=HEAD_SIZE,
+                                 dropout=HEAD_DROPOUT or 0.1)
+        if rank == 0:
+            print(f"[XERON] wide head: encoder d={model.encoder.config.hidden_size} "
+                  f"-> head d={model.head_width}, layers={cfg.get('head_layers')}")
+    else:
+        model = build_model(cfg, encoder_dir=os.path.join(model_id, "encoder"))
 
     weights = load_file(os.path.join(model_id, "model.safetensors"))
     try:
@@ -258,7 +270,8 @@ def main():
         "rl_weight": RL_WEIGHT,
         "weight_decay": WEIGHT_DECAY,
         "head_layers": cfg.get("head_layers"),
-        "head_reinitialized": bool(HEAD_LAYERS),
+        "head_size": HEAD_SIZE or None,
+        "head_reinitialized": bool(HEAD_LAYERS or HEAD_SIZE),
     }
 
     if rank == 0:
