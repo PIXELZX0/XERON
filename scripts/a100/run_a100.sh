@@ -12,6 +12,7 @@ set -euo pipefail
 RUN_NAME="${RUN_NAME:-xeron-0.6}"
 DATA_FILE="${DATA_FILE:-train_items_x3.pt}"
 HEAD_LAYERS="${HEAD_LAYERS:-0}"          # 0 = keep 0.2's 2-layer head; >0 = rebuild the head
+HEAD_SIZE="${HEAD_SIZE:-0}"              # 0 = encoder width (768); >0 = widen the head
 HEAD_DROPOUT="${HEAD_DROPOUT:-0.0}"
 
 echo "=== GPU ==="
@@ -56,11 +57,11 @@ BASE=$(sed -n 2p /tmp/dirs.txt)
 NGPU=$(python -c "import torch;print(torch.cuda.device_count())")
 mkdir -p outputs
 
-echo "=== train (bf16, 1 epoch) head_layers=$HEAD_LAYERS ==="
-# head is freshly initialized when HEAD_LAYERS differs from the base's 2 -> train it harder (1e-4)
+echo "=== train (bf16, 1 epoch) head_layers=$HEAD_LAYERS head_size=$HEAD_SIZE ==="
+# head is freshly initialized when HEAD_LAYERS/HEAD_SIZE differ from the base -> train it harder (1e-4)
 EPOCHS=1 MICRO_BATCH=4 GRAD_ACCUM=8 GROUP_SIZE=4 \
 LR_ENCODER=2e-5 LR_HEAD=1e-4 SIGMA_START=0.3 SIGMA_END=0.2 RL_WEIGHT=0.5 WEIGHT_DECAY=0.02 \
-HEAD_LAYERS="$HEAD_LAYERS" HEAD_DROPOUT="$HEAD_DROPOUT" \
+HEAD_LAYERS="$HEAD_LAYERS" HEAD_SIZE="$HEAD_SIZE" HEAD_DROPOUT="$HEAD_DROPOUT" \
 DTYPE=bf16 MAX_LEN=4096 HEAD_MAX_LEN=256 MAX_TOKENS_BATCH=8192 CHECKPOINT_EVERY=1 PYTHONUNBUFFERED=1 \
 torchrun --standalone --nproc_per_node="$NGPU" scripts/train_ddp.py "$BASE" "./output/$RUN_NAME" "$DATA"
 
