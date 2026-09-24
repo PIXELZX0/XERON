@@ -206,8 +206,10 @@ def main():
         if rank == 0:
             print(f"[XERON] loaded all weights (head_layers={cfg.get('head_layers')})")
     except RuntimeError as e:
-        # Head shape changed (HEAD_LAYERS override): keep the encoder, rebuild the head.
-        enc_only = {k: v for k, v in weights.items() if not k.startswith("head.")}
+        # Head shape changed (HEAD_LAYERS/HEAD_SIZE override): keep ONLY the encoder.
+        # NOTE: filtering on "head." is not enough -- head_proj./type_emb./scorer./act_head.
+        # all have head-shaped weights too, so whitelist the encoder prefix instead.
+        enc_only = {k: v for k, v in weights.items() if k.startswith("encoder.")}
         missing, unexpected = model.load_state_dict(enc_only, strict=False)
         if rank == 0:
             print(f"[XERON] head rebuilt (head_layers={cfg.get('head_layers')}); "
