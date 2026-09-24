@@ -19,8 +19,11 @@ nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
 python -V
 
 echo "=== deps ==="
+# The Vast.ai base image ships torch 2.4.1, but transformers>=5 requires torch>=2.5
+# (without this, AutoModel silently disables PyTorch and build_model raises ImportError).
+pip install -q --upgrade "torch>=2.5" --index-url https://download.pytorch.org/whl/cu124
 pip install -q laya tabulate scipy
-python -c "import torch;print('torch',torch.__version__,'cuda',torch.cuda.is_available(),'ngpu',torch.cuda.device_count())"
+python -c "import torch, transformers;print('torch',torch.__version__,'transformers',transformers.__version__,'cuda',torch.cuda.is_available(),'ngpu',torch.cuda.device_count())"
 
 echo "=== repo ==="
 # already inside the repo (scripts/ present) -> use it; otherwise clone
