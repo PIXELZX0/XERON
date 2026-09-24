@@ -47,6 +47,8 @@ SIGMA_START = _env_float("SIGMA_START", 0.4)  # exploration noise
 SIGMA_END = _env_float("SIGMA_END", 0.1)
 RL_WEIGHT = _env_float("RL_WEIGHT", 1.0)      # policy-gradient term weight (0 = pure CE/SFT)
 WEIGHT_DECAY = _env_float("WEIGHT_DECAY", 0.01)
+HEAD_LAYERS = _env_int("HEAD_LAYERS", 0)      # 0 = keep the base model's head depth; >0 rebuilds the head
+HEAD_DROPOUT = _env_float("HEAD_DROPOUT", 0.0)  # 0 = keep base value
 CHECKPOINT_EVERY = _env_int("CHECKPOINT_EVERY", 0)  # save ckpt every N epochs (0=off, Colab: 1)
 RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (latest in output_dir)
 MAX_LEN = _env_int("MAX_LEN", 2048)                # context: seq length (RoPE up to 32768)
@@ -174,6 +176,10 @@ def main():
     # of convaiinnovations/laya, or a previous fine-tune output)
     # ---- context extension: raise encoder cap + config lengths ----
     cfg = ensure_long_context(model_id, MAX_LEN, CTX_CAP, HEAD_MAX_LEN)
+    if HEAD_LAYERS:
+        cfg["head_layers"] = HEAD_LAYERS
+    if HEAD_DROPOUT:
+        cfg["dropout"] = HEAD_DROPOUT
     cfg["gradient_checkpointing"] = True
     cfg["max_tokens_per_batch"] = MAX_TOKENS_BATCH
     cfg["max_len"] = MAX_LEN
@@ -183,7 +189,18 @@ def main():
     model = build_model(cfg, encoder_dir=os.path.join(model_id, "encoder"))
 
     weights = load_file(os.path.join(model_id, "model.safetensors"))
-    model.load_state_dict(weights, strict=True)
+    try:
+        model.load_state_dict(weights, strict=True)
+        if rank == 0:
+            print(f"[XERON] loaded all weights (head_layers={cfg.get('head_layers')})")
+    except RuntimeError as e:
+        # Head shape changed (HEAD_LAYERS override): keep the encoder, rebuild the head.
+        enc_only = {k: v for k, v in weights.items() if not k.startswith("head.")}
+        missing, unexpected = model.load_state_dict(enc_only, strict=False)
+        if rank == 0:
+            print(f"[XERON] head rebuilt (head_layers={cfg.get('head_layers')}); "
+                  f"encoder weights loaded, {len(missing)} head tensors freshly initialized")
+            print(f"[XERON] (original mismatch: {str(e).splitlines()[0][:120]})")
 
     model.encoder.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
     model.head_checkpointing = True
@@ -240,13 +257,15 @@ def main():
         "sigma_end": SIGMA_END,
         "rl_weight": RL_WEIGHT,
         "weight_decay": WEIGHT_DECAY,
+        "head_layers": cfg.get("head_layers"),
+        "head_reinitialized": bool(HEAD_LAYERS),
     }
 
     if rank == 0:
         print(f"XERON DDP training: {len(all_items)} items | {len(my_items)}/rank "
               f"| {EPOCHS} epochs | eff batch {MICRO_BATCH * world_size * GRAD_ACCUM}")
         print(f"  lr_enc={LR_ENCODER} lr_head={LR_HEAD} sigma={SIGMA_START}->{SIGMA_END} "
-              f"rl_w={RL_WEIGHT} wd={WEIGHT_DECAY} dtype={DTYPE}")
+              f"rl_w={RL_WEIGHT} wd={WEIGHT_DECAY} dtype={DTYPE} head_layers={cfg.get('head_layers')}")
         print("실시간 진행률/손실/남은 시간(ETA)이 표시됩니다...")
     t0 = time.time()
     t_epoch = t0
