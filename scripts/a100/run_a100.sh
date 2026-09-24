@@ -26,7 +26,7 @@ pip install -q --upgrade "torch>=2.5" --index-url https://download.pytorch.org/w
 # ABI ("operator torchvision::nms does not exist" while transformers imports image_utils).
 # Our local env has neither installed; drop them here too.
 pip uninstall -y -q torchvision torchaudio 2>/dev/null || true
-pip install -q laya tabulate scipy
+pip install -q laya tabulate scipy pandas
 python -c "import torch, transformers;print('torch',torch.__version__,'transformers',transformers.__version__,'cuda',torch.cuda.is_available(),'ngpu',torch.cuda.device_count())"
 python -c "from transformers import ModernBertModel; print('ModernBertModel import OK')"
 
@@ -108,5 +108,20 @@ python scripts/evaluate.py --model "./output/$RUN_NAME" --split test --device cu
 
 echo "=== diag: fp32 logit scale (compare with 0.4's 15.417) ==="
 python -u scripts/diag_logit_scale.py "./output/$RUN_NAME" --dtype fp32 --n 200 --items "$DATA" 2>&1 | grep -aE "^\[diag\]" || true
+
+echo "=== upload eval artifacts to HF (workspace sync cannot carry them back) ==="
+python - <<PY
+import os
+from huggingface_hub import HfApi
+api = HfApi(token=os.environ["HF_TOKEN"])
+repo = "PIXELZX/" + os.environ.get("RUN_NAME", "xeron-0.6")
+for f in ("$RUN_NAME.results.jsonl", "$RUN_NAME.typed-decisions-eval.json", "jevbench.ledger.jsonl"):
+    p = "outputs/" + f
+    if os.path.exists(p):
+        api.upload_file(path_or_fileobj=p, path_in_repo=f, repo_id=repo)
+        print("uploaded", f, flush=True)
+    else:
+        print("missing", p, flush=True)
+PY
 
 echo "PIPELINE COMPLETE"
