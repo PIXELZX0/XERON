@@ -22,8 +22,13 @@ echo "=== deps ==="
 # The Vast.ai base image ships torch 2.4.1, but transformers>=5 requires torch>=2.5
 # (without this, AutoModel silently disables PyTorch and build_model raises ImportError).
 pip install -q --upgrade "torch>=2.5" --index-url https://download.pytorch.org/whl/cu124
+# torchvision/torchaudio in the image are pinned to torch 2.4.1 and break the torch 2.6
+# ABI ("operator torchvision::nms does not exist" while transformers imports image_utils).
+# Our local env has neither installed; drop them here too.
+pip uninstall -y -q torchvision torchaudio 2>/dev/null || true
 pip install -q laya tabulate scipy
 python -c "import torch, transformers;print('torch',torch.__version__,'transformers',transformers.__version__,'cuda',torch.cuda.is_available(),'ngpu',torch.cuda.device_count())"
+python -c "from transformers import ModernBertModel; print('ModernBertModel import OK')"
 
 echo "=== repo ==="
 # already inside the repo (scripts/ present) -> use it; otherwise clone
