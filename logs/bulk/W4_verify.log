@@ -1,0 +1,3 @@
+[OK ] xeron10_mix.jsonl            rows=3,352,791 qtype={'choice': 3014289, 'score': 129545, 'noul': 208957} arity={2: 370315, 3: 874501, 4: 796083, 5: 506807, 6: 404148, 7: 53002, 8: 999, 9: 951, 10: 854, 11: 826, 12: 809, 14: 4994} langs=353 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.24 empty=0 badjson=0
+
+=== 1 files, 3,352,791 rows -> data/xeron10_mix_verify.json ===

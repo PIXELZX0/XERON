@@ -1,0 +1,1194 @@
+{
+ "out": "data/xeron10_mix.jsonl",
+ "seed": 7,
+ "sources": [
+  {
+   "file": "data/bulk/afrisenti.jsonl",
+   "rows_in": 34178,
+   "rows_out": 34178,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/ag_news.jsonl",
+   "rows_in": 29996,
+   "rows_out": 29996,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_polarity.jsonl",
+   "rows_in": 59993,
+   "rows_out": 59993,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_de.jsonl",
+   "rows_in": 11981,
+   "rows_out": 11981,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_en.jsonl",
+   "rows_in": 11981,
+   "rows_out": 11981,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_es.jsonl",
+   "rows_in": 11957,
+   "rows_out": 11957,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_fr.jsonl",
+   "rows_in": 11971,
+   "rows_out": 11971,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_ja.jsonl",
+   "rows_in": 12000,
+   "rows_out": 12000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/amazon_reviews_zh.jsonl",
+   "rows_in": 11831,
+   "rows_out": 11831,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/anli.jsonl",
+   "rows_in": 112389,
+   "rows_out": 112389,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/aqua_rat.jsonl",
+   "rows_in": 89970,
+   "rows_out": 89970,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/belebele.jsonl",
+   "rows_in": 109484,
+   "rows_out": 109484,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/c3.jsonl",
+   "rows_in": 3000,
+   "rows_out": 3000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/civil_comments.jsonl",
+   "rows_in": 79020,
+   "rows_out": 79020,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/clue_afqmc.jsonl",
+   "rows_in": 15000,
+   "rows_out": 15000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/clue_cmnli.jsonl",
+   "rows_in": 24963,
+   "rows_out": 24963,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/clue_ocnli.jsonl",
+   "rows_in": 20000,
+   "rows_out": 20000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/clue_tnews.jsonl",
+   "rows_in": 20000,
+   "rows_out": 20000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/clue_wsc.jsonl",
+   "rows_in": 1128,
+   "rows_out": 1128,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/cosmos_qa.jsonl",
+   "rows_in": 19990,
+   "rows_out": 19990,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/dbpedia_14.jsonl",
+   "rows_in": 0,
+   "rows_out": 0,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/emotion.jsonl",
+   "rows_in": 16000,
+   "rows_out": 16000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/fever_nli.jsonl",
+   "rows_in": 29071,
+   "rows_out": 29071,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/fin_phrasebank_atrost.jsonl",
+   "rows_in": 3000,
+   "rows_out": 3000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/fin_phrasebank_warwick.jsonl",
+   "rows_in": 4292,
+   "rows_out": 4292,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/global_mmlu.jsonl",
+   "rows_in": 146403,
+   "rows_out": 146403,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_cola.jsonl",
+   "rows_in": 7990,
+   "rows_out": 7990,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_mrpc.jsonl",
+   "rows_in": 3600,
+   "rows_out": 3600,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_qnli.jsonl",
+   "rows_in": 15000,
+   "rows_out": 15000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_qqp.jsonl",
+   "rows_in": 19997,
+   "rows_out": 19997,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_rte.jsonl",
+   "rows_in": 2399,
+   "rows_out": 2399,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_sst2.jsonl",
+   "rows_in": 19987,
+   "rows_out": 19987,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_stsb.jsonl",
+   "rows_in": 5656,
+   "rows_out": 5656,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/glue_wnli.jsonl",
+   "rows_in": 600,
+   "rows_out": 600,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/go_emotions.jsonl",
+   "rows_in": 19956,
+   "rows_out": 19956,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/include_lite_44.jsonl",
+   "rows_in": 10716,
+   "rows_out": 10716,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/jnli.jsonl",
+   "rows_in": 14989,
+   "rows_out": 14989,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/jsts.jsonl",
+   "rows_in": 11993,
+   "rows_out": 11993,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/kmmlu.jsonl",
+   "rows_in": 23399,
+   "rows_out": 23399,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/kobest.jsonl",
+   "rows_in": 11784,
+   "rows_out": 11784,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/kor_nli_mnli.jsonl",
+   "rows_in": 19999,
+   "rows_out": 19999,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/kor_nli_snli.jsonl",
+   "rows_in": 19994,
+   "rows_out": 19994,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/korean_extra.jsonl",
+   "rows_in": 41661,
+   "rows_out": 41661,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/logiqa2.jsonl",
+   "rows_in": 11926,
+   "rows_out": 11926,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/marc_ja.jsonl",
+   "rows_in": 19979,
+   "rows_out": 19979,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/masakhanews.jsonl",
+   "rows_in": 22154,
+   "rows_out": 22154,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/massive.jsonl",
+   "rows_in": 560040,
+   "rows_out": 560040,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/massive_scenario.jsonl",
+   "rows_in": 91800,
+   "rows_out": 91800,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/math_qa.jsonl",
+   "rows_in": 23939,
+   "rows_out": 23939,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/measuring_hate.jsonl",
+   "rows_in": 34941,
+   "rows_out": 34941,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ar.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_bn.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_de.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_es.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_fa.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_fr.jsonl",
+   "rows_in": 1249,
+   "rows_out": 1249,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_he.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_hi.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_id.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_it.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ja.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ko.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_mr.jsonl",
+   "rows_in": 1248,
+   "rows_out": 1248,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_nl.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_pl.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ps.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_pt.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ru.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_sv.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_sw.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ta.jsonl",
+   "rows_in": 1242,
+   "rows_out": 1242,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_tr.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_uk.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_ur.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_vi.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mlnli_zh.jsonl",
+   "rows_in": 1250,
+   "rows_out": 1250,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mmlu_pro.jsonl",
+   "rows_in": 11999,
+   "rows_out": 11999,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mmlu_prox.jsonl",
+   "rows_in": 69620,
+   "rows_out": 69620,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mnli.jsonl",
+   "rows_in": 30000,
+   "rows_out": 30000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mtop_domain.jsonl",
+   "rows_in": 20000,
+   "rows_out": 20000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/mtop_intent.jsonl",
+   "rows_in": 17463,
+   "rows_out": 17463,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/nsmc.jsonl",
+   "rows_in": 29671,
+   "rows_out": 29671,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/paws_x.jsonl",
+   "rows_in": 55565,
+   "rows_out": 55565,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/qasc.jsonl",
+   "rows_in": 8000,
+   "rows_out": 8000,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/race.jsonl",
+   "rows_in": 79916,
+   "rows_out": 79916,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/sib200.jsonl",
+   "rows_in": 205820,
+   "rows_out": 205820,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/snli.jsonl",
+   "rows_in": 29958,
+   "rows_out": 29958,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/social_i_qa.jsonl",
+   "rows_in": 24956,
+   "rows_out": 24956,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/sst5.jsonl",
+   "rows_in": 8534,
+   "rows_out": 8534,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/super_glue.jsonl",
+   "rows_in": 18098,
+   "rows_out": 18098,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/vitaminc.jsonl",
+   "rows_in": 39933,
+   "rows_out": 39933,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/winogrande.jsonl",
+   "rows_in": 17630,
+   "rows_out": 17630,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/xcopa.jsonl",
+   "rows_in": 6600,
+   "rows_out": 6600,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/xnli.jsonl",
+   "rows_in": 374965,
+   "rows_out": 374965,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/xstory_cloze.jsonl",
+   "rows_in": 20578,
+   "rows_out": 20578,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/xwinograd.jsonl",
+   "rows_in": 4442,
+   "rows_out": 4442,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/yahoo_topics.jsonl",
+   "rows_in": 19998,
+   "rows_out": 19998,
+   "dropped": {}
+  },
+  {
+   "file": "data/bulk/yelp_polarity.jsonl",
+   "rows_in": 39995,
+   "rows_out": 39995,
+   "dropped": {}
+  },
+  {
+   "file": "data/jevbench_full.jsonl",
+   "rows_in": 101953,
+   "rows_out": 85503,
+   "dropped": {
+    "choice_arity_gt_16": 8000,
+    "duplicate_state": 8253,
+    "empty_state": 131,
+    "answer_marker_in_state": 66
+   }
+  },
+  {
+   "file": "data/jevbench_extra_banking77.jsonl",
+   "rows_in": 5092,
+   "rows_out": 5092,
+   "dropped": {}
+  },
+  {
+   "file": "data/jevbench_extra_chaosnli.jsonl",
+   "rows_in": 1599,
+   "rows_out": 1599,
+   "dropped": {}
+  },
+  {
+   "file": "data/jevbench_extra_clinc150.jsonl",
+   "rows_in": 4954,
+   "rows_out": 4906,
+   "dropped": {
+    "empty_state": 48
+   }
+  },
+  {
+   "file": "data/jevbench_extra_ledgar.jsonl",
+   "rows_in": 4439,
+   "rows_out": 4439,
+   "dropped": {}
+  },
+  {
+   "file": "data/jevbench_extra_massive.jsonl",
+   "rows_in": 6022,
+   "rows_out": 5889,
+   "dropped": {
+    "empty_state": 133
+   }
+  },
+  {
+   "file": "data/korean_typed.jsonl",
+   "rows_in": 82344,
+   "rows_out": 82333,
+   "dropped": {
+    "duplicate_state": 9,
+    "answer_marker_in_state": 2
+   }
+  },
+  {
+   "file": "data/anli_typed.jsonl",
+   "rows_in": 24000,
+   "rows_out": 23993,
+   "dropped": {
+    "duplicate_state": 6,
+    "answer_marker_in_state": 1
+   }
+  },
+  {
+   "file": "data/browser_typed.jsonl",
+   "rows_in": 28899,
+   "rows_out": 28393,
+   "dropped": {
+    "duplicate_state": 506
+   }
+  },
+  {
+   "file": "data/long_typed.jsonl",
+   "rows_in": 16314,
+   "rows_out": 4994,
+   "dropped": {
+    "answer_marker_in_state": 6,
+    "choice_arity_gt_16": 11314
+   }
+  },
+  {
+   "file": "data/mind2web_typed.jsonl",
+   "rows_in": 14724,
+   "rows_out": 7324,
+   "dropped": {
+    "choice_arity_gt_16": 7361,
+    "duplicate_state": 39
+   }
+  },
+  {
+   "file": "data/mmlu_typed.jsonl",
+   "rows_in": 15000,
+   "rows_out": 15000,
+   "dropped": {}
+  },
+  {
+   "file": "data/hellaswag_typed.jsonl",
+   "rows_in": 10000,
+   "rows_out": 9999,
+   "dropped": {
+    "answer_marker_in_state": 1
+   }
+  },
+  {
+   "file": "data/arc_typed.jsonl",
+   "rows_in": 3000,
+   "rows_out": 3000,
+   "dropped": {}
+  }
+ ],
+ "rows_in": 3388667,
+ "rows_out": 3352791,
+ "dropped_total": 35876,
+ "dropped_by_reason": {
+  "choice_arity_gt_16": 26675,
+  "duplicate_state": 8813,
+  "empty_state": 312,
+  "answer_marker_in_state": 76
+ },
+ "row_fixes": {
+  "score_dict_to_list": 80255
+ },
+ "qtype": {
+  "choice": 3014289,
+  "score": 129545,
+  "noul": 208957
+ },
+ "choice_arity": {
+  "2": 370315,
+  "3": 874501,
+  "4": 796083,
+  "5": 506807,
+  "6": 404148,
+  "7": 53002,
+  "8": 999,
+  "9": 951,
+  "10": 854,
+  "11": 826,
+  "12": 809,
+  "14": 4994
+ },
+ "languages": {
+  "en": 1009250,
+  "?": 226507,
+  "ko": 174449,
+  "zh": 139047,
+  "ja": 87814,
+  "es": 72125,
+  "de": 71276,
+  "fr": 70738,
+  "hi": 52496,
+  "sw": 47386,
+  "ru": 47194,
+  "ar": 46755,
+  "th": 46231,
+  "vi": 45464,
+  "tr": 42854,
+  "ur": 41525,
+  "el": 41225,
+  "af": 25392,
+  "bg": 25000,
+  "id": 21893,
+  "te": 20646,
+  "it": 20296,
+  "pt": 20185,
+  "bn": 19975,
+  "he": 17533,
+  "fa": 17527,
+  "sv": 17190,
+  "pl": 17129,
+  "nl": 17073,
+  "am": 16267,
+  "ms": 16101,
+  "ro": 15836,
+  "hu": 15257,
+  "my": 14648,
+  "ta": 14636,
+  "kn": 12800,
+  "zh-CN": 12796,
+  "hy": 12793,
+  "ml": 12786,
+  "mn": 12780,
+  "ka": 12777,
+  "km": 12770,
+  "zh-TW": 12760,
+  "is": 12754,
+  "fi": 12695,
+  "az": 12693,
+  "cy": 12585,
+  "sq": 12582,
+  "lv": 12577,
+  "jv": 12534,
+  "sl": 12414,
+  "nb": 12377,
+  "tl": 12319,
+  "da": 12167,
+  "uk": 7237,
+  "cs": 5983,
+  "sr": 5981,
+  "ne": 5975,
+  "yo": 5972,
+  "eng": 4472,
+  "hau": 4317,
+  "yor": 4139,
+  "ibo": 4048,
+  "amh": 3995,
+  "orm": 3790,
+  "mr": 3740,
+  "pcm": 3687,
+  "tir": 3584,
+  "swa": 3546,
+  "fil": 3493,
+  "lt": 3488,
+  "sn": 3488,
+  "ky": 3486,
+  "so": 3486,
+  "mg": 3482,
+  "si": 3482,
+  "ha": 3475,
+  "ny": 3474,
+  "ig": 3471,
+  "ary": 2500,
+  "kin": 2497,
+  "wo": 2491,
+  "por": 2484,
+  "zu": 2478,
+  "twi": 2459,
+  "afr_Latn": 1902,
+  "als_Latn": 1902,
+  "amh_Ethi": 1902,
+  "apc_Arab": 1902,
+  "arb_Arab": 1902,
+  "arb_Latn": 1902,
+  "ars_Arab": 1902,
+  "ary_Arab": 1902,
+  "arz_Arab": 1902,
+  "asm_Beng": 1902,
+  "ben_Beng": 1902,
+  "bod_Tibt": 1902,
+  "bul_Cyrl": 1902,
+  "cat_Latn": 1902,
+  "ceb_Latn": 1902,
+  "ces_Latn": 1902,
+  "ckb_Arab": 1902,
+  "dan_Latn": 1902,
+  "deu_Latn": 1902,
+  "ell_Grek": 1902,
+  "eng_Latn": 1902,
+  "est_Latn": 1902,
+  "eus_Latn": 1902,
+  "fin_Latn": 1902,
+  "fra_Latn": 1902,
+  "fuv_Latn": 1902,
+  "guj_Gujr": 1902,
+  "hat_Latn": 1902,
+  "hau_Latn": 1902,
+  "heb_Hebr": 1902,
+  "hin_Deva": 1902,
+  "hrv_Latn": 1902,
+  "hun_Latn": 1902,
+  "hye_Armn": 1902,
+  "ilo_Latn": 1902,
+  "ind_Latn": 1902,
+  "ita_Latn": 1902,
+  "jpn_Jpan": 1902,
+  "kat_Geor": 1902,
+  "kea_Latn": 1902,
+  "khk_Cyrl": 1902,
+  "khm_Khmr": 1902,
+  "kir_Cyrl": 1902,
+  "lao_Laoo": 1902,
+  "luo_Latn": 1902,
+  "lvs_Latn": 1902,
+  "mal_Mlym": 1902,
+  "mlt_Latn": 1902,
+  "mri_Latn": 1902,
+  "mya_Mymr": 1902,
+  "nld_Latn": 1902,
+  "nob_Latn": 1902,
+  "ory_Orya": 1902,
+  "pan_Guru": 1902,
+  "pbt_Arab": 1902,
+  "pes_Arab": 1902,
+  "plt_Latn": 1902,
+  "por_Latn": 1902,
+  "ron_Latn": 1902,
+  "rus_Cyrl": 1902,
+  "shn_Mymr": 1902,
+  "sin_Sinh": 1902,
+  "slk_Latn": 1902,
+  "slv_Latn": 1902,
+  "spa_Latn": 1902,
+  "srp_Cyrl": 1902,
+  "ssw_Latn": 1902,
+  "sun_Latn": 1902,
+  "swe_Latn": 1902,
+  "swh_Latn": 1902,
+  "tam_Taml": 1902,
+  "tgk_Cyrl": 1902,
+  "tgl_Latn": 1902,
+  "tha_Thai": 1902,
+  "tso_Latn": 1902,
+  "tur_Latn": 1902,
+  "ukr_Cyrl": 1902,
+  "uzn_Latn": 1902,
+  "vie_Latn": 1902,
+  "war_Latn": 1902,
+  "wol_Latn": 1902,
+  "xho_Latn": 1902,
+  "zho_Hans": 1902,
+  "zho_Hant": 1902,
+  "bam_Latn": 1901,
+  "gaz_Latn": 1901,
+  "grn_Latn": 1901,
+  "isl_Latn": 1901,
+  "jav_Latn": 1901,
+  "kac_Latn": 1901,
+  "kan_Knda": 1901,
+  "lit_Latn": 1901,
+  "mkd_Cyrl": 1901,
+  "npi_Deva": 1901,
+  "pol_Latn": 1901,
+  "sna_Latn": 1901,
+  "sot_Latn": 1901,
+  "tel_Telu": 1901,
+  "tir_Ethi": 1901,
+  "urd_Arab": 1901,
+  "zsm_Latn": 1901,
+  "kaz_Cyrl": 1900,
+  "kor_Hang": 1900,
+  "mar_Deva": 1900,
+  "nso_Latn": 1900,
+  "nya_Latn": 1900,
+  "som_Latn": 1900,
+  "acm_Arab": 1899,
+  "azj_Latn": 1899,
+  "ibo_Latn": 1899,
+  "kin_Latn": 1899,
+  "lug_Latn": 1899,
+  "yor_Latn": 1899,
+  "zul_Latn": 1899,
+  "snd_Arab": 1897,
+  "tsn_Latn": 1895,
+  "lin_Latn": 1893,
+  "eu": 1871,
+  "fra": 1687,
+  "arq": 1650,
+  "sna": 1473,
+  "run": 1276,
+  "ps": 1250,
+  "xho": 1179,
+  "som": 1169,
+  "ace_Arab": 1004,
+  "ace_Latn": 1004,
+  "acq_Arab": 1004,
+  "aeb_Arab": 1004,
+  "ajp_Arab": 1004,
+  "aka_Latn": 1004,
+  "ast_Latn": 1004,
+  "awa_Deva": 1004,
+  "ayr_Latn": 1004,
+  "azb_Arab": 1004,
+  "bak_Cyrl": 1004,
+  "ban_Latn": 1004,
+  "bel_Cyrl": 1004,
+  "bem_Latn": 1004,
+  "bho_Deva": 1004,
+  "bjn_Arab": 1004,
+  "bjn_Latn": 1004,
+  "bos_Latn": 1004,
+  "bug_Latn": 1004,
+  "cjk_Latn": 1004,
+  "crh_Latn": 1004,
+  "cym_Latn": 1004,
+  "dik_Latn": 1004,
+  "dyu_Latn": 1004,
+  "dzo_Tibt": 1004,
+  "epo_Latn": 1004,
+  "ewe_Latn": 1004,
+  "fao_Latn": 1004,
+  "fij_Latn": 1004,
+  "fon_Latn": 1004,
+  "fur_Latn": 1004,
+  "gla_Latn": 1004,
+  "gle_Latn": 1004,
+  "glg_Latn": 1004,
+  "hne_Deva": 1004,
+  "kab_Latn": 1004,
+  "kam_Latn": 1004,
+  "kas_Arab": 1004,
+  "kas_Deva": 1004,
+  "kbp_Latn": 1004,
+  "kik_Latn": 1004,
+  "kmb_Latn": 1004,
+  "kmr_Latn": 1004,
+  "knc_Arab": 1004,
+  "knc_Latn": 1004,
+  "kon_Latn": 1004,
+  "lij_Latn": 1004,
+  "lim_Latn": 1004,
+  "lmo_Latn": 1004,
+  "ltg_Latn": 1004,
+  "ltz_Latn": 1004,
+  "lua_Latn": 1004,
+  "lus_Latn": 1004,
+  "mag_Deva": 1004,
+  "mai_Deva": 1004,
+  "min_Arab": 1004,
+  "min_Latn": 1004,
+  "mni_Beng": 1004,
+  "mos_Latn": 1004,
+  "nno_Latn": 1004,
+  "nqo_Nkoo": 1004,
+  "nus_Latn": 1004,
+  "oci_Latn": 1004,
+  "pag_Latn": 1004,
+  "pap_Latn": 1004,
+  "prs_Arab": 1004,
+  "quy_Latn": 1004,
+  "run_Latn": 1004,
+  "sag_Latn": 1004,
+  "san_Deva": 1004,
+  "sat_Olck": 1004,
+  "scn_Latn": 1004,
+  "smo_Latn": 1004,
+  "srd_Latn": 1004,
+  "szl_Latn": 1004,
+  "taq_Latn": 1004,
+  "taq_Tfng": 1004,
+  "tat_Cyrl": 1004,
+  "tpi_Latn": 1004,
+  "tuk_Latn": 1004,
+  "tum_Latn": 1004,
+  "twi_Latn": 1004,
+  "tzm_Tfng": 1004,
+  "uig_Arab": 1004,
+  "umb_Latn": 1004,
+  "vec_Latn": 1004,
+  "ydd_Hebr": 1004,
+  "yue_Hant": 1004,
+  "ben_Latn": 898,
+  "hin_Latn": 898,
+  "npi_Latn": 898,
+  "sin_Latn": 898,
+  "urd_Latn": 897,
+  "lug": 881,
+  "tso": 804,
+  "lin": 695,
+  "et": 600,
+  "ht": 600,
+  "qu": 600,
+  "Albanian": 250,
+  "Armenian": 250,
+  "Belarusian": 250,
+  "Bulgarian": 250,
+  "Croatian": 250,
+  "Finnish": 250,
+  "French": 250,
+  "Georgian": 250,
+  "Hebrew": 250,
+  "Hungarian": 250,
+  "Kazakh": 250,
+  "Lithuanian": 250,
+  "Nepali": 250,
+  "North Macedonian": 250,
+  "Portuguese": 250,
+  "Serbian": 250,
+  "Spanish": 250,
+  "Tagalog": 250,
+  "Tamil": 250,
+  "Ukrainian": 250,
+  "Uzbek": 250,
+  "Azerbaijani": 249,
+  "Basque": 249,
+  "Bengali": 249,
+  "Greek": 249,
+  "Italian": 249,
+  "Japanese": 249,
+  "Malay": 249,
+  "Malayalam": 249,
+  "Polish": 249,
+  "Turkish": 249,
+  "Vietnamese": 249,
+  "Dutch": 248,
+  "Urdu": 248,
+  "Persian": 247,
+  "Russian": 246,
+  "Arabic": 245,
+  "Chinese": 245,
+  "Indonesian": 245,
+  "Telugu": 245,
+  "Hindi": 244,
+  "Korean": 242,
+  "Estonian": 183,
+  "German": 89
+ },
+ "n_language_tags": 353,
+ "workflow_top25": [
+  [
+   "massive-intent",
+   560040
+  ],
+  [
+   "xnli-multilingual",
+   374965
+  ],
+  [
+   "sib200-topic",
+   205820
+  ],
+  [
+   "anli-nli",
+   112389
+  ],
+  [
+   "belebele-reading",
+   109484
+  ],
+  [
+   "massive-scenario",
+   91800
+  ],
+  [
+   "aqua-rat",
+   89970
+  ],
+  [
+   "korean-general",
+   82333
+  ],
+  [
+   "race-reading",
+   79916
+  ],
+  [
+   "civil-comments-toxicity",
+   79020
+  ],
+  [
+   "amazon-reviews-multi",
+   71721
+  ],
+  [
+   "amazon-polarity",
+   59993
+  ],
+  [
+   "paws-x",
+   55565
+  ],
+  [
+   "yelp-polarity",
+   39995
+  ],
+  [
+   "vitaminc-factcheck",
+   39933
+  ],
+  [
+   "measuring-hate-speech",
+   34941
+  ],
+  [
+   "afrisenti",
+   34178
+  ],
+  [
+   "multilingual-nli",
+   32489
+  ],
+  [
+   "korean-ynat",
+   30000
+  ],
+  [
+   "mnli-nli",
+   30000
+  ],
+  [
+   "agnews-topic",
+   29996
+  ],
+  [
+   "snli-nli",
+   29958
+  ],
+  [
+   "nsmc-sentiment",
+   29671
+  ],
+  [
+   "fever-fact-verification",
+   29071
+  ],
+  [
+   "browser-use",
+   28393
+  ]
+ ],
+ "max_workflow_share": 0.167,
+ "non_choice_rows_without_language_tag": 55957
+}

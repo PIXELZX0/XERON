@@ -1,0 +1,1265 @@
+{
+ "name": "xeron10",
+ "generated_at": "2026-09-25T16:45:26+09:00",
+ "git_rev": "69aea9f",
+ "seed": 7,
+ "mix": {
+  "path": "data/xeron10_mix.jsonl",
+  "rows_in": 3388667,
+  "rows_out": 3352791,
+  "size_bytes": 3231484535,
+  "dropped_by_reason": {
+   "choice_arity_gt_16": 26675,
+   "duplicate_state": 8813,
+   "empty_state": 312,
+   "answer_marker_in_state": 76
+  },
+  "row_fixes": {
+   "score_dict_to_list": 80255
+  },
+  "sources": [
+   {
+    "file": "data/bulk/afrisenti.jsonl",
+    "rows_in": 34178,
+    "rows_out": 34178,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/ag_news.jsonl",
+    "rows_in": 29996,
+    "rows_out": 29996,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_polarity.jsonl",
+    "rows_in": 59993,
+    "rows_out": 59993,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_de.jsonl",
+    "rows_in": 11981,
+    "rows_out": 11981,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_en.jsonl",
+    "rows_in": 11981,
+    "rows_out": 11981,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_es.jsonl",
+    "rows_in": 11957,
+    "rows_out": 11957,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_fr.jsonl",
+    "rows_in": 11971,
+    "rows_out": 11971,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_ja.jsonl",
+    "rows_in": 12000,
+    "rows_out": 12000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/amazon_reviews_zh.jsonl",
+    "rows_in": 11831,
+    "rows_out": 11831,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/anli.jsonl",
+    "rows_in": 112389,
+    "rows_out": 112389,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/aqua_rat.jsonl",
+    "rows_in": 89970,
+    "rows_out": 89970,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/belebele.jsonl",
+    "rows_in": 109484,
+    "rows_out": 109484,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/c3.jsonl",
+    "rows_in": 3000,
+    "rows_out": 3000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/civil_comments.jsonl",
+    "rows_in": 79020,
+    "rows_out": 79020,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/clue_afqmc.jsonl",
+    "rows_in": 15000,
+    "rows_out": 15000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/clue_cmnli.jsonl",
+    "rows_in": 24963,
+    "rows_out": 24963,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/clue_ocnli.jsonl",
+    "rows_in": 20000,
+    "rows_out": 20000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/clue_tnews.jsonl",
+    "rows_in": 20000,
+    "rows_out": 20000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/clue_wsc.jsonl",
+    "rows_in": 1128,
+    "rows_out": 1128,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/cosmos_qa.jsonl",
+    "rows_in": 19990,
+    "rows_out": 19990,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/dbpedia_14.jsonl",
+    "rows_in": 0,
+    "rows_out": 0,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/emotion.jsonl",
+    "rows_in": 16000,
+    "rows_out": 16000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/fever_nli.jsonl",
+    "rows_in": 29071,
+    "rows_out": 29071,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/fin_phrasebank_atrost.jsonl",
+    "rows_in": 3000,
+    "rows_out": 3000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/fin_phrasebank_warwick.jsonl",
+    "rows_in": 4292,
+    "rows_out": 4292,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/global_mmlu.jsonl",
+    "rows_in": 146403,
+    "rows_out": 146403,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_cola.jsonl",
+    "rows_in": 7990,
+    "rows_out": 7990,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_mrpc.jsonl",
+    "rows_in": 3600,
+    "rows_out": 3600,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_qnli.jsonl",
+    "rows_in": 15000,
+    "rows_out": 15000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_qqp.jsonl",
+    "rows_in": 19997,
+    "rows_out": 19997,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_rte.jsonl",
+    "rows_in": 2399,
+    "rows_out": 2399,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_sst2.jsonl",
+    "rows_in": 19987,
+    "rows_out": 19987,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_stsb.jsonl",
+    "rows_in": 5656,
+    "rows_out": 5656,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/glue_wnli.jsonl",
+    "rows_in": 600,
+    "rows_out": 600,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/go_emotions.jsonl",
+    "rows_in": 19956,
+    "rows_out": 19956,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/include_lite_44.jsonl",
+    "rows_in": 10716,
+    "rows_out": 10716,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/jnli.jsonl",
+    "rows_in": 14989,
+    "rows_out": 14989,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/jsts.jsonl",
+    "rows_in": 11993,
+    "rows_out": 11993,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/kmmlu.jsonl",
+    "rows_in": 23399,
+    "rows_out": 23399,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/kobest.jsonl",
+    "rows_in": 11784,
+    "rows_out": 11784,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/kor_nli_mnli.jsonl",
+    "rows_in": 19999,
+    "rows_out": 19999,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/kor_nli_snli.jsonl",
+    "rows_in": 19994,
+    "rows_out": 19994,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/korean_extra.jsonl",
+    "rows_in": 41661,
+    "rows_out": 41661,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/logiqa2.jsonl",
+    "rows_in": 11926,
+    "rows_out": 11926,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/marc_ja.jsonl",
+    "rows_in": 19979,
+    "rows_out": 19979,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/masakhanews.jsonl",
+    "rows_in": 22154,
+    "rows_out": 22154,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/massive.jsonl",
+    "rows_in": 560040,
+    "rows_out": 560040,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/massive_scenario.jsonl",
+    "rows_in": 91800,
+    "rows_out": 91800,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/math_qa.jsonl",
+    "rows_in": 23939,
+    "rows_out": 23939,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/measuring_hate.jsonl",
+    "rows_in": 34941,
+    "rows_out": 34941,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ar.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_bn.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_de.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_es.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_fa.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_fr.jsonl",
+    "rows_in": 1249,
+    "rows_out": 1249,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_he.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_hi.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_id.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_it.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ja.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ko.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_mr.jsonl",
+    "rows_in": 1248,
+    "rows_out": 1248,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_nl.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_pl.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ps.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_pt.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ru.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_sv.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_sw.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ta.jsonl",
+    "rows_in": 1242,
+    "rows_out": 1242,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_tr.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_uk.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_ur.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_vi.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mlnli_zh.jsonl",
+    "rows_in": 1250,
+    "rows_out": 1250,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mmlu_pro.jsonl",
+    "rows_in": 11999,
+    "rows_out": 11999,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mmlu_prox.jsonl",
+    "rows_in": 69620,
+    "rows_out": 69620,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mnli.jsonl",
+    "rows_in": 30000,
+    "rows_out": 30000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mtop_domain.jsonl",
+    "rows_in": 20000,
+    "rows_out": 20000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/mtop_intent.jsonl",
+    "rows_in": 17463,
+    "rows_out": 17463,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/nsmc.jsonl",
+    "rows_in": 29671,
+    "rows_out": 29671,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/paws_x.jsonl",
+    "rows_in": 55565,
+    "rows_out": 55565,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/qasc.jsonl",
+    "rows_in": 8000,
+    "rows_out": 8000,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/race.jsonl",
+    "rows_in": 79916,
+    "rows_out": 79916,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/sib200.jsonl",
+    "rows_in": 205820,
+    "rows_out": 205820,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/snli.jsonl",
+    "rows_in": 29958,
+    "rows_out": 29958,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/social_i_qa.jsonl",
+    "rows_in": 24956,
+    "rows_out": 24956,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/sst5.jsonl",
+    "rows_in": 8534,
+    "rows_out": 8534,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/super_glue.jsonl",
+    "rows_in": 18098,
+    "rows_out": 18098,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/vitaminc.jsonl",
+    "rows_in": 39933,
+    "rows_out": 39933,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/winogrande.jsonl",
+    "rows_in": 17630,
+    "rows_out": 17630,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/xcopa.jsonl",
+    "rows_in": 6600,
+    "rows_out": 6600,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/xnli.jsonl",
+    "rows_in": 374965,
+    "rows_out": 374965,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/xstory_cloze.jsonl",
+    "rows_in": 20578,
+    "rows_out": 20578,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/xwinograd.jsonl",
+    "rows_in": 4442,
+    "rows_out": 4442,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/yahoo_topics.jsonl",
+    "rows_in": 19998,
+    "rows_out": 19998,
+    "dropped": {}
+   },
+   {
+    "file": "data/bulk/yelp_polarity.jsonl",
+    "rows_in": 39995,
+    "rows_out": 39995,
+    "dropped": {}
+   },
+   {
+    "file": "data/jevbench_full.jsonl",
+    "rows_in": 101953,
+    "rows_out": 85503,
+    "dropped": {
+     "choice_arity_gt_16": 8000,
+     "duplicate_state": 8253,
+     "empty_state": 131,
+     "answer_marker_in_state": 66
+    }
+   },
+   {
+    "file": "data/jevbench_extra_banking77.jsonl",
+    "rows_in": 5092,
+    "rows_out": 5092,
+    "dropped": {}
+   },
+   {
+    "file": "data/jevbench_extra_chaosnli.jsonl",
+    "rows_in": 1599,
+    "rows_out": 1599,
+    "dropped": {}
+   },
+   {
+    "file": "data/jevbench_extra_clinc150.jsonl",
+    "rows_in": 4954,
+    "rows_out": 4906,
+    "dropped": {
+     "empty_state": 48
+    }
+   },
+   {
+    "file": "data/jevbench_extra_ledgar.jsonl",
+    "rows_in": 4439,
+    "rows_out": 4439,
+    "dropped": {}
+   },
+   {
+    "file": "data/jevbench_extra_massive.jsonl",
+    "rows_in": 6022,
+    "rows_out": 5889,
+    "dropped": {
+     "empty_state": 133
+    }
+   },
+   {
+    "file": "data/korean_typed.jsonl",
+    "rows_in": 82344,
+    "rows_out": 82333,
+    "dropped": {
+     "duplicate_state": 9,
+     "answer_marker_in_state": 2
+    }
+   },
+   {
+    "file": "data/anli_typed.jsonl",
+    "rows_in": 24000,
+    "rows_out": 23993,
+    "dropped": {
+     "duplicate_state": 6,
+     "answer_marker_in_state": 1
+    }
+   },
+   {
+    "file": "data/browser_typed.jsonl",
+    "rows_in": 28899,
+    "rows_out": 28393,
+    "dropped": {
+     "duplicate_state": 506
+    }
+   },
+   {
+    "file": "data/long_typed.jsonl",
+    "rows_in": 16314,
+    "rows_out": 4994,
+    "dropped": {
+     "answer_marker_in_state": 6,
+     "choice_arity_gt_16": 11314
+    }
+   },
+   {
+    "file": "data/mind2web_typed.jsonl",
+    "rows_in": 14724,
+    "rows_out": 7324,
+    "dropped": {
+     "choice_arity_gt_16": 7361,
+     "duplicate_state": 39
+    }
+   },
+   {
+    "file": "data/mmlu_typed.jsonl",
+    "rows_in": 15000,
+    "rows_out": 15000,
+    "dropped": {}
+   },
+   {
+    "file": "data/hellaswag_typed.jsonl",
+    "rows_in": 10000,
+    "rows_out": 9999,
+    "dropped": {
+     "answer_marker_in_state": 1
+    }
+   },
+   {
+    "file": "data/arc_typed.jsonl",
+    "rows_in": 3000,
+    "rows_out": 3000,
+    "dropped": {}
+   }
+  ],
+  "excluded_sources": [
+   "data/clinc_typed.jsonl",
+   "data/clinc_hard_typed.jsonl",
+   "data/xeron3_mix.jsonl",
+   "data/xeron5_mix.jsonl",
+   "data/xeron9_mix.jsonl"
+  ]
+ },
+ "distribution": {
+  "qtype": {
+   "choice": 3014289,
+   "score": 129545,
+   "noul": 208957
+  },
+  "choice_arity": {
+   "2": 370315,
+   "3": 874501,
+   "4": 796083,
+   "5": 506807,
+   "6": 404148,
+   "7": 53002,
+   "8": 999,
+   "9": 951,
+   "10": 854,
+   "11": 826,
+   "12": 809,
+   "14": 4994
+  },
+  "workflow_top25": [
+   [
+    "massive-intent",
+    560040
+   ],
+   [
+    "xnli-multilingual",
+    374965
+   ],
+   [
+    "sib200-topic",
+    205820
+   ],
+   [
+    "anli-nli",
+    112389
+   ],
+   [
+    "belebele-reading",
+    109484
+   ],
+   [
+    "massive-scenario",
+    91800
+   ],
+   [
+    "aqua-rat",
+    89970
+   ],
+   [
+    "korean-general",
+    82333
+   ],
+   [
+    "race-reading",
+    79916
+   ],
+   [
+    "civil-comments-toxicity",
+    79020
+   ],
+   [
+    "amazon-reviews-multi",
+    71721
+   ],
+   [
+    "amazon-polarity",
+    59993
+   ],
+   [
+    "paws-x",
+    55565
+   ],
+   [
+    "yelp-polarity",
+    39995
+   ],
+   [
+    "vitaminc-factcheck",
+    39933
+   ],
+   [
+    "measuring-hate-speech",
+    34941
+   ],
+   [
+    "afrisenti",
+    34178
+   ],
+   [
+    "multilingual-nli",
+    32489
+   ],
+   [
+    "korean-ynat",
+    30000
+   ],
+   [
+    "mnli-nli",
+    30000
+   ],
+   [
+    "agnews-topic",
+    29996
+   ],
+   [
+    "snli-nli",
+    29958
+   ],
+   [
+    "nsmc-sentiment",
+    29671
+   ],
+   [
+    "fever-fact-verification",
+    29071
+   ],
+   [
+    "browser-use",
+    28393
+   ]
+  ],
+  "max_workflow_share": 0.167,
+  "language_tags_raw": 353,
+  "languages_normalized": 257,
+  "language_normalization": "lowercase, drop region/script subtag, ISO-639-3 -> 639-1",
+  "language_share_top25": [
+   [
+    "en",
+    0.30292
+   ],
+   [
+    "ko",
+    0.0526
+   ],
+   [
+    "zh",
+    0.05023
+   ],
+   [
+    "ja",
+    0.02676
+   ],
+   [
+    "fr",
+    0.02217
+   ],
+   [
+    "es",
+    0.02208
+   ],
+   [
+    "de",
+    0.02183
+   ],
+   [
+    "hi",
+    0.01649
+   ],
+   [
+    "ar",
+    0.01639
+   ],
+   [
+    "sw",
+    0.01576
+   ],
+   [
+    "ru",
+    0.01464
+   ],
+   [
+    "th",
+    0.01436
+   ],
+   [
+    "vi",
+    0.01413
+   ],
+   [
+    "tr",
+    0.01335
+   ],
+   [
+    "ur",
+    0.01322
+   ],
+   [
+    "el",
+    0.01286
+   ],
+   [
+    "af",
+    0.00814
+   ],
+   [
+    "bg",
+    0.00802
+   ],
+   [
+    "pt",
+    0.00733
+   ],
+   [
+    "id",
+    0.0071
+   ],
+   [
+    "bn",
+    0.00679
+   ],
+   [
+    "te",
+    0.00672
+   ],
+   [
+    "it",
+    0.00662
+   ],
+   [
+    "am",
+    0.00661
+   ],
+   [
+    "he",
+    0.0058
+   ]
+  ],
+  "language_share_top25_of_tagged": [
+   [
+    "en",
+    0.30806
+   ],
+   [
+    "ko",
+    0.05349
+   ],
+   [
+    "zh",
+    0.05108
+   ],
+   [
+    "ja",
+    0.02721
+   ],
+   [
+    "fr",
+    0.02254
+   ],
+   [
+    "es",
+    0.02245
+   ],
+   [
+    "de",
+    0.0222
+   ],
+   [
+    "hi",
+    0.01677
+   ],
+   [
+    "ar",
+    0.01667
+   ],
+   [
+    "sw",
+    0.01603
+   ],
+   [
+    "ru",
+    0.01489
+   ],
+   [
+    "th",
+    0.0146
+   ],
+   [
+    "vi",
+    0.01437
+   ],
+   [
+    "tr",
+    0.01358
+   ],
+   [
+    "ur",
+    0.01344
+   ],
+   [
+    "el",
+    0.01308
+   ],
+   [
+    "af",
+    0.00828
+   ],
+   [
+    "bg",
+    0.00816
+   ],
+   [
+    "pt",
+    0.00745
+   ],
+   [
+    "id",
+    0.00722
+   ],
+   [
+    "bn",
+    0.00691
+   ],
+   [
+    "te",
+    0.00684
+   ],
+   [
+    "it",
+    0.00673
+   ],
+   [
+    "am",
+    0.00672
+   ],
+   [
+    "he",
+    0.0059
+   ]
+  ],
+  "rows_without_language_tag": 55957,
+  "unknown_language_tag_rows": 226507
+ },
+ "positional_bias": {
+  "verify_bulk_posdev_raw": 0.24,
+  "note": "verify_bulk's posdev mixes letter-keyed and name-keyed option namespaces inside one arity bucket; the numbers below measure the gold's display index (position in the criteria dict = the option order render_options emits) per namespace",
+  "letter_keyed_max_dev": 0.0015,
+  "name_keyed_max_dev": 0.1374,
+  "true_max_dev": 0.1374,
+  "target": 0.15,
+  "pass": true,
+  "name_keyed_rows": 158066,
+  "per_arity": {
+   "letter_keyed": {
+    "2": {
+     "rows": 370315,
+     "distinct_gold": 2,
+     "dev": 0.0009
+    },
+    "3": {
+     "rows": 815915,
+     "distinct_gold": 3,
+     "dev": 0.0003
+    },
+    "4": {
+     "rows": 769926,
+     "distinct_gold": 4,
+     "dev": 0.0015
+    },
+    "5": {
+     "rows": 500428,
+     "distinct_gold": 5,
+     "dev": 0.0007
+    },
+    "6": {
+     "rows": 399639,
+     "distinct_gold": 6,
+     "dev": 0.0008
+    }
+   },
+   "name_keyed": {
+    "3": {
+     "rows": 58586,
+     "distinct_gold": 3,
+     "dev": 0.0348
+    },
+    "4": {
+     "rows": 26157,
+     "distinct_gold": 4,
+     "dev": 0.0096
+    },
+    "5": {
+     "rows": 6379,
+     "distinct_gold": 5,
+     "dev": 0.0113
+    },
+    "6": {
+     "rows": 4509,
+     "distinct_gold": 6,
+     "dev": 0.0134
+    },
+    "7": {
+     "rows": 53002,
+     "distinct_gold": 7,
+     "dev": 0.0704
+    },
+    "8": {
+     "rows": 999,
+     "distinct_gold": 8,
+     "dev": 0.0141
+    },
+    "9": {
+     "rows": 951,
+     "distinct_gold": 9,
+     "dev": 0.0144
+    },
+    "10": {
+     "rows": 854,
+     "distinct_gold": 10,
+     "dev": 0.0183
+    },
+    "11": {
+     "rows": 826,
+     "distinct_gold": 11,
+     "dev": 0.0207
+    },
+    "12": {
+     "rows": 809,
+     "distinct_gold": 12,
+     "dev": 0.0131
+    },
+    "14": {
+     "rows": 4994,
+     "distinct_gold": 13,
+     "dev": 0.1374
+    }
+   }
+  }
+ },
+ "verification": {
+  "verify_bulk": {
+   "leak": 0,
+   "goldsum": 0,
+   "dup_in": 0,
+   "dup_cross": 0,
+   "bad_arity": 0,
+   "empty": 0,
+   "badjson": 0,
+   "forbidden_key": 0,
+   "posdev": 0.24
+  },
+  "verify_pass": true,
+  "verify_pass_raw_tool": false,
+  "eval_leak": {
+   "mix": "data/xeron10_mix.jsonl",
+   "mix_rows": 3352791,
+   "public_rows": 231,
+   "public_unique_states": 231,
+   "typed_decisions_test_rows": 400,
+   "typed_decisions_test_status": "checked",
+   "leaks": {}
+  }
+ },
+ "preprocess": {
+  "items_file": "train_items_x10.pt",
+  "items": 3352791,
+  "shards": [
+   {
+    "shard": 0,
+    "file": "data/x10_shards/shard_0.pt",
+    "items": 335279
+   },
+   {
+    "shard": 1,
+    "file": "data/x10_shards/shard_1.pt",
+    "items": 335279
+   },
+   {
+    "shard": 2,
+    "file": "data/x10_shards/shard_2.pt",
+    "items": 335279
+   },
+   {
+    "shard": 3,
+    "file": "data/x10_shards/shard_3.pt",
+    "items": 335279
+   },
+   {
+    "shard": 4,
+    "file": "data/x10_shards/shard_4.pt",
+    "items": 335279
+   },
+   {
+    "shard": 5,
+    "file": "data/x10_shards/shard_5.pt",
+    "items": 335279
+   },
+   {
+    "shard": 6,
+    "file": "data/x10_shards/shard_6.pt",
+    "items": 335279
+   },
+   {
+    "shard": 7,
+    "file": "data/x10_shards/shard_7.pt",
+    "items": 335279
+   },
+   {
+    "shard": 8,
+    "file": "data/x10_shards/shard_8.pt",
+    "items": 335279
+   },
+   {
+    "shard": 9,
+    "file": "data/x10_shards/shard_9.pt",
+    "items": 335280
+   }
+  ],
+  "qtype_counts": {
+   "0": 3014289,
+   "1": 129545,
+   "2": 208957
+  },
+  "max_ids_len": 4096,
+  "size_bytes": 2434797597,
+  "max_len": 4096,
+  "head_max_len": 256,
+  "elapsed_s": null,
+  "shard_parallelism": 10
+ },
+ "tokenizer": {
+  "model_dir": "/home/yuchan/laya-models/xeron-0.9-base",
+  "tokenizer_json": "/home/yuchan/laya-models/xeron-0.9-base/tokenizer/tokenizer.json",
+  "tokenizer_sha256": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f",
+  "snapshot": "output/xeron-0.9-snapshot",
+  "snapshot_tokenizer_sha256": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f"
+ },
+ "repro_commands": [
+  "PYTHONPATH=scripts .venv/bin/python scripts/build_mix_x10.py --out data/xeron10_mix.jsonl --stats data/xeron10_mix_stats.json",
+  "PYTHONPATH=scripts .venv/bin/python scripts/verify_bulk.py \"data/xeron10_mix.jsonl\" --json-out data/xeron10_mix_verify.json",
+  "PYTHONPATH=scripts .venv/bin/python scripts/check_eval_leak.py --mix data/xeron10_mix.jsonl --json-out data/xeron10_eval_leak.json",
+  "PYTHONPATH=scripts .venv/bin/python scripts/preprocess_shard.py --data-files data/xeron10_mix.jsonl --index-file data/x10_shards/mix.lineidx.npz --build-index-only",
+  "bash logs/bulk/W4_preprocess_cmd.sh   # 10 shards x 10 procs, MAX_LEN=4096 HEAD_MAX_LEN=256",
+  "PYTHONPATH=scripts .venv/bin/python scripts/merge_shards_x10.py --shards \"data/x10_shards/shard_*.pt\" --output train_items_x10.pt",
+  "PYTHONPATH=scripts .venv/bin/python scripts/smoke_x10.py --items train_items_x10.pt --model-id /home/yuchan/laya-models/xeron-0.9-base",
+  "PYTHONPATH=scripts .venv/bin/python scripts/posdev_x10.py --mix data/xeron10_mix.jsonl --json-out data/xeron10_posdev.json",
+  "PYTHONPATH=scripts .venv/bin/python scripts/make_x10_manifest.py"
+ ]
+}

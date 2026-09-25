@@ -1,0 +1,63 @@
+{
+ "output": "train_items_x10.pt",
+ "shards": [
+  {
+   "shard": 0,
+   "file": "data/x10_shards/shard_0.pt",
+   "items": 335279
+  },
+  {
+   "shard": 1,
+   "file": "data/x10_shards/shard_1.pt",
+   "items": 335279
+  },
+  {
+   "shard": 2,
+   "file": "data/x10_shards/shard_2.pt",
+   "items": 335279
+  },
+  {
+   "shard": 3,
+   "file": "data/x10_shards/shard_3.pt",
+   "items": 335279
+  },
+  {
+   "shard": 4,
+   "file": "data/x10_shards/shard_4.pt",
+   "items": 335279
+  },
+  {
+   "shard": 5,
+   "file": "data/x10_shards/shard_5.pt",
+   "items": 335279
+  },
+  {
+   "shard": 6,
+   "file": "data/x10_shards/shard_6.pt",
+   "items": 335279
+  },
+  {
+   "shard": 7,
+   "file": "data/x10_shards/shard_7.pt",
+   "items": 335279
+  },
+  {
+   "shard": 8,
+   "file": "data/x10_shards/shard_8.pt",
+   "items": 335279
+  },
+  {
+   "shard": 9,
+   "file": "data/x10_shards/shard_9.pt",
+   "items": 335280
+  }
+ ],
+ "items": 3352791,
+ "qtype_counts": {
+  "0": 3014289,
+  "1": 129545,
+  "2": 208957
+ },
+ "max_ids_len": 4096,
+ "size_bytes": 2434797597
+}

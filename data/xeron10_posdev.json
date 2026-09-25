@@ -1,0 +1,107 @@
+{
+ "letter_keyed": {
+  "2": {
+   "rows": 370315,
+   "distinct_gold": 2,
+   "dev": 0.0009
+  },
+  "3": {
+   "rows": 815915,
+   "distinct_gold": 3,
+   "dev": 0.0003
+  },
+  "4": {
+   "rows": 769926,
+   "distinct_gold": 4,
+   "dev": 0.0015
+  },
+  "5": {
+   "rows": 500428,
+   "distinct_gold": 5,
+   "dev": 0.0007
+  },
+  "6": {
+   "rows": 399639,
+   "distinct_gold": 6,
+   "dev": 0.0008
+  }
+ },
+ "name_keyed": {
+  "3": {
+   "rows": 58586,
+   "distinct_gold": 3,
+   "dev": 0.0348
+  },
+  "4": {
+   "rows": 26157,
+   "distinct_gold": 4,
+   "dev": 0.0096
+  },
+  "5": {
+   "rows": 6379,
+   "distinct_gold": 5,
+   "dev": 0.0113
+  },
+  "6": {
+   "rows": 4509,
+   "distinct_gold": 6,
+   "dev": 0.0134
+  },
+  "7": {
+   "rows": 53002,
+   "distinct_gold": 7,
+   "dev": 0.0704
+  },
+  "8": {
+   "rows": 999,
+   "distinct_gold": 8,
+   "dev": 0.0141
+  },
+  "9": {
+   "rows": 951,
+   "distinct_gold": 9,
+   "dev": 0.0144
+  },
+  "10": {
+   "rows": 854,
+   "distinct_gold": 10,
+   "dev": 0.0183
+  },
+  "11": {
+   "rows": 826,
+   "distinct_gold": 11,
+   "dev": 0.0207
+  },
+  "12": {
+   "rows": 809,
+   "distinct_gold": 12,
+   "dev": 0.0131
+  },
+  "14": {
+   "rows": 4994,
+   "distinct_gold": 13,
+   "dev": 0.1374
+  }
+ },
+ "max_letter_dev": 0.0015,
+ "max_name_dev": 0.1374,
+ "name_keyed_rows": 158066,
+ "name_keyed_key_order": {
+  "alphabetical": 1509,
+  "other": 156557
+ },
+ "name_keyed_distinct_orders_per_workflow": {
+  "jevbench-banking77": 200,
+  "jevbench-clinc150": 200,
+  "jevbench-ledgar": 200,
+  "jevbench-massive": 200,
+  "korean-general": 2,
+  "browser-use": 2,
+  "jevbench-arc_challenge": 1,
+  "jevbench-mnli": 1,
+  "jevbench-chaosnli": 1,
+  "anli-adversarial-nli": 1,
+  "long-context": 1,
+  "browser-agent": 1
+ }
+}

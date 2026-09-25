@@ -1,0 +1,9 @@
+{
+ "mix": "data/xeron10_mix.jsonl",
+ "mix_rows": 3352791,
+ "public_rows": 231,
+ "public_unique_states": 231,
+ "typed_decisions_test_rows": 400,
+ "typed_decisions_test_status": "checked",
+ "leaks": {}
+}

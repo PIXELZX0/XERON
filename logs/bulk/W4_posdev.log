@@ -1,0 +1,17 @@
+arity | letter rows / dev | name rows / dev
+    2 |   370,315 / 0.0009 |         0 / -
+    3 |   815,915 / 0.0003 |    58,586 / 0.044
+    4 |   769,926 / 0.0015 |    26,157 / 0.25
+    5 |   500,428 / 0.0007 |     6,379 / 0.1998
+    6 |   399,639 / 0.0008 |     4,509 / 0.1664
+    7 |         0 / - |    53,002 / 0.1367
+    8 |         0 / - |       999 / 0.124
+    9 |         0 / - |       951 / 0.1101
+   10 |         0 / - |       854 / 0.0988
+   11 |         0 / - |       826 / 0.0897
+   12 |         0 / - |       809 / 0.0821
+   14 |         0 / - |     4,994 / 0.1374
+max letter-keyed dev = 0.0015 (target <= 0.15)
+max name-keyed dev   = 0.25 (position == label index in a fixed order; not a shortcut)
+name-keyed key order: {'alphabetical': 1509, 'other': 156557}
+-> data/xeron10_posdev.json

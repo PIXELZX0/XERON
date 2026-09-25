@@ -1,0 +1,7 @@
+{
+  "title": "XERON-1.0 train items",
+  "id": "pistonx/xeron-1-0-train-items",
+  "licenses": [{"name": "other"}],
+  "isPrivate": true,
+  "description": "Pre-tokenized Laya-format training items for XERON-1.0 (3,352,791 sequences, 2.43 GB). Built from data/xeron10_mix.jsonl (W1+W2+W3 bulk 3,070,327 rows + legacy JevBench/typed sets) after exact (state,questions) dedupe, choice-arity<=16 filtering, score-criteria normalization and leak/empty screening. max_len 4096 / head_max_len 256, tokenizer from the XERON-0.9 snapshot (sha256 609d8f4c...). verify_bulk: leak=0 goldsum=0 dup_in=0 bad_arity=0 empty=0 badjson=0; zero overlap with JevBench public-231 and LocalLLaMA/typed-decisions test."
+}

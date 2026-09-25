@@ -1,0 +1,22 @@
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (8352 > 8192). Running this sequence through the model will result in indexing errors
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 4/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=305 -> data/x10_shards/shard_4.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 7/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=1243 -> data/x10_shards/shard_7.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 8/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=1142 -> data/x10_shards/shard_8.pt
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (13681 > 8192). Running this sequence through the model will result in indexing errors
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 2/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=4036 -> data/x10_shards/shard_2.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 0/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=1040 -> data/x10_shards/shard_0.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 1/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=2148 -> data/x10_shards/shard_1.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 5/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=2314 -> data/x10_shards/shard_5.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 3/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=4096 -> data/x10_shards/shard_3.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 6/10] rows=335,279 items=335,279 item_none=0 bad_json=0 max_ids=2453 -> data/x10_shards/shard_6.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 9/10] rows=335,280 items=335,280 item_none=0 bad_json=0 max_ids=4096 -> data/x10_shards/shard_9.pt
