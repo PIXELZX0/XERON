@@ -50,11 +50,21 @@ TORCH_OK=$(python -c "import torch,sys;v=torch.__version__.split('+')[0].split('
 if [ "$TORCH_OK" != "1" ]; then
   echo "[deps] upgrading torch (found <2.5)"
   pip install -q --upgrade "torch>=2.5" --index-url https://download.pytorch.org/whl/cu124
-  pip uninstall -y -q torchvision torchaudio 2>/dev/null || true
 fi
-pip install -q laya tabulate scipy pandas bitsandbytes 2>&1 | tail -3 || true
+pip install -q laya tabulate scipy pandas bitsandbytes 2>&1 | tail -2 || true
+
+# transformers 는 import 시점에 torchaudio/torchvision 을 끌어온다. 베이스 이미지(/opt/conda)의
+# 사본이 venv torch 와 ABI 가 어긋나면 ModernBert import 자체가 죽는다 -> venv 쪽을 지우고,
+# 그래도 잡히면 같은 버전 휠을 venv 에 설치해 가린다.
+pip uninstall -y -q torchvision torchaudio 2>/dev/null || true
+if ! python -c "import torchaudio, torchvision" >/dev/null 2>&1; then
+  TV=$(python -c "import torch;print(torch.__version__.split('+')[0])" 2>/dev/null || echo "")
+  echo "[deps] installing ABI-matched torchaudio/torchvision (torch $TV)"
+  pip install -q "torchaudio==$TV" "torchvision==$TV" --index-url https://download.pytorch.org/whl/cu124 \
+    || pip install -q torchaudio torchvision || true
+fi
 python -c "import torch,transformers;print('torch',torch.__version__,'transformers',transformers.__version__,'cuda',torch.cuda.is_available(),'ngpu',torch.cuda.device_count())"
-python -c "from transformers import ModernBertModel;print('ModernBertModel import OK')"
+python -c "from transformers import ModernBertModel;print('ModernBertModel import OK')" || echo "[deps] WARN: ModernBert import failed"
 
 echo "=== repo ==="
 if [ ! -f scripts/bench_xeron10.py ]; then
@@ -71,10 +81,15 @@ done
 if [ -z "$DATA_FILE_LOCAL" ] && { [ "$DATA_SOURCE" = "kaggle" ] || { [ "$DATA_SOURCE" = "auto" ] && [ -n "${KAGGLE_API_TOKEN:-}" ]; }; }; then
   echo "[data] kaggle download: $KAGGLE_DATASET"
   pip install -q kaggle 2>&1 | tail -2 || true
+  KB="$(dirname "$(python -c 'import sys;print(sys.executable)')")/kaggle"
   mkdir -p /tmp/x10
-  python -m kaggle datasets download -d "$KAGGLE_DATASET" -p /tmp/x10 --unzip -q \
-    && cp -f /tmp/x10/train_items_x10.pt ./train_items_x10.pt \
-    && DATA_FILE_LOCAL=train_items_x10.pt
+  if [ -x "$KB" ]; then
+    "$KB" datasets download -d "$KAGGLE_DATASET" -p /tmp/x10 --unzip -q
+  else
+    python -m kaggle.cli datasets download -d "$KAGGLE_DATASET" -p /tmp/x10 --unzip -q
+  fi || echo "[data] kaggle download 실패"
+  PT=$(find /tmp/x10 -maxdepth 2 -name "train_items_x10*.pt" | head -1)
+  if [ -n "$PT" ]; then cp -f "$PT" ./train_items_x10.pt && DATA_FILE_LOCAL=train_items_x10.pt; fi
 fi
 if [ -z "$DATA_FILE_LOCAL" ] && [ -n "${DATA_FILE:-}" ] && [ -f "${DATA_FILE:-}" ]; then
   DATA_FILE_LOCAL="$DATA_FILE"
@@ -108,6 +123,20 @@ if [ "$DATA_SOURCE" = "file" ] || [ "$DATA_SOURCE" = "kaggle" ] || [ "$DATA_SOUR
 fi
 SKIP_REAL=""
 [ -z "$REALFILE" ] && SKIP_REAL="1"
+
+echo
+# preflight: 작은 아키텍처로 import/스텝/loss 경로를 먼저 검증한다(환경 깨짐으로
+# pod 사이클을 통째로 날리는 사고를 막는다).
+echo "=== preflight (tiny arch, 2 steps) ==="
+rm -f /tmp/preflight.jsonl
+if HIDDEN=64 LAYERS=2 INTER=96 HEADS=4 VOCAB=512 HEAD_SIZE=64 HEAD_LAYERS=2 MAX_LEN=64 MAXPOS=256 \
+   DATA_MODE=synth SYNTH_LEN=64 SAMPLE_ITEMS=8 MICRO_BATCH=2 GRAD_ACCUM=1 GRAD_CKPT=0 \
+   STEPS=2 WARMUP=1 OUT_JSONL=/tmp/preflight.jsonl TAG=preflight \
+   python scripts/bench_xeron10.py && grep -q '"ok": true' /tmp/preflight.jsonl; then
+  echo "[preflight] OK"
+else
+  echo "[preflight] FAILED -> sweep 중단 (env 문제)"; exit 1
+fi
 
 echo
 echo "########## sweep start (budget ${BUDGET_SECS}s) ##########"
