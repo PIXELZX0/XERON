@@ -1,7 +1,7 @@
 {
  "name": "xeron10",
- "generated_at": "2026-09-25T16:45:26+09:00",
- "git_rev": "69aea9f",
+ "generated_at": "2026-09-25T16:56:19+09:00",
+ "git_rev": "c96c13f",
  "seed": 7,
  "mix": {
   "path": "data/xeron10_mix.jsonl",
@@ -1242,7 +1242,16 @@
   "max_len": 4096,
   "head_max_len": 256,
   "elapsed_s": null,
-  "shard_parallelism": 10
+  "shard_parallelism": 10,
+  "items_sha256": "2936f23f250caa420ee80a70e7f56e47653e6071118022d69450ebe06a093a4d"
+ },
+ "kaggle": {
+  "dataset": "pistonx/xeron-1-0-train-items",
+  "private": true,
+  "dir_mode": "skip",
+  "uploaded_bytes": 2434797597,
+  "stored_zip_bytes": 495756281,
+  "note": "round-trip verified: kaggle datasets download -> unzip -> sha256 == local items_sha256 (2936f23f250caa420ee80a70e7f56e47653e6071118022d69450ebe06a093a4d)"
  },
  "tokenizer": {
   "model_dir": "/home/yuchan/laya-models/xeron-0.9-base",

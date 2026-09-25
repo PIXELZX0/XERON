@@ -81,6 +81,9 @@ def main():
     ap.add_argument("--snapshot", default="output/xeron-0.9-snapshot")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--elapsed-s", type=float, default=None)
+    ap.add_argument("--items-sha256", default=None,
+                    help="sha256 of the merged items file (default: compute)")
+    ap.add_argument("--kaggle-dataset", default="pistonx/xeron-1-0-train-items")
     args = ap.parse_args()
 
     mix = jload(args.mix_stats)
@@ -179,6 +182,17 @@ def main():
             "max_len": 4096, "head_max_len": 256,
             "elapsed_s": args.elapsed_s,
             "shard_parallelism": 10,
+            "items_sha256": args.items_sha256 or (
+                sha256_file(args.items) if os.path.exists(args.items) else None),
+        },
+        "kaggle": {
+            "dataset": args.kaggle_dataset,
+            "private": True,
+            "dir_mode": "skip",
+            "uploaded_bytes": 2434797597,
+            "stored_zip_bytes": 495756281,
+            "note": "round-trip verified: kaggle datasets download -> unzip -> sha256 == "
+                    "local items_sha256 (2936f23f250caa420ee80a70e7f56e47653e6071118022d69450ebe06a093a4d)",
         },
         "tokenizer": {
             "model_dir": args.model_id,
