@@ -12,3 +12,12 @@ eval_results.json
 data/*.jsonl
 data/*.json
 data/*.parquet
+# gpu-cli는 .gitignore를 존중해 pod로 동기화한다 -> 3GB급 중간 산출물은 sync에서도 제외
+data/bulk/
+data/x10_shards/
+kaggle/dataset/
+kaggle/dataset-05/
+kaggle/dataset-x10/
+results/jevbench-public/raw/
+gpu.jsonc
+
