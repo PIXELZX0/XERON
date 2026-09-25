@@ -12,9 +12,9 @@ cd "$(dirname "$0")/../.." || exit 1
 GPU_TYPE="${GPU_TYPE:-A100 SXM4}"
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-2700}"
 RUN_TAG="${RUN_TAG:-$(date +%Y%m%d-%H%M%S)}"
-LOGDIR="outputs/bench"
-mkdir -p "$LOGDIR" logs/bulk
-LOG="logs/bulk/W6_a100_bench_runner.log"
+LOGDIR="${BENCH_LOGDIR:-/tmp/xeron-bench/bench}"
+mkdir -p "$LOGDIR" /tmp/xeron-bench
+LOG="${BENCH_LOG:-/tmp/xeron-bench/W6_a100_bench_runner.log}"
 exec > >(tee -a "$LOG") 2>&1
 
 echo "########## runner start $(date -Is) tag=$RUN_TAG ##########"
@@ -43,8 +43,8 @@ set -e
 echo "[runner] wait rc=$rc"
 
 echo "[runner] pulling job logs..."
-gpu logs -j "$JOB" > "logs/bulk/W6_a100_bench.gpu.log" 2>&1
-echo "[runner] log lines: $(wc -l < logs/bulk/W6_a100_bench.gpu.log)"
+gpu logs -j "$JOB" > "/tmp/xeron-bench/W6_a100_bench.gpu.log" 2>&1
+echo "[runner] log lines: $(wc -l < /tmp/xeron-bench/W6_a100_bench.gpu.log)"
 
 echo "[runner] stopping pod (무조건)..."
 gpu stop -y 2>&1 | tail -5
@@ -54,5 +54,5 @@ gpu status 2>&1 | tee "$LOGDIR/pod_status_$RUN_TAG.txt" | head -30
 gpu status --all --json > "$LOGDIR/pod_status_$RUN_TAG.json" 2>&1 || true
 
 echo "[runner] artifacts:"
-ls -la outputs/bench/ logs/bulk/ 2>/dev/null | head -40
+ls -la "$LOGDIR" /tmp/xeron-bench 2>/dev/null | head -40
 echo "########## runner done $(date -Is) ##########"

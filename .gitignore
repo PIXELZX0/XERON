@@ -21,3 +21,9 @@ kaggle/dataset-x10/
 results/jevbench-public/raw/
 gpu.jsonc
 
+
+# XERON-1.0 shards (large)
+data/x10_8192_shards/
+data/x10_shards/
+.gpu/
+kaggle/dataset-x10-8192/
