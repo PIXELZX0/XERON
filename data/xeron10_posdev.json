@@ -11,19 +11,19 @@
    "dev": 0.0003
   },
   "4": {
-   "rows": 769926,
+   "rows": 782352,
    "distinct_gold": 4,
-   "dev": 0.0015
+   "dev": 0.0014
   },
   "5": {
-   "rows": 500428,
+   "rows": 512645,
    "distinct_gold": 5,
-   "dev": 0.0007
+   "dev": 0.0009
   },
   "6": {
-   "rows": 399639,
+   "rows": 412037,
    "distinct_gold": 6,
-   "dev": 0.0008
+   "dev": 0.0007
   }
  },
  "name_keyed": {
@@ -83,7 +83,7 @@
    "dev": 0.1374
   }
  },
- "max_letter_dev": 0.0015,
+ "max_letter_dev": 0.0014,
  "max_name_dev": 0.1374,
  "name_keyed_rows": 158066,
  "name_keyed_key_order": {

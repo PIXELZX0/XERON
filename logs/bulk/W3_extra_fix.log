@@ -1,0 +1,11 @@
+loaded 32 specs (+15 adapters) from /home/yuchan/XERON/scripts/specs_extra.py
+exclusion keys (cached): 2,254,462
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  [clue_ocnli/ocnli/train] kept 20,000 / seen 20,000
+[clue_ocnli] wrote 20,000 rows -> data/bulk/clue_ocnli.jsonl
+  [clue_cmnli/cmnli/train] kept 24,963 / seen 25,000
+[clue_cmnli] wrote 24,963 rows -> data/bulk/clue_cmnli.jsonl
+  [yahoo_topics/yahoo_answers_topics/train] kept 19,998 / seen 1,400,000
+[yahoo_topics] wrote 19,998 rows -> data/bulk/yahoo_topics.jsonl
+
+=== TOTAL 64,961 rows across 3 specs ===

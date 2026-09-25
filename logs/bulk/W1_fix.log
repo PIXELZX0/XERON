@@ -1,0 +1,38 @@
+exclusion keys (cached): 2,962,745
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  [xnli/en/train] kept 24,973 / seen 25,000
+  [xnli/fr/train] kept 25,000 / seen 25,000
+  [xnli/es/train] kept 25,000 / seen 25,000
+  [xnli/de/train] kept 25,000 / seen 25,000
+  [xnli/el/train] kept 25,000 / seen 25,000
+  [xnli/bg/train] kept 25,000 / seen 25,000
+  [xnli/ru/train] kept 25,000 / seen 25,000
+  [xnli/tr/train] kept 25,000 / seen 25,000
+  [xnli/ar/train] kept 25,000 / seen 25,000
+  [xnli/vi/train] kept 24,999 / seen 25,000
+  [xnli/th/train] kept 24,999 / seen 25,000
+  [xnli/zh/train] kept 25,000 / seen 25,000
+  [xnli/hi/train] kept 25,000 / seen 25,000
+  [xnli/sw/train] kept 24,999 / seen 25,000
+  [xnli/ur/train] kept 24,995 / seen 25,000
+[xnli] wrote 374,965 rows -> data/bulk/xnli.jsonl
+  [vitaminc/None/train] kept 39,933 / seen 40,000
+[vitaminc] wrote 39,933 rows -> data/bulk/vitaminc.jsonl
+  [qasc/None/train] kept 8,000 / seen 8,000
+[qasc] wrote 8,000 rows -> data/bulk/qasc.jsonl
+  [super_glue/boolq/train] kept 8,999 / seen 9,000
+  [super_glue/copa/train] kept 400 / seen 400
+  [super_glue/rte/train] kept 2,488 / seen 2,490
+  [super_glue/wic/train] kept 5,426 / seen 5,428
+  [super_glue/cb/train] kept 250 / seen 250
+  [super_glue/multirc/train] kept 0 / seen 9,000
+  [super_glue/record/train] kept 0 / seen 9,000
+  [super_glue/wsc.fixed/train] kept 535 / seen 554
+  [super_glue/axb/train] LOAD FAIL ValueError: Unknown split "train". Should be one of ['test'].
+  [super_glue/axg/train] LOAD FAIL ValueError: Unknown split "train". Should be one of ['test'].
+[super_glue] wrote 18,098 rows -> data/bulk/super_glue.jsonl
+Repo card metadata block was not found. Setting CardData to empty.
+  [sst5/None/train] kept 8,534 / seen 8,544
+[sst5] wrote 8,534 rows -> data/bulk/sst5.jsonl
+
+=== TOTAL 449,530 rows across 5 specs ===

@@ -1,0 +1,6 @@
+exclusion keys (cached): 2,962,745
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  [dbpedia_14/None/train] kept 37,041 / seen 60,000
+[dbpedia_14] wrote 37,041 rows -> data/bulk/dbpedia_14.jsonl
+
+=== TOTAL 37,041 rows across 1 specs ===

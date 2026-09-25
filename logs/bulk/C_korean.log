@@ -1,0 +1,30 @@
+exclusion keys (cached): 341,948
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  [korean_extra/nli/train] kept 0 / seen 24,998
+  [korean_extra/sts/train] kept 11,661 / seen 11,668
+  [korean_extra/ynat/train] kept 30,000 / seen 30,000
+[korean_extra] wrote 41,661 rows -> data/bulk/korean_extra.jsonl
+Generating train split:   0%|          | 0/3665 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3665/3665 [00:00<00:00, 219482.63 examples/s]
+Generating test split:   0%|          | 0/1404 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1404/1404 [00:00<00:00, 300035.81 examples/s]
+Generating validation split:   0%|          | 0/700 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 700/700 [00:00<00:00, 170986.71 examples/s]
+  [kobest/boolq/train] kept 3,665 / seen 3,665
+Generating train split:   0%|          | 0/3076 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3076/3076 [00:00<00:00, 631382.95 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 297489.47 examples/s]
+Generating validation split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 500/500 [00:00<00:00, 302925.32 examples/s]
+  [kobest/copa/train] kept 3,074 / seen 3,076
+Generating train split:   0%|          | 0/2029 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 2029/2029 [00:00<00:00, 310366.26 examples/s]
+Generating test split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 500/500 [00:00<00:00, 186712.25 examples/s]
+Generating validation split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 500/500 [00:00<00:00, 178572.21 examples/s]
+  [kobest/hellaswag/train] kept 0 / seen 2,029
+Generating train split:   0%|          | 0/3649 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3649/3649 [00:00<00:00, 1054863.55 examples/s]
+Generating test split:   0%|          | 0/397 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 397/397 [00:00<00:00, 398549.23 examples/s]
+Generating test_originated split:   0%|          | 0/397 [00:00<?, ? examples/s]Generating test_originated split: 100%|██████████| 397/397 [00:00<00:00, 426302.79 examples/s]
+Generating validation split:   0%|          | 0/400 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 400/400 [00:00<00:00, 476625.45 examples/s]
+  [kobest/sentineg/train] kept 3,649 / seen 3,649
+Generating train split:   0%|          | 0/3318 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3318/3318 [00:00<00:00, 805504.47 examples/s]
+Generating test split:   0%|          | 0/1260 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1260/1260 [00:00<00:00, 501644.33 examples/s]
+Generating validation split:   0%|          | 0/610 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 610/610 [00:00<00:00, 232234.31 examples/s]
+  [kobest/wic/train] kept 1,396 / seen 3,318
+[kobest] wrote 11,784 rows -> data/bulk/kobest.jsonl
+
+=== TOTAL 53,445 rows across 2 specs ===

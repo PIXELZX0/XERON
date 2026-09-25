@@ -1,0 +1,92 @@
+########## runner start 2026-09-25T18:42:51+09:00 tag=20260925-184251 ##########
+[runner] kaggle token loaded (len=37)
+[runner] submitting...
+[gpu]> -> Detecting project... (0s)
+>> Using preferred GPU: A100 SXM4
+[gpu]> [+] Resolving (0s)
+[gpu]> -> Provisioning new pod... (0s)
+{
+  "job_id": "job_41612c5011224f148c5584ae692b3a4c",
+  "pod_id": null,
+  "state": "pending"
+}
+[runner] job_id=
+[runner] submit 실패
+
+RENTAL INSTANCES
+  (no rental instances registered)
+
+>> Project 'e69d0f56ae59138b' resolved from current directory (/home/yuchan/XERON). Run from the project's launch directory to target a different project.
+
+GPU Status
+
+Provider: vast
+
+No pods found for this project
+
+Run 'gpu run <command>' to start a pod
+########## watcher start 2026-09-25T18:43:37+09:00 job=job_41612c5011224f148c5584ae692b3a4c ##########
+{
+  "job_id": "job_41612c5011224f148c5584ae692b3a4c",
+  "state": "failed",
+  "exit_code": null,
+  "failure_reason": "bootstrap failed at stage 'heartbeat' for pod '52569376' (transport): Timed out waiting for agent on pod 52569376 after 60 seconds\nRecovery: run `gpu status`; if the pod is quarantined, run `gpu instances terminate 52569376 -y`; then retry `gpu run`"
+}
+[watcher] wait rc=0
+[watcher] gpu log lines=2
+[watcher] stopping pod...
+>> No running pods found. Use 'gpu instances list' to see all pods.
+[watcher] artifacts:
+logs/bulk/:
+total 628
+drwxrwxr-x 2 yuchan yuchan   4096 Sep 25 18:46 .
+drwxrwxr-x 3 yuchan yuchan   4096 Sep 25 18:31 ..
+-rw-rw-r-- 1 yuchan yuchan  32650 Sep 25 14:19 A2_multilingual.log
+-rw-rw-r-- 1 yuchan yuchan   3179 Sep 25 14:11 A_multilingual.log
+-rw-rw-r-- 1 yuchan yuchan  19475 Sep 25 14:19 B_english.log
+-rw-rw-r-- 1 yuchan yuchan   3638 Sep 25 14:13 C_korean.log
+-rw-rw-r-- 1 yuchan yuchan   1926 Sep 25 16:05 W1_fix.log
+-rw-rw-r-- 1 yuchan yuchan 215069 Sep 25 15:49 W2_multilingual.log
+-rw-rw-r-- 1 yuchan yuchan  16443 Sep 25 15:57 W2_verify.log
+-rw-rw-r-- 1 yuchan yuchan    565 Sep 25 15:03 W3_extra_fix2.log
+-rw-rw-r-- 1 yuchan yuchan    659 Sep 25 14:55 W3_extra_fix.log
+-rw-rw-r-- 1 yuchan yuchan  29284 Sep 25 14:40 W3_extra.log
+-rw-rw-r-- 1 yuchan yuchan   9662 Sep 25 15:18 W3_verify_final2.log
+-rw-rw-r-- 1 yuchan yuchan   9492 Sep 25 15:12 W3_verify_final.log
+-rw-rw-r-- 1 yuchan yuchan   9302 Sep 25 15:02 W3_verify.log
+-rw-rw-r-- 1 yuchan yuchan    295 Sep 25 16:31 W4_eval_leak.log
+-rw-rw-r-- 1 yuchan yuchan  15010 Sep 25 16:53 W4_kaggle_dl.log
+-rw-rw-r-- 1 yuchan yuchan 106595 Sep 25 16:48 W4_kaggle.log
+-rw-rw-r-- 1 yuchan yuchan   9131 Sep 25 16:25 W4_mix.log
+-rw-rw-r-- 1 yuchan yuchan    800 Sep 25 16:37 W4_posdev.log
+-rwxrwxr-x 1 yuchan yuchan    449 Sep 25 16:30 W4_preprocess_cmd.sh
+-rw-rw-r-- 1 yuchan yuchan   2088 Sep 25 16:36 W4_preprocess.log
+-rw-rw-r-- 1 yuchan yuchan  16503 Sep 25 16:55 W4_verify_bulk_all.log
+-rw-rw-r-- 1 yuchan yuchan    377 Sep 25 16:32 W4_verify.log
+-rw-rw-r-- 1 yuchan yuchan   1980 Sep 25 18:33 W5_8192_cmd.sh
+-rw-rw-r-- 1 yuchan yuchan    328 Sep 25 17:06 W5_dbpedia.log
+-rw-rw-r-- 1 yuchan yuchan      0 Sep 25 18:03 W5_lenstats_4096.log
+-rw-rw-r-- 1 yuchan yuchan   9375 Sep 25 18:37 W5_mix.log
+########## watcher done 2026-09-25T18:46:17+09:00 ##########
+########## runner start 2026-09-25T18:48:14+09:00 tag=20260925-184814 ##########
+[runner] kaggle token loaded (len=37)
+[runner] submitting...
+[gpu]> -> Detecting project... (0s)
+>> Using preferred GPU: A100 SXM4
+[gpu]> [+] Resolving (0s)
+[gpu]> -> Provisioning new pod... (0s)
+{
+  "job_id": "job_1801d9d5bb1a4c318dc3634bd4b2dc88",
+  "pod_id": null,
+  "state": "pending"
+}
+[runner] job_id=job_1801d9d5bb1a4c318dc3634bd4b2dc88
+[runner] waiting (timeout 2700s)...
+{
+  "job_id": "job_1801d9d5bb1a4c318dc3634bd4b2dc88",
+  "state": "failed",
+  "exit_code": null,
+  "failure_reason": "workspace sync failed: local workspace changed during transfer; retry required before submission"
+}
+[runner] wait rc=1
+[runner] pulling job logs...

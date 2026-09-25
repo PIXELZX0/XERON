@@ -1,0 +1,17 @@
+=== W5 model copy verify ===
+4096 dir: /home/yuchan/laya-models/xeron-0.9-base
+8192 dir: /home/yuchan/laya-models/xeron-0.9-base-8192
+files: 18/18 identical (sha256), only_a=[] only_b=[] diff=[]
+model.safetensors sha256 5b57ae5fa426430e6c1918c5ce021e05aef19139f04a8803bf8abfdcb8b1cdb6
+tokenizer.json sha256 609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f
+encoder/config.json max_position_embeddings=32768 (already capped)
+
+=== ensure_long_context(8192 copy, max_len=8192, head_max_len=256) ===
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[CTX] rl_agent_config max_len -> 8192 head_max_len -> 256
+done
+
+=== after: 8192 rl_agent_config ===
+{'max_len': 8192, 'head_max_len': 256, 'head_layers': 4, 'head_size': 1024}
+=== after: 4096 rl_agent_config (must still be 4096) ===
+{'max_len': 4096, 'head_max_len': 256, 'head_layers': 4, 'head_size': 1024}

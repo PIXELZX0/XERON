@@ -1,0 +1,144 @@
+exclusion keys (cached): 341,948
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating test split:   0%|          | 0/10000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 10000/10000 [00:00<00:00, 1611644.19 examples/s]
+Generating validation split:   0%|          | 0/10000 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 10000/10000 [00:00<00:00, 2853462.14 examples/s]
+Generating train split:   0%|          | 0/550152 [00:00<?, ? examples/s]Generating train split:  79%|███████▉  | 437000/550152 [00:00<00:00, 4355238.54 examples/s]Generating train split: 100%|██████████| 550152/550152 [00:00<00:00, 4482628.48 examples/s]
+  [snli/None/train] kept 29,958 / seen 30,000
+[snli] wrote 29,958 rows -> data/bulk/snli.jsonl
+Generating train split:   0%|          | 0/392702 [00:00<?, ? examples/s]Generating train split:  16%|█▌        | 62000/392702 [00:00<00:00, 612062.16 examples/s]Generating train split:  40%|███▉      | 156000/392702 [00:00<00:00, 797763.77 examples/s]Generating train split:  64%|██████▎   | 250000/392702 [00:00<00:00, 858467.98 examples/s]Generating train split:  87%|████████▋ | 343000/392702 [00:00<00:00, 886166.55 examples/s]Generating train split: 100%|██████████| 392702/392702 [00:00<00:00, 846774.77 examples/s]
+Generating validation_matched split:   0%|          | 0/9815 [00:00<?, ? examples/s]Generating validation_matched split: 100%|██████████| 9815/9815 [00:00<00:00, 738714.72 examples/s]
+Generating validation_mismatched split:   0%|          | 0/9832 [00:00<?, ? examples/s]Generating validation_mismatched split: 100%|██████████| 9832/9832 [00:00<00:00, 758812.00 examples/s]
+  [mnli/None/train] kept 30,000 / seen 30,000
+[mnli] wrote 30,000 rows -> data/bulk/mnli.jsonl
+  [anli/None/train_r1] kept 16,946 / seen 16,946
+  [anli/None/train_r2] kept 45,453 / seen 45,460
+  [anli/None/train_r3] kept 49,990 / seen 50,000
+[anli] wrote 112,389 rows -> data/bulk/anli.jsonl
+Generating train split:   0%|          | 0/370653 [00:00<?, ? examples/s]Generating train split:  21%|██▏       | 78950/370653 [00:00<00:00, 484121.12 examples/s]Generating train split:  43%|████▎     | 157930/370653 [00:00<00:00, 509354.86 examples/s]Generating train split:  63%|██████▎   | 234416/370653 [00:00<00:00, 523271.41 examples/s]Generating train split:  86%|████████▌ | 317676/370653 [00:00<00:00, 539334.30 examples/s]Generating train split: 100%|██████████| 370653/370653 [00:00<00:00, 534649.13 examples/s]
+Generating validation split:   0%|          | 0/63054 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 63054/63054 [00:00<00:00, 545105.29 examples/s]Generating validation split: 100%|██████████| 63054/63054 [00:00<00:00, 544340.11 examples/s]
+Generating test split:   0%|          | 0/55197 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 55197/55197 [00:00<00:00, 550461.26 examples/s]Generating test split: 100%|██████████| 55197/55197 [00:00<00:00, 549545.31 examples/s]
+  [vitaminc/None/train] kept 0 / seen 40,000
+[vitaminc] wrote 0 rows -> data/bulk/vitaminc.jsonl
+Generating test split:   0%|          | 0/4934 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 4934/4934 [00:00<00:00, 317417.92 examples/s]
+Generating train split:   0%|          | 0/87866 [00:00<?, ? examples/s]Generating train split:  61%|██████▏   | 54000/87866 [00:00<00:00, 533675.50 examples/s]Generating train split: 100%|██████████| 87866/87866 [00:00<00:00, 625073.93 examples/s]
+Generating validation split:   0%|          | 0/4887 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 4887/4887 [00:00<00:00, 481819.46 examples/s]
+  [race/all/train] kept 79,916 / seen 80,000
+[race] wrote 79,916 rows -> data/bulk/race.jsonl
+Generating train split:   0%|          | 0/8134 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 8134/8134 [00:00<00:00, 662442.84 examples/s]
+Generating test split:   0%|          | 0/920 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 920/920 [00:00<00:00, 358887.62 examples/s]
+Generating validation split:   0%|          | 0/926 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 926/926 [00:00<00:00, 359290.06 examples/s]
+  [qasc/None/train] kept 0 / seen 8,000
+[qasc] wrote 0 rows -> data/bulk/qasc.jsonl
+Generating train split:   0%|          | 0/97467 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 97467/97467 [00:00<00:00, 1612088.22 examples/s]
+Generating test split:   0%|          | 0/254 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 254/254 [00:00<00:00, 172387.25 examples/s]
+Generating validation split:   0%|          | 0/254 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 254/254 [00:00<00:00, 207711.68 examples/s]
+  [aqua_rat/None/train] kept 89,970 / seen 90,000
+[aqua_rat] wrote 89,970 rows -> data/bulk/aqua_rat.jsonl
+Generating train split:   0%|          | 0/40398 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 40398/40398 [00:00<00:00, 3221382.40 examples/s]
+Generating test split:   0%|          | 0/1767 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1767/1767 [00:00<00:00, 970705.33 examples/s]
+Generating validation split:   0%|          | 0/1267 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1267/1267 [00:00<00:00, 839656.05 examples/s]
+  [winogrande/winogrande_xl/train] kept 7,998 / seen 8,000
+Generating train split:   0%|          | 0/10234 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 10234/10234 [00:00<00:00, 2080179.65 examples/s]
+Generating test split:   0%|          | 0/1767 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1767/1767 [00:00<00:00, 990555.36 examples/s]
+Generating validation split:   0%|          | 0/1267 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1267/1267 [00:00<00:00, 801173.40 examples/s]
+  [winogrande/winogrande_l/train] kept 4,032 / seen 8,000
+Generating train split:   0%|          | 0/2558 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 2558/2558 [00:00<00:00, 1055279.79 examples/s]
+Generating test split:   0%|          | 0/1767 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1767/1767 [00:00<00:00, 1010820.40 examples/s]
+Generating validation split:   0%|          | 0/1267 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1267/1267 [00:00<00:00, 837142.91 examples/s]
+  [winogrande/winogrande_m/train] kept 649 / seen 2,558
+Generating train split:   0%|          | 0/640 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 640/640 [00:00<00:00, 413422.85 examples/s]
+Generating test split:   0%|          | 0/1767 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1767/1767 [00:00<00:00, 854431.08 examples/s]
+Generating validation split:   0%|          | 0/1267 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1267/1267 [00:00<00:00, 699694.95 examples/s]
+  [winogrande/winogrande_s/train] kept 88 / seen 640
+Generating train split:   0%|          | 0/9248 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 9248/9248 [00:00<00:00, 2043027.67 examples/s]
+Generating test split:   0%|          | 0/1767 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1767/1767 [00:00<00:00, 1010682.55 examples/s]
+Generating validation split:   0%|          | 0/1267 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1267/1267 [00:00<00:00, 833074.65 examples/s]
+  [winogrande/winogrande_debiased/train] kept 4,863 / seen 8,000
+[winogrande] wrote 17,630 rows -> data/bulk/winogrande.jsonl
+Generating train split:   0%|          | 0/9427 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 9427/9427 [00:00<00:00, 653246.49 examples/s]
+Generating validation split:   0%|          | 0/3270 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 3270/3270 [00:00<00:00, 543032.59 examples/s]
+Generating test split:   0%|          | 0/3245 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 3245/3245 [00:00<00:00, 584995.98 examples/s]
+  [super_glue/boolq/train] kept 8,999 / seen 9,000
+Generating train split:   0%|          | 0/400 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 400/400 [00:00<00:00, 189573.06 examples/s]
+Generating validation split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 100/100 [00:00<00:00, 79497.80 examples/s]
+Generating test split:   0%|          | 0/500 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 500/500 [00:00<00:00, 409120.56 examples/s]
+  [super_glue/copa/train] kept 400 / seen 400
+Generating train split:   0%|          | 0/2490 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 2490/2490 [00:00<00:00, 539536.96 examples/s]
+Generating validation split:   0%|          | 0/277 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 277/277 [00:00<00:00, 196452.86 examples/s]
+Generating test split:   0%|          | 0/3000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 3000/3000 [00:00<00:00, 934351.53 examples/s]
+  [super_glue/rte/train] kept 2,489 / seen 2,490
+Generating train split:   0%|          | 0/5428 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 5428/5428 [00:00<00:00, 1340004.83 examples/s]
+Generating validation split:   0%|          | 0/638 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 638/638 [00:00<00:00, 440270.80 examples/s]
+Generating test split:   0%|          | 0/1400 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1400/1400 [00:00<00:00, 765483.72 examples/s]
+  [super_glue/wic/train] kept 5,426 / seen 5,428
+Generating train split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 250/250 [00:00<00:00, 150139.75 examples/s]
+Generating validation split:   0%|          | 0/56 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 56/56 [00:00<00:00, 48831.81 examples/s]
+Generating test split:   0%|          | 0/250 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 250/250 [00:00<00:00, 132295.74 examples/s]
+  [super_glue/cb/train] kept 250 / seen 250
+Generating train split:   0%|          | 0/27243 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 27243/27243 [00:00<00:00, 671048.24 examples/s]
+Generating validation split:   0%|          | 0/4848 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 4848/4848 [00:00<00:00, 578590.54 examples/s]
+Generating test split:   0%|          | 0/9693 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 9693/9693 [00:00<00:00, 687268.85 examples/s]
+  [super_glue/multirc/train] kept 0 / seen 9,000
+Generating train split:   0%|          | 0/100730 [00:00<?, ? examples/s]Generating train split:  45%|████▍     | 45000/100730 [00:00<00:00, 436030.57 examples/s]Generating train split: 100%|██████████| 100730/100730 [00:00<00:00, 516662.83 examples/s]
+Generating validation split:   0%|          | 0/10000 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 10000/10000 [00:00<00:00, 447254.08 examples/s]
+Generating test split:   0%|          | 0/10000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 10000/10000 [00:00<00:00, 465196.42 examples/s]
+  [super_glue/record/train] kept 0 / seen 9,000
+Generating train split:   0%|          | 0/554 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 554/554 [00:00<00:00, 137169.09 examples/s]
+Generating validation split:   0%|          | 0/104 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 104/104 [00:00<00:00, 77437.89 examples/s]
+Generating test split:   0%|          | 0/146 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 146/146 [00:00<00:00, 112899.78 examples/s]
+  [super_glue/wsc.fixed/train] kept 539 / seen 554
+Generating test split:   0%|          | 0/1104 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1104/1104 [00:00<00:00, 501191.86 examples/s]
+  [super_glue/axb/train] LOAD FAIL ValueError: Unknown split "train". Should be one of ['test'].
+Generating test split:   0%|          | 0/356 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 356/356 [00:00<00:00, 209862.58 examples/s]
+  [super_glue/axg/train] LOAD FAIL ValueError: Unknown split "train". Should be one of ['test'].
+[super_glue] wrote 18,103 rows -> data/bulk/super_glue.jsonl
+  [amazon_polarity/None/train] kept 59,993 / seen 60,000
+[amazon_polarity] wrote 59,993 rows -> data/bulk/amazon_polarity.jsonl
+  [yelp_polarity/None/train] kept 39,995 / seen 40,000
+[yelp_polarity] wrote 39,995 rows -> data/bulk/yelp_polarity.jsonl
+  [dbpedia_14/None/train] kept 0 / seen 60,000
+[dbpedia_14] wrote 0 rows -> data/bulk/dbpedia_14.jsonl
+  [ag_news/None/train] kept 29,996 / seen 30,000
+[ag_news] wrote 29,996 rows -> data/bulk/ag_news.jsonl
+  [civil_comments/None/train] kept 79,020 / seen 80,000
+[civil_comments] wrote 79,020 rows -> data/bulk/civil_comments.jsonl
+  [measuring_hate/None/train] kept 34,941 / seen 60,000
+[measuring_hate] wrote 34,941 rows -> data/bulk/measuring_hate.jsonl
+Generating train split:   0%|          | 0/45000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 45000/45000 [00:00<00:00, 3107505.68 examples/s]
+Generating test split:   0%|          | 0/50000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 50000/50000 [00:00<00:00, 3638236.01 examples/s]
+Generating validation split:   0%|          | 0/5000 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 5000/5000 [00:00<00:00, 2107690.45 examples/s]
+  [tweet_eval/emoji/train] kept 8,000 / seen 8,000
+Generating train split:   0%|          | 0/3257 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3257/3257 [00:00<00:00, 990347.12 examples/s]
+Generating test split:   0%|          | 0/1421 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1421/1421 [00:00<00:00, 813444.25 examples/s]
+Generating validation split:   0%|          | 0/374 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 374/374 [00:00<00:00, 345750.43 examples/s]
+  [tweet_eval/emotion/train] kept 3,254 / seen 3,257
+Generating train split:   0%|          | 0/11916 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 11916/11916 [00:00<00:00, 1557910.49 examples/s]
+Generating test split:   0%|          | 0/860 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 860/860 [00:00<00:00, 619989.93 examples/s]
+Generating validation split:   0%|          | 0/1324 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1324/1324 [00:00<00:00, 799950.81 examples/s]
+  [tweet_eval/offensive/train] kept 7,989 / seen 8,000
+Generating train split:   0%|          | 0/9000 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 9000/9000 [00:00<00:00, 1808842.59 examples/s]
+Generating test split:   0%|          | 0/2970 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 2970/2970 [00:00<00:00, 1302905.86 examples/s]
+Generating validation split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 1000/1000 [00:00<00:00, 744727.27 examples/s]
+  [tweet_eval/hate/train] kept 7,990 / seen 8,000
+Generating train split:   0%|          | 0/2862 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 2862/2862 [00:00<00:00, 1161050.20 examples/s]
+Generating test split:   0%|          | 0/784 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 784/784 [00:00<00:00, 682935.48 examples/s]
+Generating validation split:   0%|          | 0/955 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 955/955 [00:00<00:00, 790363.13 examples/s]
+  [tweet_eval/irony/train] kept 2,862 / seen 2,862
+Generating train split:   0%|          | 0/45615 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 45615/45615 [00:00<00:00, 2775293.41 examples/s]
+Generating test split:   0%|          | 0/12284 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 12284/12284 [00:00<00:00, 2516500.46 examples/s]
+Generating validation split:   0%|          | 0/2000 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 2000/2000 [00:00<00:00, 1078088.68 examples/s]
+  [tweet_eval/sentiment/train] kept 8,000 / seen 8,000
+Generating train split:   0%|          | 0/587 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 587/587 [00:00<00:00, 332171.67 examples/s]
+Generating test split:   0%|          | 0/280 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 280/280 [00:00<00:00, 278956.09 examples/s]
+Generating validation split:   0%|          | 0/66 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 66/66 [00:00<00:00, 71771.86 examples/s]
+Traceback (most recent call last):
+  File "/home/yuchan/XERON/scripts/build_bulk_choice.py", line 801, in <module>
+    continue
+^^^
+  File "/home/yuchan/XERON/scripts/build_bulk_choice.py", line 787, in main
+    res = extract(spec_local, row, cfg)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yuchan/XERON/scripts/build_bulk_choice.py", line 702, in build_spec
+    heapq.heapreplace(heap, (k, seen, row))
+        ^^^^^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)

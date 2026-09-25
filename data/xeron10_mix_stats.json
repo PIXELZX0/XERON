@@ -1,6 +1,10 @@
 {
  "out": "data/xeron10_mix.jsonl",
  "seed": 7,
+ "size_bytes": 3267115980,
+ "sha256": "eb790a51d464b6b8793da397d604f23dbf94f412da211d11d2531b88b72668dd",
+ "atomic_write": "tmp + fsync + os.replace",
+ "repro": "PYTHONPATH=scripts .venv/bin/python scripts/build_mix_x10.py --out data/xeron10_mix.jsonl --stats data/xeron10_mix_stats.json",
  "sources": [
   {
    "file": "data/bulk/afrisenti.jsonl",
@@ -124,8 +128,8 @@
   },
   {
    "file": "data/bulk/dbpedia_14.jsonl",
-   "rows_in": 0,
-   "rows_out": 0,
+   "rows_in": 37041,
+   "rows_out": 37041,
    "dropped": {}
   },
   {
@@ -700,8 +704,8 @@
    "dropped": {}
   }
  ],
- "rows_in": 3388667,
- "rows_out": 3352791,
+ "rows_in": 3425708,
+ "rows_out": 3389832,
  "dropped_total": 35876,
  "dropped_by_reason": {
   "choice_arity_gt_16": 26675,
@@ -713,16 +717,16 @@
   "score_dict_to_list": 80255
  },
  "qtype": {
-  "choice": 3014289,
+  "choice": 3051330,
   "score": 129545,
   "noul": 208957
  },
  "choice_arity": {
   "2": 370315,
   "3": 874501,
-  "4": 796083,
-  "5": 506807,
-  "6": 404148,
+  "4": 808509,
+  "5": 519024,
+  "6": 416546,
   "7": 53002,
   "8": 999,
   "9": 951,
@@ -732,7 +736,7 @@
   "14": 4994
  },
  "languages": {
-  "en": 1009250,
+  "en": 1046291,
   "?": 226507,
   "ko": 174449,
   "zh": 139047,
@@ -1149,6 +1153,10 @@
    39933
   ],
   [
+   "dbpedia-topic",
+   37041
+  ],
+  [
    "measuring-hate-speech",
    34941
   ],
@@ -1183,12 +1191,8 @@
   [
    "fever-fact-verification",
    29071
-  ],
-  [
-   "browser-use",
-   28393
   ]
  ],
- "max_workflow_share": 0.167,
+ "max_workflow_share": 0.1652,
  "non_choice_rows_without_language_tag": 55957
 }

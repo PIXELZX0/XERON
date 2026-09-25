@@ -1,0 +1,247 @@
+loaded 32 specs (+14 adapters) from /home/yuchan/XERON/scripts/specs_extra.py
+exclusion keys (cached): 341,948
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split:   0%|          | 0/45 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 45/45 [00:00<00:00, 11443.87 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2311.17 examples/s]
+Generating test split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 100/100 [00:00<00:00, 32333.52 examples/s]
+  [kmmlu/Accounting/train] kept 45 / seen 45
+Generating train split:   0%|          | 0/5957 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 5957/5957 [00:00<00:00, 181649.09 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2191.38 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 125375.26 examples/s]
+  [kmmlu/Agricultural-Sciences/train] kept 698 / seen 700
+Generating train split:   0%|          | 0/3307 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3307/3307 [00:00<00:00, 150397.54 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2255.73 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 129417.88 examples/s]
+  [kmmlu/Aviation-Engineering-and-Maintenance/train] kept 687 / seen 700
+  [kmmlu/Biology/train] kept 697 / seen 700
+Generating train split:   0%|          | 0/833 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 833/833 [00:00<00:00, 101291.72 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2426.42 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 134709.15 examples/s]
+  [kmmlu/Chemical-Engineering/train] kept 687 / seen 700
+Generating train split:   0%|          | 0/340 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 340/340 [00:00<00:00, 80971.12 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2409.41 examples/s]
+Generating test split:   0%|          | 0/600 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 600/600 [00:00<00:00, 111441.96 examples/s]
+  [kmmlu/Chemistry/train] kept 338 / seen 340
+Generating train split:   0%|          | 0/9359 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 9359/9359 [00:00<00:00, 165662.22 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 1877.65 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 112481.00 examples/s]
+  [kmmlu/Civil-Engineering/train] kept 698 / seen 700
+Generating train split:   0%|          | 0/17373 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 17373/17373 [00:00<00:00, 179880.13 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2222.74 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 130696.25 examples/s]
+  [kmmlu/Computer-Science/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/19175 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 19175/19175 [00:00<00:00, 178156.62 examples/s]Generating train split: 100%|██████████| 19175/19175 [00:00<00:00, 176701.31 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2027.41 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 125947.51 examples/s]
+  [kmmlu/Construction/train] kept 700 / seen 700
+Generating train split:   0%|          | 0/85 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 85/85 [00:00<00:00, 20306.19 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2402.24 examples/s]
+Generating test split:   0%|          | 0/200 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 200/200 [00:00<00:00, 45970.01 examples/s]
+  [kmmlu/Criminal-Law/train] kept 85 / seen 85
+Generating train split:   0%|          | 0/6432 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 6432/6432 [00:00<00:00, 187358.59 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2192.99 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 128833.52 examples/s]
+  [kmmlu/Ecology/train] kept 697 / seen 700
+Generating train split:   0%|          | 0/94 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 94/94 [00:00<00:00, 27960.04 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2435.43 examples/s]
+Generating test split:   0%|          | 0/130 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 130/130 [00:00<00:00, 40700.12 examples/s]
+  [kmmlu/Economics/train] kept 94 / seen 94
+Generating train split:   0%|          | 0/2 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 2/2 [00:00<00:00, 770.37 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2458.56 examples/s]
+Generating test split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 100/100 [00:00<00:00, 35427.86 examples/s]
+  [kmmlu/Education/train] kept 2 / seen 2
+Generating train split:   0%|          | 0/11965 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 11965/11965 [00:00<00:00, 190425.20 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2255.97 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 141388.98 examples/s]
+  [kmmlu/Electrical-Engineering/train] kept 696 / seen 700
+Generating train split:   0%|          | 0/4904 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 4904/4904 [00:00<00:00, 202236.49 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2284.23 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 137270.63 examples/s]
+  [kmmlu/Electronics-Engineering/train] kept 691 / seen 700
+Generating train split:   0%|          | 0/5499 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 5499/5499 [00:00<00:00, 185541.49 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2193.67 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 146005.64 examples/s]
+  [kmmlu/Energy-Management/train] kept 690 / seen 700
+Generating train split:   0%|          | 0/12103 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 12103/12103 [00:00<00:00, 161643.00 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2155.57 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 124556.16 examples/s]
+  [kmmlu/Environmental-Science/train] kept 700 / seen 700
+Generating train split:   0%|          | 0/1558 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1558/1558 [00:00<00:00, 149133.36 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2323.97 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 149412.37 examples/s]
+  [kmmlu/Fashion/train] kept 697 / seen 700
+Generating train split:   0%|          | 0/14630 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 14630/14630 [00:00<00:00, 185448.45 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2175.47 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 135051.81 examples/s]
+  [kmmlu/Food-Processing/train] kept 700 / seen 700
+Generating train split:   0%|          | 0/6154 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 6154/6154 [00:00<00:00, 197352.60 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 1834.46 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 133034.26 examples/s]
+  [kmmlu/Gas-Technology-and-Engineering/train] kept 689 / seen 700
+Generating train split:   0%|          | 0/4613 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 4613/4613 [00:00<00:00, 180550.42 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2263.52 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 145046.30 examples/s]
+  [kmmlu/Geomatics/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/3 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3/3 [00:00<00:00, 1180.83 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2460.29 examples/s]
+Generating test split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 100/100 [00:00<00:00, 34767.11 examples/s]
+  [kmmlu/Health/train] kept 3 / seen 3
+Generating train split:   0%|          | 0/16642 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 16642/16642 [00:00<00:00, 181423.98 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2120.48 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 140226.14 examples/s]
+  [kmmlu/Industrial-Engineer/train] kept 697 / seen 700
+Generating train split:   0%|          | 0/3684 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3684/3684 [00:00<00:00, 178369.76 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2296.49 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 136925.57 examples/s]
+  [kmmlu/Information-Technology/train] kept 698 / seen 700
+Generating train split:   0%|          | 0/3922 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3922/3922 [00:00<00:00, 152884.44 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2219.91 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 138999.30 examples/s]
+  [kmmlu/Interior-Architecture-and-Design/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/1 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1/1 [00:00<00:00, 311.87 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2091.71 examples/s]
+Generating test split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 100/100 [00:00<00:00, 34317.66 examples/s]
+  [kmmlu/Korean-History/train] kept 1 / seen 1
+Generating train split:   0%|          | 0/1297 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1297/1297 [00:00<00:00, 79181.58 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2242.94 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 93533.08 examples/s]
+  [kmmlu/Law/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/7636 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 7636/7636 [00:00<00:00, 196446.81 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2194.82 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 142590.65 examples/s]
+  [kmmlu/Machine-Design-and-Manufacturing/train] kept 698 / seen 700
+Generating train split:   0%|          | 0/1371 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1371/1371 [00:00<00:00, 97608.18 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2220.62 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 95773.48 examples/s]
+  [kmmlu/Management/train] kept 695 / seen 700
+Generating train split:   0%|          | 0/323 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 323/323 [00:00<00:00, 84104.80 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2416.63 examples/s]
+Generating test split:   0%|          | 0/600 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 600/600 [00:00<00:00, 128410.16 examples/s]
+  [kmmlu/Maritime-Engineering/train] kept 322 / seen 323
+Generating train split:   0%|          | 0/701 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 701/701 [00:00<00:00, 113132.75 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2388.01 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 118359.45 examples/s]
+  [kmmlu/Marketing/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/4254 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 4254/4254 [00:00<00:00, 166907.41 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2166.70 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 143409.72 examples/s]
+  [kmmlu/Materials-Engineering/train] kept 697 / seen 700
+Generating train split:   0%|          | 0/81 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 81/81 [00:00<00:00, 27934.44 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2269.15 examples/s]
+Generating test split:   0%|          | 0/300 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 300/300 [00:00<00:00, 92575.87 examples/s]
+  [kmmlu/Math/train] kept 81 / seen 81
+Generating train split:   0%|          | 0/4907 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 4907/4907 [00:00<00:00, 194115.18 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2249.20 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 144035.16 examples/s]
+  [kmmlu/Mechanical-Engineering/train] kept 695 / seen 700
+Generating train split:   0%|          | 0/3794 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 3794/3794 [00:00<00:00, 171768.93 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2241.50 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 135549.36 examples/s]
+  [kmmlu/Nondestructive-Testing/train] kept 700 / seen 700
+Generating train split:   0%|          | 0/25 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 25/25 [00:00<00:00, 7776.45 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2318.06 examples/s]
+Generating test split:   0%|          | 0/100 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 100/100 [00:00<00:00, 29518.64 examples/s]
+  [kmmlu/Patent/train] kept 25 / seen 25
+Generating train split:   0%|          | 0/44 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 44/44 [00:00<00:00, 14792.35 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2409.41 examples/s]
+Generating test split:   0%|          | 0/300 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 300/300 [00:00<00:00, 69125.48 examples/s]
+  [kmmlu/Political-Science-and-Sociology/train] kept 44 / seen 44
+Generating train split:   0%|          | 0/1354 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1354/1354 [00:00<00:00, 109297.30 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2311.17 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 113356.50 examples/s]
+  [kmmlu/Psychology/train] kept 688 / seen 700
+Generating train split:   0%|          | 0/11924 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 11924/11924 [00:00<00:00, 168833.53 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2142.14 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 140357.53 examples/s]
+  [kmmlu/Public-Safety/train] kept 699 / seen 700
+Generating train split:   0%|          | 0/6172 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 6172/6172 [00:00<00:00, 177453.31 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 1725.48 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 102879.74 examples/s]
+  [kmmlu/Railway-and-Automotive-Engineering/train] kept 696 / seen 700
+Generating train split:   0%|          | 0/79 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 79/79 [00:00<00:00, 22525.49 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2308.88 examples/s]
+Generating test split:   0%|          | 0/200 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 200/200 [00:00<00:00, 53437.43 examples/s]
+  [kmmlu/Real-Estate/train] kept 79 / seen 79
+Generating train split:   0%|          | 0/5242 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 5242/5242 [00:00<00:00, 175612.76 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2219.44 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 134943.18 examples/s]
+  [kmmlu/Refrigerating-Machinery/train] kept 686 / seen 700
+Generating train split:   0%|          | 0/907 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 907/907 [00:00<00:00, 98320.94 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2031.53 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 119376.80 examples/s]
+  [kmmlu/Social-Welfare/train] kept 698 / seen 700
+Generating train split:   0%|          | 0/15 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 15/15 [00:00<00:00, 5090.59 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2365.39 examples/s]
+Generating test split:   0%|          | 0/200 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 200/200 [00:00<00:00, 41306.91 examples/s]
+  [kmmlu/Taxation/train] kept 15 / seen 15
+Generating train split:   0%|          | 0/5736 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 5736/5736 [00:00<00:00, 180415.05 examples/s]
+Generating dev split:   0%|          | 0/5 [00:00<?, ? examples/s]Generating dev split: 100%|██████████| 5/5 [00:00<00:00, 2208.92 examples/s]
+Generating test split:   0%|          | 0/1000 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1000/1000 [00:00<00:00, 127742.71 examples/s]
+  [kmmlu/Telecommunications-and-Wireless-Technology/train] kept 696 / seen 700
+[kmmlu] wrote 23,399 rows -> data/bulk/kmmlu.jsonl
+Repo card metadata block was not found. Setting CardData to empty.
+  [nsmc/None/train] kept 29,674 / seen 30,000
+[nsmc] wrote 29,674 rows -> data/bulk/nsmc.jsonl
+  [kor_nli_snli/snli/train] kept 19,994 / seen 20,000
+[kor_nli_snli] wrote 19,994 rows -> data/bulk/kor_nli_snli.jsonl
+  [kor_nli_mnli/multi_nli/train] kept 19,999 / seen 20,000
+[kor_nli_mnli] wrote 19,999 rows -> data/bulk/kor_nli_mnli.jsonl
+  [jnli/default/train] kept 14,989 / seen 15,000
+[jnli] wrote 14,989 rows -> data/bulk/jnli.jsonl
+  [marc_ja/None/train] kept 19,979 / seen 20,000
+[marc_ja] wrote 19,979 rows -> data/bulk/marc_ja.jsonl
+  [jsts/None/train] kept 11,993 / seen 12,000
+[jsts] wrote 11,993 rows -> data/bulk/jsts.jsonl
+  [clue_tnews/tnews/train] kept 20,000 / seen 20,000
+[clue_tnews] wrote 20,000 rows -> data/bulk/clue_tnews.jsonl
+  [clue_ocnli/ocnli/train] kept 0 / seen 20,000
+[clue_ocnli] wrote 0 rows -> data/bulk/clue_ocnli.jsonl
+  [clue_cmnli/cmnli/train] kept 0 / seen 25,000
+[clue_cmnli] wrote 0 rows -> data/bulk/clue_cmnli.jsonl
+  [clue_afqmc/afqmc/train] kept 15,000 / seen 15,000
+[clue_afqmc] wrote 15,000 rows -> data/bulk/clue_afqmc.jsonl
+  [clue_wsc/cluewsc2020/train] kept 1,128 / seen 1,200
+[clue_wsc] wrote 1,128 rows -> data/bulk/clue_wsc.jsonl
+  [c3/mixed/train] kept 3,000 / seen 3,000
+[c3] wrote 3,000 rows -> data/bulk/c3.jsonl
+  [logiqa2/None/train] kept 11,926 / seen 12,000
+[logiqa2] wrote 11,926 rows -> data/bulk/logiqa2.jsonl
+  [math_qa/None/train] kept 23,939 / seen 25,000
+[math_qa] wrote 23,939 rows -> data/bulk/math_qa.jsonl
+  [social_i_qa/None/train] kept 24,956 / seen 25,000
+[social_i_qa] wrote 24,956 rows -> data/bulk/social_i_qa.jsonl
+  [cosmos_qa/None/train] kept 19,990 / seen 20,000
+[cosmos_qa] wrote 19,990 rows -> data/bulk/cosmos_qa.jsonl
+Repo card metadata block was not found. Setting CardData to empty.
+  [fever_nli/None/train] kept 29,071 / seen 30,000
+[fever_nli] wrote 29,071 rows -> data/bulk/fever_nli.jsonl
+  [yahoo_topics/yahoo_answers_topics/train] kept 0 / seen 1,400,000
+[yahoo_topics] wrote 0 rows -> data/bulk/yahoo_topics.jsonl
+  [fin_phrasebank_atrost/None/train] kept 3,000 / seen 3,000
+[fin_phrasebank_atrost] wrote 3,000 rows -> data/bulk/fin_phrasebank_atrost.jsonl
+  [fin_phrasebank_warwick/None/train] kept 4,292 / seen 4,800
+[fin_phrasebank_warwick] wrote 4,292 rows -> data/bulk/fin_phrasebank_warwick.jsonl
+  [go_emotions/simplified/train] kept 19,956 / seen 20,000
+[go_emotions] wrote 19,956 rows -> data/bulk/go_emotions.jsonl
+  [glue_mrpc/mrpc/train] kept 3,600 / seen 3,600
+[glue_mrpc] wrote 3,600 rows -> data/bulk/glue_mrpc.jsonl
+  [glue_qqp/qqp/train] kept 19,997 / seen 20,000
+[glue_qqp] wrote 19,997 rows -> data/bulk/glue_qqp.jsonl
+  [glue_sst2/sst2/train] kept 19,990 / seen 20,000
+[glue_sst2] wrote 19,990 rows -> data/bulk/glue_sst2.jsonl
+  [glue_cola/cola/train] kept 7,990 / seen 8,000
+[glue_cola] wrote 7,990 rows -> data/bulk/glue_cola.jsonl
+  [glue_qnli/qnli/train] kept 15,000 / seen 15,000
+[glue_qnli] wrote 15,000 rows -> data/bulk/glue_qnli.jsonl
+  [glue_rte/rte/train] kept 2,399 / seen 2,400
+[glue_rte] wrote 2,399 rows -> data/bulk/glue_rte.jsonl
+  [glue_wnli/wnli/train] kept 600 / seen 600
+[glue_wnli] wrote 600 rows -> data/bulk/glue_wnli.jsonl
+  [glue_stsb/stsb/train] kept 5,656 / seen 5,700
+[glue_stsb] wrote 5,656 rows -> data/bulk/glue_stsb.jsonl
+  [mtop_intent/None/train] kept 17,511 / seen 20,000
+[mtop_intent] wrote 17,511 rows -> data/bulk/mtop_intent.jsonl
+  [mtop_domain/None/train] kept 20,000 / seen 20,000
+[mtop_domain] wrote 20,000 rows -> data/bulk/mtop_domain.jsonl
+
+=== TOTAL 429,028 rows across 32 specs ===

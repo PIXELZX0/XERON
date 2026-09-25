@@ -1,0 +1,30 @@
+exclusion keys (cached): 341,948
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 1186070.10 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 611253.99 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 442617.18 examples/s]
+  [massive/af/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 1095282.96 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 673825.63 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 544753.08 examples/s]
+  [massive/am/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 717677.20 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 590758.23 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 494320.00 examples/s]
+  [massive/ar/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 1332851.72 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 665521.00 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 615003.25 examples/s]
+  [massive/az/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 613184.90 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 551599.01 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 519306.94 examples/s]
+  [massive/bn/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 1387058.51 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 743243.76 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 610686.82 examples/s]
+  [massive/cy/train] kept 0 / seen 11,000
+Generating train split: 0 examples [00:00, ? examples/s]Generating train split: 11514 examples [00:00, 1451467.19 examples/s]
+Generating test split: 0 examples [00:00, ? examples/s]Generating test split: 2974 examples [00:00, 684587.02 examples/s]
+Generating validation split: 0 examples [00:00, ? examples/s]Generating validation split: 2033 examples [00:00, 640840.22 examples/s]
+  [massive/da/train] kept 0 / seen 11,000

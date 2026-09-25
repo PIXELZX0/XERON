@@ -1,0 +1,49 @@
+=== [B1] line-offset index ===
+  indexed xeron10_mix.jsonl: 3,389,832 rows
+index -> data/x10_8192_shards/mix.lineidx.npz (3,389,832 rows total)
+
+=== [B2] 10 shards x 10 procs, MAX_LEN=8192 HEAD_MAX_LEN=256 ===
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (8352 > 8192). Running this sequence through the model will result in indexing errors
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 4/10] rows=338,984 items=338,984 item_none=0 bad_json=0 max_ids=305 -> data/x10_8192_shards/shard_4.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 7/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=1243 -> data/x10_8192_shards/shard_7.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 8/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=962 -> data/x10_8192_shards/shard_8.pt
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (13681 > 8192). Running this sequence through the model will result in indexing errors
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 0/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=1040 -> data/x10_8192_shards/shard_0.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 2/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=4036 -> data/x10_8192_shards/shard_2.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 5/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=1899 -> data/x10_8192_shards/shard_5.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 1/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=2148 -> data/x10_8192_shards/shard_1.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 3/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=8192 -> data/x10_8192_shards/shard_3.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 6/10] rows=338,983 items=338,983 item_none=0 bad_json=0 max_ids=2453 -> data/x10_8192_shards/shard_6.pt
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[shard 9/10] rows=338,984 items=338,984 item_none=0 bad_json=0 max_ids=8192 -> data/x10_8192_shards/shard_9.pt
+
+=== [B3] merge shards -> train_items_x10_8192.pt ===
+  + shard_0.pt         338,983 items (total 338,983)
+  + shard_1.pt         338,983 items (total 677,966)
+  + shard_2.pt         338,983 items (total 1,016,949)
+  + shard_3.pt         338,983 items (total 1,355,932)
+  + shard_4.pt         338,984 items (total 1,694,916)
+  + shard_5.pt         338,983 items (total 2,033,899)
+  + shard_6.pt         338,983 items (total 2,372,882)
+  + shard_7.pt         338,983 items (total 2,711,865)
+  + shard_8.pt         338,983 items (total 3,050,848)
+  + shard_9.pt         338,984 items (total 3,389,832)
+merged 3,389,832 items -> train_items_x10_8192.pt (2.50 GB, max_ids=8192)
+sha256 aa0f4587646871ed6f55e4278cce1ac2e6946d1e0d2691fba2e75b1a6ec14d6d
+-> data/xeron10_preprocess_stats_8192.json
+
+=== [B4] length stats (4096 vs 8192) ===
+[4096] items=3,352,791 size=2.43GB p50=128 p90=270 p99=789 p99.9=4096 max=4096 mean=171.8 >4096=0 (0.0000%) target_violations=0 marker_mismatch=0
+[8192] items=3,389,832 size=2.50GB p50=128 p90=268 p99=785 p99.9=4928 max=8192 mean=175.2 >4096=3,830 (0.1130%) target_violations=0 marker_mismatch=0
+-> data/xeron10_lenstats_8192.json
+
+=== [B5] smoke (8192 model dir) ===

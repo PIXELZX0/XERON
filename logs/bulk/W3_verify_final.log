@@ -1,0 +1,59 @@
+against: 341,752 existing state keys
+[OK ] ag_news.jsonl                rows=  29,996 qtype={'choice': 29996} arity={4: 29996} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] amazon_polarity.jsonl        rows=  59,993 qtype={'choice': 59993} arity={2: 59993} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] anli.jsonl                   rows= 112,389 qtype={'choice': 112389} arity={3: 112389} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] aqua_rat.jsonl               rows=  89,970 qtype={'choice': 89970} arity={5: 89970} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] belebele.jsonl               rows= 109,484 qtype={'choice': 109484} arity={4: 109484} langs=122 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] c3.jsonl                     rows=   3,000 qtype={'choice': 3000} arity={2: 529, 3: 400, 4: 2071} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.073 empty=0 badjson=0
+[OK ] civil_comments.jsonl         rows=  79,020 qtype={'noul': 79020} arity={} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] clue_afqmc.jsonl             rows=  15,000 qtype={'choice': 15000} arity={2: 15000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] clue_cmnli.jsonl             rows=  24,963 qtype={'choice': 24963} arity={3: 24963} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] clue_ocnli.jsonl             rows=  20,000 qtype={'choice': 20000} arity={3: 20000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] clue_tnews.jsonl             rows=  20,000 qtype={'choice': 20000} arity={4: 6643, 5: 6726, 6: 6631} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.112 empty=0 badjson=0
+[OK ] clue_wsc.jsonl               rows=   1,128 qtype={'choice': 1128} arity={2: 1128} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] cosmos_qa.jsonl              rows=  19,990 qtype={'choice': 19990} arity={4: 19990} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.005 empty=0 badjson=0
+[OK ] dbpedia_14.jsonl             rows=       0 qtype={} arity={} langs=0 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] emotion.jsonl                rows=  16,000 qtype={'choice': 16000} arity={6: 16000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.005 empty=0 badjson=0
+[OK ] fever_nli.jsonl              rows=  29,071 qtype={'choice': 29071} arity={3: 29071} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] fin_phrasebank_atrost.jsonl  rows=   3,000 qtype={'choice': 3000} arity={3: 3000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.01 empty=0 badjson=0
+[OK ] fin_phrasebank_warwick.jsonl rows=   4,292 qtype={'choice': 4292} arity={3: 4292} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.006 empty=0 badjson=0
+[OK ] glue_cola.jsonl              rows=   7,990 qtype={'choice': 7990} arity={2: 7990} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+[OK ] glue_mrpc.jsonl              rows=   3,600 qtype={'choice': 3600} arity={2: 3600} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.01 empty=0 badjson=0
+[OK ] glue_qnli.jsonl              rows=  15,000 qtype={'choice': 15000} arity={2: 15000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] glue_qqp.jsonl               rows=  19,997 qtype={'choice': 19997} arity={2: 19997} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+[OK ] glue_rte.jsonl               rows=   2,399 qtype={'choice': 2399} arity={2: 2399} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] glue_sst2.jsonl              rows=  19,987 qtype={'choice': 19987} arity={2: 19987} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+[OK ] glue_stsb.jsonl              rows=   5,656 qtype={'noul': 5656} arity={} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] glue_wnli.jsonl              rows=     600 qtype={'choice': 600} arity={2: 600} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.015 empty=0 badjson=0
+[OK ] go_emotions.jsonl            rows=  19,956 qtype={'noul': 19956} arity={} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] jnli.jsonl                   rows=  14,989 qtype={'choice': 14989} arity={3: 14989} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] jsts.jsonl                   rows=  11,993 qtype={'noul': 11993} arity={} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] kmmlu.jsonl                  rows=  23,399 qtype={'choice': 23399} arity={4: 23399} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+[OK ] kobest.jsonl                 rows=  11,784 qtype={'choice': 11784} arity={2: 11784} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] kor_nli_mnli.jsonl           rows=  19,999 qtype={'choice': 19999} arity={3: 19999} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] kor_nli_snli.jsonl           rows=  19,994 qtype={'choice': 19994} arity={3: 19994} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+[OK ] korean_extra.jsonl           rows=  41,661 qtype={'noul': 11661, 'choice': 30000} arity={4: 9955, 5: 9983, 6: 10062} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.11 empty=0 badjson=0
+[OK ] logiqa2.jsonl                rows=  11,926 qtype={'choice': 11926} arity={4: 11926} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.006 empty=0 badjson=0
+[OK ] marc_ja.jsonl                rows=  19,979 qtype={'choice': 19979} arity={2: 19979} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] massive.jsonl                rows= 560,040 qtype={'choice': 560040} arity={4: 190320, 5: 185553, 6: 184167} langs=51 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.112 empty=0 badjson=0
+[OK ] math_qa.jsonl                rows=  23,939 qtype={'choice': 23939} arity={5: 23939} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.005 empty=0 badjson=0
+[OK ] measuring_hate.jsonl         rows=  34,941 qtype={'noul': 34941} arity={} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] mmlu_pro.jsonl               rows=  11,999 qtype={'choice': 11999} arity={3: 21, 4: 4445, 5: 3741, 6: 3792} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.111 empty=0 badjson=0
+[OK ] mnli.jsonl                   rows=  30,000 qtype={'choice': 30000} arity={3: 30000} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] mtop_domain.jsonl            rows=  20,000 qtype={'choice': 20000} arity={4: 6570, 5: 6704, 6: 6726} langs=2 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.11 empty=0 badjson=0
+[OK ] mtop_intent.jsonl            rows=  17,511 qtype={'choice': 17511} arity={4: 5886, 5: 5873, 6: 5752} langs=2 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.111 empty=0 badjson=0
+[OK ] nsmc.jsonl                   rows=  29,671 qtype={'choice': 29671} arity={2: 29671} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.004 empty=0 badjson=0
+[OK ] qasc.jsonl                   rows=       0 qtype={} arity={} langs=0 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] race.jsonl                   rows=  79,916 qtype={'choice': 79916} arity={4: 79916} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.001 empty=0 badjson=0
+[OK ] sib200.jsonl                 rows= 205,820 qtype={'choice': 205820} arity={4: 68343, 5: 68909, 6: 68568} langs=205 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.111 empty=0 badjson=0
+[OK ] snli.jsonl                   rows=  29,958 qtype={'choice': 29958} arity={3: 29958} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.006 empty=0 badjson=0
+[OK ] social_i_qa.jsonl            rows=  24,956 qtype={'choice': 24956} arity={3: 24956} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.006 empty=0 badjson=0
+[WARN] sst5.jsonl                   rows=   8,534 qtype={'score': 8534} arity={} langs=1 leak=0 goldsum=8534 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] super_glue.jsonl             rows=  18,103 qtype={'choice': 18103} arity={2: 17853, 3: 250} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.328 empty=0 badjson=0
+[OK ] vitaminc.jsonl               rows=       0 qtype={} arity={} langs=0 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.0 empty=0 badjson=0
+[OK ] winogrande.jsonl             rows=  17,630 qtype={'choice': 17630} arity={2: 17630} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.002 empty=0 badjson=0
+[OK ] xnli.jsonl                   rows= 374,987 qtype={'choice': 374987} arity={3: 374987} langs=15 leak=0 goldsum=0 dup_in=0 dup_cross=22 posdev=0.001 empty=0 badjson=0
+[OK ] yahoo_topics.jsonl           rows=  19,998 qtype={'choice': 19998} arity={4: 6684, 5: 6615, 6: 6699} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.11 empty=0 badjson=0
+[OK ] yelp_polarity.jsonl          rows=  39,995 qtype={'choice': 39995} arity={2: 39995} langs=1 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.003 empty=0 badjson=0
+
+=== 56 files, 2,456,203 rows -> data/bulk/_verify_w3.json ===

@@ -84,6 +84,19 @@ def main():
     ap.add_argument("--items-sha256", default=None,
                     help="sha256 of the merged items file (default: compute)")
     ap.add_argument("--kaggle-dataset", default="pistonx/xeron-1-0-train-items")
+    # --- 8192 (W5) knobs; every default reproduces the W4/4096 manifest byte-for-byte ---
+    ap.add_argument("--name", default="xeron10")
+    ap.add_argument("--max-len", type=int, default=4096)
+    ap.add_argument("--head-max-len", type=int, default=256)
+    ap.add_argument("--kaggle-uploaded-bytes", type=int, default=2434797597)
+    ap.add_argument("--kaggle-stored-bytes", type=int, default=495756281)
+    ap.add_argument("--kaggle-roundtrip-sha256",
+                    default="2936f23f250caa420ee80a70e7f56e47653e6071118022d69450ebe06a093a4d")
+    ap.add_argument("--repro-commands-file", default=None,
+                    help="JSON list of repro commands (default: the W4/4096 block)")
+    ap.add_argument("--extra", default=None,
+                    help="JSON object merged into the manifest top level (W5 8192 extras:"
+                         " model dir, copy check, length stats, notes)")
     args = ap.parse_args()
 
     mix = jload(args.mix_stats)
@@ -124,7 +137,7 @@ def main():
     snap_tok = os.path.join(REPO, args.snapshot, "tokenizer", "tokenizer.json")
     base_tok = os.path.join(args.model_id, "tokenizer", "tokenizer.json")
     manifest = {
-        "name": "xeron10",
+        "name": args.name,
         "generated_at": dt.datetime.now().astimezone().isoformat(timespec="seconds"),
         "git_rev": git_rev(),
         "seed": args.seed,
@@ -179,7 +192,7 @@ def main():
             "qtype_counts": pre.get("qtype_counts"),
             "max_ids_len": pre.get("max_ids_len"),
             "size_bytes": pre.get("size_bytes"),
-            "max_len": 4096, "head_max_len": 256,
+            "max_len": args.max_len, "head_max_len": args.head_max_len,
             "elapsed_s": args.elapsed_s,
             "shard_parallelism": 10,
             "items_sha256": args.items_sha256 or (
@@ -189,10 +202,10 @@ def main():
             "dataset": args.kaggle_dataset,
             "private": True,
             "dir_mode": "skip",
-            "uploaded_bytes": 2434797597,
-            "stored_zip_bytes": 495756281,
+            "uploaded_bytes": args.kaggle_uploaded_bytes,
+            "stored_zip_bytes": args.kaggle_stored_bytes,
             "note": "round-trip verified: kaggle datasets download -> unzip -> sha256 == "
-                    "local items_sha256 (2936f23f250caa420ee80a70e7f56e47653e6071118022d69450ebe06a093a4d)",
+                    f"local items_sha256 ({args.kaggle_roundtrip_sha256})",
         },
         "tokenizer": {
             "model_dir": args.model_id,
@@ -201,7 +214,8 @@ def main():
             "snapshot": args.snapshot,
             "snapshot_tokenizer_sha256": sha256_file(snap_tok) if os.path.exists(snap_tok) else None,
         },
-        "repro_commands": [
+        "repro_commands": (json.load(open(args.repro_commands_file))
+                           if args.repro_commands_file else [
             "PYTHONPATH=scripts .venv/bin/python scripts/build_mix_x10.py "
             "--out data/xeron10_mix.jsonl --stats data/xeron10_mix_stats.json",
             "PYTHONPATH=scripts .venv/bin/python scripts/verify_bulk.py "
@@ -220,8 +234,11 @@ def main():
             "PYTHONPATH=scripts .venv/bin/python scripts/posdev_x10.py "
             "--mix data/xeron10_mix.jsonl --json-out data/xeron10_posdev.json",
             "PYTHONPATH=scripts .venv/bin/python scripts/make_x10_manifest.py",
-        ],
+        ]),
     }
+    if args.extra:
+        with open(args.extra) as f:
+            manifest.update(json.load(f))
     with open(args.out, "w") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=1)
     print(json.dumps({"verify_pass": ok and posdev_ok,

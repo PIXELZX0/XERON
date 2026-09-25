@@ -30,6 +30,12 @@ Sources are read-only; the output is a new file. Deterministic: no sampling, no 
 (row order = source order, first occurrence wins a duplicate). seed=7 is the project-wide
 seed and is recorded in the manifest for the downstream (sharded) preprocessing.
 
+The output is written **atomically**: rows go to `<out>.tmp.<pid>` which is fsync'd and then
+`os.replace`d onto `<out>`, so an interrupted run (kill / gateway restart) can never leave a
+truncated mix behind — the previous file survives untouched until the new one is complete.
+The stats file carries `rows_out` + `size_bytes` + `sha256`, and a re-run whose `<out>` already
+matches the stats file is a no-op (idempotent; override with `--force`).
+
 Usage:
     python scripts/build_mix_x10.py --out data/xeron10_mix.jsonl \
         --stats data/xeron10_mix_stats.json
@@ -175,9 +181,29 @@ def main():
     ap.add_argument("--stats", default="data/xeron10_mix_stats.json")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--limit", type=int, default=0, help="debug: rows per source")
+    ap.add_argument("--force", action="store_true",
+                    help="rebuild even when --out already matches --stats")
     args = ap.parse_args()
 
+    if not args.force and os.path.exists(args.out) and os.path.exists(args.stats):
+        try:
+            prev = json.load(open(args.stats))
+            n = sum(1 for _ in open(args.out, "rb"))
+            if prev.get("rows_out") == n and prev.get("size_bytes") == os.path.getsize(args.out):
+                print(f"[skip] {args.out} already matches {args.stats} "
+                      f"(rows_out={n:,}, size_bytes={prev['size_bytes']:,}) — nothing to do")
+                return
+            print(f"[rebuild] {args.out} disagrees with {args.stats}: "
+                  f"rows {n:,} vs {prev.get('rows_out')}, "
+                  f"size {os.path.getsize(args.out):,} vs {prev.get('size_bytes')}", flush=True)
+        except Exception as e:                                   # noqa: BLE001
+            print(f"[rebuild] cannot validate {args.out} against {args.stats}: "
+                  f"{type(e).__name__}: {e}", flush=True)
+    elif not os.path.exists(args.out):
+        print(f"[build] {args.out} missing", flush=True)
+
     srcs = sources()
+    print(f"sources: {len(srcs)} files", flush=True)
     seen = set()
     per_source = []
     drops = collections.Counter()
@@ -189,7 +215,8 @@ def main():
     reason_by_source = collections.defaultdict(collections.Counter)
     total_in = total_out = 0
 
-    with open(args.out, "w") as fo:
+    tmp_out = f"{args.out}.tmp.{os.getpid()}"
+    with open(tmp_out, "w") as fo:
         for path in srcs:
             n_in = n_out = 0
             with open(path) as f:
@@ -236,12 +263,25 @@ def main():
             total_out += n_out
             print(f"  {os.path.basename(path):34} in {n_in:>9,}  out {n_out:>9,}  "
                   f"drop {n_in - n_out:>6,}", flush=True)
+        fo.flush()
+        os.fsync(fo.fileno())
+    os.replace(tmp_out, args.out)          # atomic: old file survives until this point
+
+    h = hashlib.sha256()
+    with open(args.out, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 22), b""):
+            h.update(chunk)
 
     keep = total_out or 1
     top_wf = workflows.most_common(25)
     stats = {
         "out": args.out,
         "seed": args.seed,
+        "size_bytes": os.path.getsize(args.out),
+        "sha256": h.hexdigest(),
+        "atomic_write": "tmp + fsync + os.replace",
+        "repro": ("PYTHONPATH=scripts .venv/bin/python scripts/build_mix_x10.py "
+                  "--out data/xeron10_mix.jsonl --stats data/xeron10_mix_stats.json"),
         "sources": per_source,
         "rows_in": total_in,
         "rows_out": total_out,
@@ -256,10 +296,13 @@ def main():
         "max_workflow_share": round(top_wf[0][1] / keep, 4) if top_wf else 0.0,
         "non_choice_rows_without_language_tag": total_out - sum(langs.values()),
     }
-    with open(args.stats, "w") as f:
+    tmp_stats = f"{args.stats}.tmp.{os.getpid()}"
+    with open(tmp_stats, "w") as f:
         json.dump(stats, f, ensure_ascii=False, indent=1)
+    os.replace(tmp_stats, args.stats)
 
     print(f"\nrows in {total_in:,} -> out {total_out:,} (dropped {total_in - total_out:,})")
+    print(f"sha256 {stats['sha256']}  size {stats['size_bytes']:,} B")
     print(f"dropped by reason: {dict(drops.most_common())}")
     print(f"fixes: {dict(fixes)}")
     print(f"qtype: {dict(qtype)}   lang tags: {len(langs):,}   "

@@ -1,0 +1,35 @@
+[expand] src=/home/yuchan/XERON/output/xeron-0.9-snapshot
+[expand] tmp=/home/yuchan/laya-models/xeron-1.0-base.tmp-3975683
+[expand] skeleton: {'encoder': 1275729408, 'head': 53278470, 'total': 1329007878}
+[expand] 328 tensors (61 copied verbatim)
+[expand] weights written
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[expand] previous dir kept at /home/yuchan/laya-models/xeron-1.0-base.old-20260925-191936
+[expand] done in 59.3s -> /home/yuchan/laya-models/xeron-1.0-base
+[metrics] /home/yuchan/XERON/data/xeron10_expand_metrics.json
+[verify] loading 0.9 from /home/yuchan/XERON/output/xeron-0.9-snapshot
+[verify] loading 1.0 from /home/yuchan/laya-models/xeron-1.0-base
+[verify] short: enc cos(half0)=1.0000007153 maxabs=1.91e-05 rel=8.62e-07 | logits cos=1.0000000000 maxabs=1.19e-06
+[verify] medium: enc cos(half0)=1.0000259876 maxabs=4.70e-04 rel=2.04e-05 | logits cos=1.0000000000 maxabs=1.52e-06
+[verify] long: enc cos(half0)=1.0001847744 maxabs=7.39e-04 rel=3.14e-05 | logits cos=1.0000000000 maxabs=5.59e-07
+[metrics] /home/yuchan/XERON/data/xeron10_expand_metrics.json
+[probe] fp32: identity_delta_max=0.000e+00 halves_identical=True final abs=3.805e-04 rel=1.685e-05
+[probe] fp64: identity_delta_max=0.000e+00 halves_identical=True final abs=2.946e-06 rel=1.305e-07
+[metrics] /home/yuchan/XERON/data/xeron10_expand_metrics.json
+[CTX] encoder max_position_embeddings already 32768 (>= 32768)
+[smoke] encoder max_position_embeddings=32768 max_len=8192
+[smoke] {"length": 8192, "input_ids_shape": [1, 8192], "hidden_shape": [1, 8192, 1536], "hidden_nan": 0, "hidden_inf": 0, "hidden_finite": true, "logits_shape": [1, 8], "logits_finite": true, "act_shape": [1, 2], "act_finite": true, "hidden_absmax": 22.757701873779297, "seconds": 169.8, "max_position_embeddings": 32768}
+[metrics] /home/yuchan/XERON/data/xeron10_expand_metrics.json
+Traceback (most recent call last):
+  File "/home/yuchan/XERON/scripts/expand_encoder_10.py", line 870, in <module>
+    main()
+  File "/home/yuchan/XERON/scripts/expand_encoder_10.py", line 823, in main
+    prm = param_report(args.src, args.dst)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yuchan/XERON/scripts/expand_encoder_10.py", line 564, in param_report
+    return {"xeron-0.9": counts(src_dir), "xeron-1.0": counts(dst_dir)}
+                         ^^^^^^^^^^^^^^^
+  File "/home/yuchan/XERON/scripts/expand_encoder_10.py", line 553, in counts
+    with safe_open(os.path.join(model_dir, "model.safetensors")) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: safe_open.__new__() missing 1 required positional argument: 'framework'

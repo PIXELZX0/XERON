@@ -1,0 +1,10 @@
+loaded 32 specs (+15 adapters) from /home/yuchan/XERON/scripts/specs_extra.py
+exclusion keys (cached): 2,254,462
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Repo card metadata block was not found. Setting CardData to empty.
+  [nsmc/None/train] kept 14,682 / seen 30,000
+[nsmc] wrote 14,682 rows -> data/bulk/nsmc.jsonl
+  [glue_sst2/sst2/train] kept 19,987 / seen 20,000
+[glue_sst2] wrote 19,987 rows -> data/bulk/glue_sst2.jsonl
+
+=== TOTAL 34,669 rows across 2 specs ===

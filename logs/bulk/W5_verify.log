@@ -1,0 +1,35 @@
+=== [A1] verify_bulk.py (full mix) ===
+[OK ] xeron10_mix.jsonl            rows=3,389,832 qtype={'choice': 3051330, 'score': 129545, 'noul': 208957} arity={2: 370315, 3: 874501, 4: 808509, 5: 519024, 6: 416546, 7: 53002, 8: 999, 9: 951, 10: 854, 11: 826, 12: 809, 14: 4994} langs=353 leak=0 goldsum=0 dup_in=0 dup_cross=0 posdev=0.24 empty=0 badjson=0
+
+=== 1 files, 3,389,832 rows -> data/xeron10_mix_verify.json ===
+
+=== [A2] check_eval_leak.py (JevBench public-231 + typed-decisions test) ===
+jelbench public: 231 rows -> 231 state keys
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split:   0%|          | 0/1200 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1200/1200 [00:00<00:00, 20227.49 examples/s]
+Generating test split:   0%|          | 0/400 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 400/400 [00:00<00:00, 22874.38 examples/s]
+typed-decisions test: 400 rows -> 400 state keys
+mix rows 3,389,832 | leaks: NONE
+-> data/xeron10_eval_leak.json
+
+=== [A3] posdev_x10.py (true per-namespace positional deviation) ===
+arity | letter rows / dev | name rows / dev
+    2 |   370,315 / 0.0009 |         0 / -
+    3 |   815,915 / 0.0003 |    58,586 / 0.0348
+    4 |   782,352 / 0.0014 |    26,157 / 0.0096
+    5 |   512,645 / 0.0009 |     6,379 / 0.0113
+    6 |   412,037 / 0.0007 |     4,509 / 0.0134
+    7 |         0 / - |    53,002 / 0.0704
+    8 |         0 / - |       999 / 0.0141
+    9 |         0 / - |       951 / 0.0144
+   10 |         0 / - |       854 / 0.0183
+   11 |         0 / - |       826 / 0.0207
+   12 |         0 / - |       809 / 0.0131
+   14 |         0 / - |     4,994 / 0.1374
+max letter-keyed dev = 0.0014 (target <= 0.15)
+max name-keyed dev   = 0.1374 (display index of the gold label)
+name-keyed key order: {'alphabetical': 1509, 'other': 156557}
+distinct criteria orders per workflow (name-keyed): {'jevbench-banking77': 200, 'jevbench-clinc150': 200, 'jevbench-ledgar': 200, 'jevbench-massive': 200, 'korean-general': 2, 'browser-use': 2, 'jevbench-arc_challenge': 1, 'jevbench-mnli': 1, 'jevbench-chaosnli': 1, 'anli-adversarial-nli': 1, 'long-context': 1, 'browser-agent': 1}
+-> data/xeron10_posdev.json
+
+=== [A] DONE ===

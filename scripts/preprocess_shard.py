@@ -55,9 +55,11 @@ def build_index(files, index_path):
         counts.append(n)
         print(f"  indexed {os.path.basename(p)}: {n:,} rows", flush=True)
     os.makedirs(os.path.dirname(os.path.abspath(index_path)), exist_ok=True)
-    np.savez(index_path, offsets=np.asarray(all_off, dtype=np.int64),
+    tmp = f"{index_path}.tmp.{os.getpid()}.npz"
+    np.savez(tmp, offsets=np.asarray(all_off, dtype=np.int64),
              counts=np.asarray(counts, dtype=np.int64),
              sizes=np.asarray([os.path.getsize(p) for p in files], dtype=np.int64))
+    os.replace(tmp, index_path)      # atomic: a truncated index is never left behind
     print(f"index -> {index_path} ({sum(counts):,} rows total)")
 
 
@@ -159,10 +161,14 @@ def main():
     stats["items"] = len(items)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.output)), exist_ok=True)
-    torch.save(items, args.output)
+    tmp_pt = f"{args.output}.tmp.{os.getpid()}"
+    torch.save(items, tmp_pt)
+    os.replace(tmp_pt, args.output)   # atomic shard: only complete shards become visible
     stats_path = args.stats_json or (os.path.splitext(args.output)[0] + ".stats.json")
-    with open(stats_path, "w") as f:
+    tmp_js = f"{stats_path}.tmp.{os.getpid()}"
+    with open(tmp_js, "w") as f:
         json.dump(stats, f, indent=1)
+    os.replace(tmp_js, stats_path)
     print(f"[shard {args.shard}/{args.num_shards}] rows={stats['rows']:,} "
           f"items={stats['items']:,} item_none={stats['item_none']} "
           f"bad_json={stats['bad_json']} max_ids={stats['max_ids']} -> {args.output}",
