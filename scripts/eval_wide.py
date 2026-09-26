@@ -25,12 +25,13 @@ from model_xeron import build_wide_model  # noqa: E402
 _orig_build = LC.build_model
 
 
-def _patched_build(cfg, encoder_dir=None):
+def _patched_build(cfg, encoder_dir=None, **kwargs):
+    # NOTE: newer laya calls build_model(..., pretrained=False) — forward unknown kwargs.
     hs = int(cfg.get("head_size") or 0)
     if hs:
         return build_wide_model(cfg, encoder_dir, head_layers=cfg.get("head_layers", 2),
                                 head_size=hs, dropout=cfg.get("dropout", 0.1) or 0.1)
-    return _orig_build(cfg, encoder_dir)
+    return _orig_build(cfg, encoder_dir, **kwargs)
 
 
 LC.build_model = _patched_build

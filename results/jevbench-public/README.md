@@ -1,91 +1,91 @@
-# XERON — JevBench v1.3 방식 평가 (공개 아이템 부분집합)
+# XERON — JevBench v1.3-style evaluation (public item subset)
 
-> 🆕 **XERON-0.2 결과는 [7장](#7-xeron-02--jevbench-스타일-데이터-파인튜닝-결과) 참고** — JevBench overall 0.468 → **0.541** (+7.3%p)
+> 🆕 **For XERON-0.2 results see [section 7](#7-xeron-02--jevbench-style-data-fine-tuning-results)** — JevBench overall 0.468 → **0.541** (+7.3%p)
 
-JevBench v1.3.0(Benchmark Heaven)의 **채점 방식·태스크·어댑터를 그대로 사용**해 XERON-0.1을 측정했다.
-하네스: https://github.com/fstandhartinger/jevbench (MIT), 커밋 시점 2026-09-22, `laya_local` 어댑터 그대로 사용.
+XERON-0.1 was measured **using JevBench v1.3.0 (Benchmark Heaven)'s exact scoring method, tasks and adapter**.
+Harness: https://github.com/fstandhartinger/jevbench (MIT), as of 2026-09-22, using the `laya_local` adapter unchanged.
 
-## ⚠️ 범위 (반드시 먼저 읽을 것)
+## ⚠️ Scope (must read first)
 
-JevBench의 534개 결정 중 **공개된 것은 231개**뿐이다 (나머지: judge tier 146개 전부 비공개, standard 24, easy 24, hard 109 비공개).
-따라서 이 문서는 **공식 보드 순위와 직접 비교할 수 없다** — 보드의 "partial runs are shown without a rank" 규칙과 같은 위치다.
+Of JevBench's 534 decisions, **only 231 are public** (the rest: the entire judge tier of 146 is private, plus standard 24, easy 24, hard 109 private).
+This document therefore **cannot be directly compared to the official board ranks** — the same position as the board's "partial runs are shown without a rank" rule.
 
-- 공개: easy 48/72 · standard 72/96 · **judge 0/146** · hard 111/220
-- 매칭 비교: XERON·Laya·Jev를 **동일한 231개 아이템**에서 비교했다 (Jev/Laya는 공식 per-task 아티팩트의 공개 아이템 결과 사용)
-- 로컬 3종(XERON, laya-typed-decisions, laya-multilingual)은 **동일 머신·동일 어댑터·직렬 1요청·threads=4·모델 로드 후 타이밍**으로 직접 실행
+- Public: easy 48/72 · standard 72/96 · **judge 0/146** · hard 111/220
+- Matched comparison: XERON, Laya and Jev were compared on the **same 231 items** (Jev/Laya use the public-item results from the official per-task artifacts)
+- The three local systems (XERON, laya-typed-decisions, laya-multilingual) were run directly on the **same machine, same adapter, serial single request, threads=4, timed after model load**
 
-## 1. 정확도 (동일 231 공개 아이템, 매칭 비교)
+## 1. Accuracy (same 231 public items, matched comparison)
 
-| 시스템 | easy (48) | standard (72) | judge | hard (111) | 전체 (231) | chance-corrected Intelligence |
+| System | easy (48) | standard (72) | judge | hard (111) | Overall (231) | chance-corrected Intelligence |
 |---|---|---|---|---|---|---|
 | **Jev 1.13.0** (TypeSafe, API) | 1.000 | 0.986 | — | 0.730 | **0.866** | **82.2** |
-| **laya-typed-decisions** (Convai, 421M, 벤더 튜닝) | 0.979 | 0.653 | — | 0.270 | **0.537** | 38.0 |
-| **XERON-0.1** (PIXELZX, 322M, 우리) | 0.875 | 0.444 | — | **0.306** | 0.468 | 23.3 |
-| laya-multilingual (**미튜닝 base**, 322M) | 0.896 | 0.403 | — | 0.324 | 0.468 | 21.5 |
-| *참고: Laya 공식 보드 행 (전체 534)* | 0.944 | 0.729 | 0.692 | 0.341 | — | 45.8 |
+| **laya-typed-decisions** (Convai, 421M, vendor-tuned) | 0.979 | 0.653 | — | 0.270 | **0.537** | 38.0 |
+| **XERON-0.1** (PIXELZX, 322M, ours) | 0.875 | 0.444 | — | **0.306** | 0.468 | 23.3 |
+| laya-multilingual (**untuned base**, 322M) | 0.896 | 0.403 | — | 0.324 | 0.468 | 21.5 |
+| *Reference: Laya official board row (all 534)* | 0.944 | 0.729 | 0.692 | 0.341 | — | 45.8 |
 
-**읽는 법**
+**How to read this**
 
-- **Jev가 압도적**이다 (매칭 공개셋 0.866). 이건 JevBench가 제로샷 강자를 위해 설계된 벤치라 당연한 결과.
-- **XERON-0.1 vs 자기 백본(미튜닝 laya-multilingual)**: 전체 0.468 = 0.468 (동률)이지만 **Intelligence 21.5 → 23.3**, 캘리브레이션 대폭 개선. 즉 파인튜닝 이득은 정확도보다 **확률 품질**에서 나왔다.
-- **XERON-0.1 vs 벤더가 이 벤치마크에 맞춰 튜닝한 laya-typed-decisions**: 전체 −6.9%p 열세. **단, hard tier에서는 XERON이 우세(0.306 vs 0.270)**.
-- easy tier의 `fact`/`tool_selection`은 셋 다 만점 수준, **standard tier(저자 작성 루브릭: policy/adequacy/ordinal/routing)에서 격차가 벌어진다.**
+- **Jev dominates** (0.866 on the matched public set). This is expected, since JevBench is designed as a benchmark for zero-shot strong models.
+- **XERON-0.1 vs its own backbone (untuned laya-multilingual)**: overall 0.468 = 0.468 (tie), but **Intelligence 21.5 → 23.3** and calibration is much better. In other words, the fine-tuning gain comes from **probability quality** rather than accuracy.
+- **XERON-0.1 vs laya-typed-decisions, which the vendor tuned for this very benchmark**: −6.9%p down on overall. **However, on the hard tier XERON is ahead (0.306 vs 0.270).**
+- In the easy tier, `fact`/`tool_selection` are near-perfect for all three; **the gap opens up on the standard tier (author-written rubrics: policy/adequacy/ordinal/routing).**
 
-## 2. 캘리브레이션 (hard tier, 자체 측정)
+## 2. Calibration (hard tier, self-measured)
 
-| 시스템 | ECE ↓ | 확률 충실도 (100×(1−TVD), gold 분포 10문항) | Calibration 축 |
+| System | ECE ↓ | probability fidelity (100×(1−TVD), 10 gold-distribution questions) | Calibration axis |
 |---|---|---|---|
 | laya-typed-decisions | **0.077** | **0.704** | **77.5** |
 | XERON-0.1 | 0.211 | 0.611 | 59.5 |
 | laya-multilingual (base) | 0.289 | 0.427 | 42.4 |
-| Laya 공식 보드 | 0.206 | 0.660 | 62.5 |
-| Jev 공식 보드 | 0.061 | 0.774 | 82.7 |
+| Laya official board | 0.206 | 0.660 | 62.5 |
+| Jev official board | 0.061 | 0.774 | 82.7 |
 
-XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 영어 튜닝에는 못 미친다.
+XERON is far better than the untuned base (ECE 0.289→0.211) but does not reach the vendor's English tuning.
 
-## 3. 속도·비용 (동일 머신, 직렬, 모델 로드 후 측정)
+## 3. Speed & cost (same machine, serial, measured after model load)
 
-### 3a. 로컬 CPU (yuchan-server, 12 vCPU, 4 threads)
+### 3a. Local CPU (yuchan-server, 12 vCPU, 4 threads)
 
-| 시스템 | p50 (원시) | p95 (원시) | 보정 p50/p95 (×2+0.15s) | 결정당 입력 토큰 | USD/1,000 결정 (추정) | Speed 축 | Cost 축 |
+| System | p50 (raw) | p95 (raw) | adjusted p50/p95 (×2+0.15s) | input tokens per decision | USD per 1,000 decisions (est.) | Speed axis | Cost axis |
 |---|---|---|---|---|---|---|---|
 | **XERON-0.1** | **0.129 s** | 5.683 s | 0.408 / 11.52 | 630 | $0.00630 | **73.3** | 76.0 |
 | laya-typed-decisions | 0.394 s | 3.608 s | 0.937 / 7.37 | 338 | $0.00338 | 71.6 | 84.1 |
 | laya-multilingual (base) | 0.129 s | 5.704 s | 0.408 / 11.56 | 630 | $0.00630 | 73.3 | 76.0 |
-| Jev 1.13.0 (API) | 0.652 s | 0.722 s | 0.652 / 0.722 (보정 없음) | 950 | $0.0399 | 83.3 | 52.0 |
+| Jev 1.13.0 (API) | 0.652 s | 0.722 s | 0.652 / 0.722 (no adjustment) | 950 | $0.0399 | 83.3 | 52.0 |
 
-- 머신: yuchan-server (12 vCPU), CPU 4 threads, 동일 조건.
-- **비용 축은 토크나이저 아티팩트에 민감하다** — JevBench는 "시스템 자체 토큰 수 × $0.01/M" 추정을 쓴다. mmBERT(256k vocab)는 ModernBERT(50k vocab)보다 결정당 토큰을 ~1.9배 많이 세서 XERON의 Cost 축이 실제 GPU 비용 차이보다 낮게 나온다. 같은 크기 클래스(322M vs 421M)이므로 **실질 비용은 사실상 동일**하다고 보는 게 맞다.
+- Machine: yuchan-server (12 vCPU), CPU 4 threads, identical conditions.
+- **The cost axis is sensitive to the tokenizer artifact** — JevBench estimates "system token count × $0.01/M". mmBERT (256k vocab) counts ~1.9× more tokens per decision than ModernBERT (50k vocab), so XERON's Cost axis reads lower than the actual GPU-cost difference. Since they are in the same size class (322M vs 421M), the reasonable view is that the **real cost is effectively identical**.
 
-## 4. Colab T4 재실행 (GPU) — 정확도 동일, 속도만 향상
+## 4. Colab T4 re-run (GPU) — identical accuracy, only faster
 
-동일한 하네스·동일 어댑터(`laya_local`)를 **Google Colab Tesla T4**에서 그대로 재실행했다.
-어댑터는 수정하지 않았다 — `laya.load()`가 CUDA를 자동 감지한다 (`device=cuda` 확인).
-실행 경로: `colab` CLI (google-colab-cli 0.6.0) → `colab new -s xeron-jb --gpu T4` → `colab install laya` → 스크립트 실행 → `colab download` → `colab stop`.
+The exact same harness and adapter (`laya_local`) were re-run on a **Google Colab Tesla T4**.
+The adapter was not modified — `laya.load()` auto-detects CUDA (`device=cuda` confirmed).
+Execution path: `colab` CLI (google-colab-cli 0.6.0) → `colab new -s xeron-jb --gpu T4` → `colab install laya` → run script → `colab download` → `colab stop`.
 
-| 시스템 | p50 (T4) | p95 (T4) | p50 (로컬 CPU) | easy | standard | hard | 전체 | ECE hard |
+| System | p50 (T4) | p95 (T4) | p50 (local CPU) | easy | standard | hard | Overall | ECE hard |
 |---|---|---|---|---|---|---|---|---|
 | XERON-0.1 | 0.0297 s | 0.136 s | 0.129 s | 0.875 | 0.444 | 0.306 | 0.468 | 0.211 |
 | laya-typed-decisions | 0.0385 s | 0.085 s | 0.394 s | 0.979 | 0.653 | 0.270 | 0.537 | 0.072 |
 | laya-multilingual (base) | 0.0279 s | 0.049 s | 0.129 s | 0.896 | 0.403 | 0.333 | 0.472 | 0.296 |
 
-- **231개 전체 실행 시간: 14.1초** (로컬 CPU 276초) → GPU에서 **약 20배 빠름**. 모델 로드 34.5초 포함해도 1분 이내.
-- 정확도는 CPU 실행과 사실상 동일 (XERON easy/standard/hard 완전 일치). laya-multilingual hard가 0.324→0.333으로 미세하게 달라지는 것은 GPU/CPU 부동소수점 차이로 인한 근소한 동점(同點) 판정 변화다.
-- 원본: `*.colab-t4.results.jsonl`, 집계: `summary-colab-t4.json`
+- **Full run of all 231 items: 14.1 s** (276 s on local CPU) → **~20× faster on GPU**. Even including the 34.5 s model load it is under a minute.
+- Accuracy is effectively identical to the CPU run (XERON's easy/standard/hard match exactly). laya-multilingual's hard figure moving slightly from 0.324 to 0.333 is a marginal tie-breaking change caused by GPU/CPU floating-point differences.
+- Raw: `*.colab-t4.results.jsonl`, aggregate: `summary-colab-t4.json`
 
-## 5. JevBench Score (부분 실행 — 순위 없음)
+## 5. JevBench Score (partial run — no rank)
 
-공개 아이템에 judge tier가 없으므로 공식 규칙대로 없는 tier는 가중치를 재정규화해 계산했다. **공식 보드 점수와 직접 비교 금지.**
+Since the public items contain no judge tier, the missing tier's weight was renormalized as per the official rule. **Do not compare directly to official board scores.**
 
-| 시스템 | Intelligence | Calibration | Speed | Cost | JevBench Score (부분) |
+| System | Intelligence | Calibration | Speed | Cost | JevBench Score (partial) |
 |---|---|---|---|---|---|
 | laya-typed-decisions | 38.0 | 77.5 | 71.6 | 84.1 | **37.5** |
 | XERON-0.1 | 23.3 | 59.5 | 73.3 | 76.0 | 11.5 |
 | laya-multilingual (base) | 21.5 | 42.4 | 73.3 | 76.0 | 8.8 |
 
-> Intelligence < 50 이면 공식 규칙상 `(Intelligence/50)²` 패널티가 곱해진다. XERON은 23.3 → ×0.217 적용됨. 이게 최종 점수를 크게 끌어내린 주 원인.
+> When Intelligence < 50, the official rule multiplies in a `(Intelligence/50)²` penalty. For XERON that is 23.3 → ×0.217. This is the main reason the final score is dragged down so much.
 
-## 6. 어디서 이기고 어디서 지는가 (family별 정확도, 231 공개 아이템)
+## 6. Where it wins and where it loses (accuracy by family, 231 public items)
 
 | family (tier) | XERON-0.1 | laya-td | laya-ml |
 |---|---|---|---|
@@ -107,26 +107,26 @@ XERON은 미튜닝 base보다 크게 좋아졌지만(ECE 0.289→0.211) 벤더 �
 | **adequacy (std)** | 0.25 | **0.583** | 0.167 |
 | **routing (std)** | 0.333 | **0.583** | 0.75 |
 
-**해석**: XERON은 **hard tier의 adversarial/trap/judge_hard에서 벤더 모델을 이기고**, **standard tier의 저자 작성 루브릭(policy·adequacy·routing·ordinal)에서 진다.**
-전자는 우리 학습 데이터(장문·웹 에이전트·다국어 판단)와 겹치는 영역이고, 후자는 JevBench 고유의 "정책 문서 + 선택지" 스타일로 **우리 학습 데이터에 전혀 없던 분포**다.
+**Interpretation**: XERON **beats the vendor model on the adversarial/trap/judge_hard families of the hard tier** and **loses on the author-written rubrics of the standard tier (policy, adequacy, routing, ordinal).**
+The former overlaps with our training data (long context, web agent, multilingual judgment); the latter is JevBench's own "policy document + options" style — **a distribution entirely absent from our training data**.
 
-스키마 유효성: 3종 모두 **231/231 strict valid, 재정규화 0건** — 출력 자체는 완벽하게 깨끗하다.
+Schema validity: all three are **231/231 strict valid, 0 renormalizations** — the outputs themselves are perfectly clean.
 
-## 7. XERON-0.2 — JevBench 스타일 데이터 파인튜닝 결과
+## 7. XERON-0.2 — JevBench-style data fine-tuning results
 
-XERON-0.1을 베이스로 **JevBench 스타일 결정 데이터**를 추가 학습한 두 번째 릴리스.
+The second release, further trained from XERON-0.1 on **JevBench-style decision data**.
 
-### 학습
-- **데이터**: [Jevify `jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench) 22개 공개 데이터셋 → System One 포맷 변환,
-  선택지 수 상한(32개) 가드 적용 후 48,000행 샘플 + `LocalLLaMA/typed-decisions` EN 6,000 = **54,000 시퀀스**
-- **베이스**: `PIXELZX/XERON-0.1` (연속 파인튜닝)
-- **설정**: 2 epoch · MICRO_BATCH 8 / GRAD_ACCUM 8 (유효 64) · bf16 · MAX_LEN 4096 · 1×A100 40GB · 약 41분
-- **사후 캘리브레이션**: temperature `[0.96, 1.098, 0.569]`
-- ⚠️ **JevBench 공개 231건은 학습에서 제외** — 깨끗한 held-out으로 유지
+### Training
+- **Data**: [Jevify `jev-bench`](https://huggingface.co/datasets/Praveenrajus/jev-bench) 22 public datasets → converted to System One format,
+  with an option-count ceiling (32) guard applied, then 48,000 sampled rows + `LocalLLaMA/typed-decisions` EN 6,000 = **54,000 sequences**
+- **Base**: `PIXELZX/XERON-0.1` (continued fine-tuning)
+- **Config**: 2 epochs · MICRO_BATCH 8 / GRAD_ACCUM 8 (effective 64) · bf16 · MAX_LEN 4096 · 1×A100 40GB · ~41 min
+- **Post-hoc calibration**: temperature `[0.96, 1.098, 0.569]`
+- ⚠️ **The JevBench public 231 items are excluded from training** — kept as a clean held-out set
 
-### 결과 (동일 231 공개 아이템, 공식 하네스)
+### Results (same 231 public items, official harness)
 
-| 시스템 | easy (48) | standard (72) | hard (111) | 전체 (231) | Intelligence | Calibration |
+| System | easy (48) | standard (72) | hard (111) | Overall (231) | Intelligence | Calibration |
 |---|---|---|---|---|---|---|
 | Jev 1.13.0 | 1.000 | 0.986 | 0.730 | **0.866** | 82.2 | — |
 | **XERON-0.2** | 0.979 | 0.583 | **0.324** | **0.541** | 34.1 | 58.0 |
@@ -134,46 +134,46 @@ XERON-0.1을 베이스로 **JevBench 스타일 결정 데이터**를 추가 학�
 | XERON-0.1 | 0.875 | 0.444 | 0.306 | 0.468 | 23.3 | 59.5 |
 | laya-multilingual (base) | 0.896 | 0.403 | 0.324 | 0.468 | 21.5 | 42.4 |
 
-| 항목 | 0.1 | 0.2 | Δ |
+| Metric | 0.1 | 0.2 | Δ |
 |---|---|---|---|
 | JevBench overall | 0.468 | **0.541** | **+7.3 %p** |
 | standard tier | 0.444 | **0.583** | **+13.9 %p** |
 | easy tier | 0.875 | **0.979** | **+10.4 %p** |
 | hard tier | 0.306 | **0.324** | +1.8 %p |
 | typed-decisions acc | 0.700 | **0.713** | +1.3 %p |
-| Brier / score MAE | 0.449 / 0.421 | **0.424 / 0.373** | 개선 |
+| Brier / score MAE | 0.449 / 0.421 | **0.424 / 0.373** | improved |
 | hard ECE | 0.211 | **0.187** | −0.024 |
-| hard prob. fidelity (TVD) | **0.389** | 0.465 | **+0.076 (악화)** |
+| hard prob. fidelity (TVD) | **0.389** | 0.465 | **+0.076 (worse)** |
 
-**해석**
-- 데이터를 바꾸니 standard tier(정책·루브릭)가 0.444 → 0.583으로 뛰었고, **전체 정확도에서 벤더 튜닝판(0.537)을 앞섰다**.
-- hard tier도 0.324로 벤더(0.270)·베이스(0.324) 대비 개선 — 다만 Jev(0.730)와의 격차는 여전히 크다.
-- **트레이드오프**: 단일 라벨 위주 코퍼스로 학습하면 예측이 sharp해져 ECE는 좋아지지만 **gold 분포 충실도(TVD)는 나빠진다**.
-  soft label 데이터를 섞으면 개선 여지가 있다.
+**Interpretation**
+- Changing the data made the standard tier (policy, rubric) jump from 0.444 to 0.583, and **overall accuracy moved ahead of the vendor-tuned version (0.537)**.
+- The hard tier also improved to 0.324 versus the vendor (0.270) and the base (0.324) — though the gap to Jev (0.730) is still large.
+- **Trade-off**: training on a mostly single-label corpus sharpens predictions, which improves ECE but **worsens fidelity to the gold distribution (TVD)**.
+  Mixing in soft-label data leaves room for improvement.
 
-### 산출물
+### Artifacts
 - HF: **https://huggingface.co/PIXELZX/XERON-0.2**
-- `xeron-0.2.colab-a100.results.jsonl` (231행 per-decision), `xeron-0.2.typed-decisions-eval.json`
-- 학습 스크립트 개선: epoch 체크포인트마다 **추론 가능한 스냅샷**을 함께 저장 (커밋 `089be00`) — Colab VM 유실 대비
+- `xeron-0.2.colab-a100.results.jsonl` (231 rows per-decision), `xeron-0.2.typed-decisions-eval.json`
+- Training-script improvement: alongside each epoch checkpoint, an **inference-ready snapshot** is now saved too (commit `089be00`) — guarding against Colab VM loss
 
-## 8. 결론과 다음 단계
+## 8. Conclusion and next steps
 
-1. **XERON-0.1은 JevBench류 태스크에서 벤더 Laya 튜닝판보다 약하다.** 이유는 명확하다 — 우리는 KLUE/브라우저/Mind2Web/SCOTUS로 학습했고, JevBench는 "정책·루브릭·선택지" 판단을 측정한다. 도메인이 겹치지 않는다.
-2. 그럼에도 **파인튜닝 효과는 검증됐다**: 동일 백본 대비 확률 품질(ECE 0.289→0.211, TVD 0.573→0.389)과 hard tier가 개선됐다.
-3. **다음 단계 제안**: JevBench 스타일 데이터로 추가 파인튜닝.
-   - 공개 아이템: `datasets/public/{original,easy,hard}.jsonl` (231건, MIT)
-   - 대규모: HF `Praveenrajus/jev-bench` (22 configs · 166,054 rows, human-labeled System One questions)
-   - 목표: standard tier 0.44 → 0.65+, ECE hard 0.21 → 0.10 이하
+1. **XERON-0.1 is weaker than the vendor-tuned Laya on JevBench-type tasks.** The reason is clear — we trained on KLUE/browser/Mind2Web/SCOTUS, while JevBench measures "policy · rubric · option" judgment. The domains do not overlap.
+2. Even so, **the fine-tuning effect is verified**: versus the same backbone, probability quality (ECE 0.289→0.211, TVD 0.573→0.389) and the hard tier improved.
+3. **Suggested next step**: further fine-tuning on JevBench-style data.
+   - Public items: `datasets/public/{original,easy,hard}.jsonl` (231 items, MIT)
+   - At scale: HF `Praveenrajus/jev-bench` (22 configs · 166,054 rows, human-labeled System One questions)
+   - Target: standard tier 0.44 → 0.65+, ECE hard 0.21 → 0.10 or below
 
-## 재현
+## Reproduce
 
 ```bash
-# 하네스
+# Harness
 git clone https://github.com/fstandhartinger/jevbench /tmp/jevbench
-# 공개 아이템 231개, laya_local 어댑터, 직렬 1요청, threads=4, 로드 후 타이밍
+# public 231 items, laya_local adapter, serial single request, threads=4, timed after load
 python run_public_jevbench.py <model_dir> <label> <out_prefix>
-# 채점 (tier 정확도 / ECE / TVD / 축 / 부분 JevBench Score)
+# Scoring (tier accuracy / ECE / TVD / axes / partial JevBench Score)
 python score_public_jevbench.py <out_prefix> <label>
 ```
 
-원본 per-decision 결과: `results/jevbench-public/*.results.jsonl` (각 231행, 예측·확률분포·지연 포함)
+Raw per-decision results: `results/jevbench-public/*.results.jsonl` (231 rows each, including predictions, probability distributions and latency)

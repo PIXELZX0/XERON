@@ -1,91 +1,91 @@
 # XERON 🎯
 
-**XERON** — [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) 기반 파인튜닝 결정(decision) 모델 프로젝트.
+**XERON** — a decision-model fine-tuning project built on [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya).
 
-> 🎯 **목표: 범용(general-purpose) 파인튜닝** — 특정 도메인에 한정하지 않고 다양한 결정 태스크(분류/라우팅/스코어링/위험 판단)를 커버하는 범용 XERON 모델을 만든다. **영어 + 한국어 입력 + 브라우저 사용(웹 결정 + 웹 에이전트 액션)까지 지원**.
-> - 영어 트랙: English 체크포인트 + [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4개 workflow: invoice / security incidents / customer service / agent-trace)
-> - 한국어 트랙: 멀티링궈얼 체크포인트 + 한국어 데이터 (KLUE 기반 82,344 시퀀스)
-> - 브라우저 트랙: 웹 페이지 주제 분류(BBC/AG News) + 스팸/피싱 탐지 (28,899 시퀀스)
-> - 웹 에이전트 트랙: [Mind2Web](https://huggingface.co/datasets/osunlp/Mind2Web) 기반 다음 액션/요소 결정 (14,724 시퀀스)
+> 🎯 **Goal: general-purpose fine-tuning** — build a general-purpose XERON model that covers a wide range of decision tasks (classification / routing / scoring / risk judgment) instead of being limited to a single domain. **English + Korean input + browser use (web decisions + web-agent actions) are all supported.**
+> - English track: English checkpoint + [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions) (4 workflows: invoice / security incidents / customer service / agent-trace)
+> - Korean track: multilingual checkpoint + Korean data (KLUE-based 82,344 sequences)
+> - Browser track: web page topic classification (BBC/AG News) + spam/phishing detection (28,899 sequences)
+> - Web-agent track: next action/element decisions based on [Mind2Web](https://huggingface.co/datasets/osunlp/Mind2Web) (14,724 sequences)
 
-Laya는 Multilingual · Non-autoregressive **System 1 decision model**로, 상태(text/email/ticket/JSON)와 타입이 지정된 질문(choice / score / noul)을 받아 **단일 forward pass**로 타입화된 답변과 보정된 확률을 반환합니다. 텍스트를 생성하지 않으므로 파싱이 필요 없고 할루시네이션이 없습니다.
+Laya is a Multilingual · Non-autoregressive **System 1 decision model** that takes a state (text/email/ticket/JSON) and typed questions (choice / score / noul) and returns typed answers with calibrated probabilities in a **single forward pass**. It does not generate text, so no parsing is required and there are no hallucinations.
 
-| 항목 | 값 |
+| Item | Value |
 |---|---|
-| Base 모델 | [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) (ModernBERT-large backbone, 421M params) |
-| 학습 방식 | RLCD (Reinforcement Learning for Calibrated Decisions) — strictly proper scoring rule + GRPO-style baseline |
-| 라이선스 | Apache-2.0 |
-| 체크포인트 | English (root) / multilingual / typed-decisions |
+| Base model | [convaiinnovations/laya](https://huggingface.co/convaiinnovations/laya) (ModernBERT-large backbone, 421M params) |
+| Training method | RLCD (Reinforcement Learning for Calibrated Decisions) — strictly proper scoring rule + GRPO-style baseline |
+| License | Apache-2.0 |
+| Checkpoints | English (root) / multilingual / typed-decisions |
 
-## 🗂 체크포인트
+## 🗂 Checkpoints
 
-| 체크포인트 | Backbone | Params | Context | 용도 |
+| Checkpoint | Backbone | Params | Context | Purpose |
 |---|---|---|---|---|
 | `laya` (root) | ModernBERT-large | 421M | 512 | English |
-| `laya-multilingual` | mmBERT-base | 322M | 1024 | 100+ languages (**한국어 포함**) |
+| `laya-multilingual` | mmBERT-base | 322M | 1024 | 100+ languages (**including Korean**) |
 | `laya-typed-decisions` | ModernBERT-large | 421M | 1024 | typed-decisions workflows |
 
-## 🌐 학습 트랙 (Language Tracks)
+## 🌐 Language Tracks
 
-| 트랙 | 베이스 | 데이터 | 시퀀스 | items 파일 |
+| Track | Base | Data | Sequences | items file |
 |---|---|---|---|---|
 | **XERON-EN** | `laya` (English) | typed-decisions train | 6,000 | `train_items.pt` |
-| **XERON-KR** | `laya-multilingual` | 한국어 KLUE (ynat 45,678 + nli 24,998 + sts 11,668) | 82,344 | `train_items_kr.pt` |
+| **XERON-KR** | `laya-multilingual` | Korean KLUE (ynat 45,678 + nli 24,998 + sts 11,668) | 82,344 | `train_items_kr.pt` |
 | **XERON-MIX** 🎯 | `laya-multilingual` | EN typed-decisions + KR KLUE | 88,344 | `train_items_mix.pt` |
-| **XERON-BROWSE** | `laya-multilingual` | 웹 페이지 분류(BBC 1,225 + AG 20,000) + 스팸 5,574 + 피싱 2,100 | 28,899 | `train_items_browser.pt` |
-| **XERON-WEBAGENT** | `laya-multilingual` | Mind2Web 다음 액션(op) + 요소 선택 (7,362 스텝) | 14,724 | `train_items_webagent.pt` |
-| **XERON-LONG** 🧾 | `laya-multilingual` | **장문**: SCOTUS 대법원 판례 판사 분류(5,000) + 20 Newsgroups(11,314) | 16,314 | `train_items_long4096.pt` |
-| **XERON-ALL** 🏆 | `laya-multilingual` | EN + KR + Browser 혼합 | 117,243 | `train_items_all.pt` |
-| **XERON-ALL-v2** 🚀 | `laya-multilingual` | EN + KR + Browser + WebAgent 전체 | 131,967 | `train_items_all_v2.pt` |
-| **XERON-ALL-4096+LONG** 🏆 | `laya-multilingual` | 4096 전처리 ALL + 장문(SCOTUS/Newsgroups) — **22%가 4096 트렁크** | 148,281 | `train_items_all_multi4096_long.pt` |
+| **XERON-BROWSE** | `laya-multilingual` | web page classification (BBC 1,225 + AG 20,000) + spam 5,574 + phishing 2,100 | 28,899 | `train_items_browser.pt` |
+| **XERON-WEBAGENT** | `laya-multilingual` | Mind2Web next action (op) + element selection (7,362 steps) | 14,724 | `train_items_webagent.pt` |
+| **XERON-LONG** 🧾 | `laya-multilingual` | **long-context**: SCOTUS Supreme Court opinion justice classification (5,000) + 20 Newsgroups (11,314) | 16,314 | `train_items_long4096.pt` |
+| **XERON-ALL** 🏆 | `laya-multilingual` | EN + KR + Browser mixture | 117,243 | `train_items_all.pt` |
+| **XERON-ALL-v2** 🚀 | `laya-multilingual` | EN + KR + Browser + WebAgent, all combined | 131,967 | `train_items_all_v2.pt` |
+| **XERON-ALL-4096+LONG** 🏆 | `laya-multilingual` | 4096-preprocessed ALL + long-context (SCOTUS/Newsgroups) — **22% uses the 4096 trunk** | 148,281 | `train_items_all_multi4096_long.pt` |
 
-> 🎯 **기본 학습은 XERON-ALL-v2**: 멀티링궈얼 베이스에 영어+한국어+브라우저+웹 에이전트 데이터로 파인튜닝하면 일반 결정부터 웹 브라우저 액션 결정까지 처리하는 단일 범용 모델이 됩니다.
-> Laya `Router`는 언어를 자동 감지하므로, English/멀티링궈얼 체크포인트를 함께 배포하면 언어별 라우팅도 가능합니다.
+> 🎯 **The default training run is XERON-ALL-v2**: fine-tuning the multilingual base on English + Korean + browser + web-agent data yields a single general-purpose model that handles everything from general decisions to web-browser action decisions.
+> Laya's `Router` detects the language automatically, so shipping the English and multilingual checkpoints together also enables per-language routing.
 
-## 🏗 파인튜닝 파이프라인
+## 🏗 Fine-tuning pipeline
 
 ```
-데이터셋 (HF dataset / JSON Lines)
+Dataset (HF dataset / JSON Lines)
         │
         ▼
-scripts/preprocess.py ──► train_items.pt (토큰화 + 옵션 마커 + target 분포)
+scripts/preprocess.py ──► train_items.pt (tokenize + option markers + target distribution)
         │
         ▼
 scripts/train_ddp.py  ──► torchrun DDP (RLCD policy gradient + soft CE guidance)
-        │                       + 사후 temperature calibration
+        │                       + post-hoc temperature calibration
         ▼
    output/ (model.safetensors, encoder/, tokenizer/, rl_agent_config.json)
         │
-        ├──► scripts/evaluate.py   (벤치마크: accuracy, Brier, ECE, score MAE)
-        └──► scripts/upload_hf.py  (HuggingFace Hub 업로드)
+        ├──► scripts/evaluate.py   (benchmarks: accuracy, Brier, ECE, score MAE)
+        └──► scripts/upload_hf.py  (upload to HuggingFace Hub)
 ```
 
-### 현재 준비 상태 (2026-09-20)
+### Current readiness (2026-09-20)
 
-| 항목 | 상태 |
+| Item | Status |
 |---|---|
-| GitHub 레포 | ✅ PIXELZX0/XERON (public) |
-| 로컬 venv + 의존성 | ✅ `.venv` (laya 0.3.3 / transformers 5.17 / torch 2.14) |
-| 베이스 모델 (EN + Multilingual) | ✅ `/home/yuchan/laya-models/laya-base` (2.3GB) |
-| 영어 데이터 전처리 | ✅ `train_items.pt` — 6,000 seq (typed-decisions) |
-| 한국어 데이터 구축 | ✅ `data/korean_typed.jsonl` — 82,344행 (KLUE ynat/nli/sts) |
-| 한국어 전처리 | ✅ `train_items_kr.pt` — 82,344 seq |
-| MIX 전처리 (EN+KR) | ✅ `train_items_mix.pt` — 88,344 seq |
-| 브라우저 데이터 구축 | ✅ `data/browser_typed.jsonl` — 28,899행 (웹 분류 BBC/AG + 스팸/피싱) |
-| 브라우저 전처리 | ✅ `train_items_browser.pt` — 28,899 seq |
-| Mind2Web 웹 에이전트 | ✅ `data/mind2web_typed.jsonl` — 14,724행 (다음 액션/요소 선택) |
-| 웹 에이전트 전처리 | ✅ `train_items_webagent.pt` — 14,724 seq |
-| ALL 전처리 (EN+KR+Browser) | ✅ `train_items_all.pt` — 117,243 seq |
+| GitHub repo | ✅ PIXELZX0/XERON (public) |
+| Local venv + dependencies | ✅ `.venv` (laya 0.3.3 / transformers 5.17 / torch 2.14) |
+| Base models (EN + Multilingual) | ✅ `/home/yuchan/laya-models/laya-base` (2.3GB) |
+| English data preprocessing | ✅ `train_items.pt` — 6,000 seq (typed-decisions) |
+| Korean data build | ✅ `data/korean_typed.jsonl` — 82,344 rows (KLUE ynat/nli/sts) |
+| Korean preprocessing | ✅ `train_items_kr.pt` — 82,344 seq |
+| MIX preprocessing (EN+KR) | ✅ `train_items_mix.pt` — 88,344 seq |
+| Browser data build | ✅ `data/browser_typed.jsonl` — 28,899 rows (web classification BBC/AG + spam/phishing) |
+| Browser preprocessing | ✅ `train_items_browser.pt` — 28,899 seq |
+| Mind2Web web agent | ✅ `data/mind2web_typed.jsonl` — 14,724 rows (next action/element selection) |
+| Web-agent preprocessing | ✅ `train_items_webagent.pt` — 14,724 seq |
+| ALL preprocessing (EN+KR+Browser) | ✅ `train_items_all.pt` — 117,243 seq |
 | ALL-v2 (EN+KR+Browser+WebAgent) 🚀 | ✅ `train_items_all_v2.pt` — 131,967 seq |
-| 실제 학습 | ⏳ GPU 필요 (T4 x2 기준 EN만 ~4–6분, MIX/ALL은 수십 분~시간 내외) |
+| Actual training | ⏳ GPU required (EN alone ~4–6 min on 2×T4; MIX/ALL take tens of minutes to a few hours) |
 
-### XERON-MIX (권장 — 영어 + 한국어 범용)
+### XERON-MIX (recommended — general-purpose English + Korean)
 
 ```bash
-# 1) 한국어 데이터셋 빌드 (KLUE) — 82,344행 JSONL 생성
+# 1) Build the Korean dataset (KLUE) — produces an 82,344-row JSONL
 python scripts/build_korean_dataset.py --output data/korean_typed.jsonl
 
-# 2) 영어 + 한국어를 multilingual 토크나이저로 전처리
+# 2) Preprocess English + Korean with the multilingual tokenizer
 python scripts/preprocess.py \
   --model-id /home/yuchan/laya-models/laya-base/multilingual \
   --dataset LocalLLaMA/typed-decisions --config-name all --split train \
@@ -94,10 +94,10 @@ python scripts/preprocess.py \
   --model-id /home/yuchan/laya-models/laya-base/multilingual \
   --data-files data/korean_typed.jsonl --output train_items_kr.pt
 
-# 3) 병합 (선택)
+# 3) Merge (optional)
 python -c "import torch; torch.save(torch.load('train_items_en_multi.pt')+torch.load('train_items_kr.pt'),'train_items_mix.pt')"
 
-# 4) MIX 학습 (GPU 2x, 데이터 규모상 EPOCHS=2 권장)
+# 4) Train MIX (2× GPU; EPOCHS=2 recommended given the data size)
 EPOCHS=2 torchrun --standalone --nproc_per_node=2 \
   scripts/train_ddp.py \
   /home/yuchan/laya-models/laya-base/multilingual \
@@ -105,21 +105,21 @@ EPOCHS=2 torchrun --standalone --nproc_per_node=2 \
   train_items_mix.pt
 ```
 
-### XERON-ALL (권장 — 영어 + 한국어 + 브라우저)**
+### XERON-ALL (recommended — English + Korean + browser)**
 
 ```bash
-# 1) 브라우저 사용 데이터셋 빌드 — 28,899행 JSONL (웹 페이지 분류 + 스팸/피싱 탐지)
+# 1) Build the browser-use dataset — 28,899-row JSONL (web page classification + spam/phishing detection)
 python scripts/build_browser_dataset.py --output data/browser_typed.jsonl
 
-# 2) browser 데이터 전처리 (multilingual 토크나이저)
+# 2) Preprocess the browser data (multilingual tokenizer)
 python scripts/preprocess.py \
   --model-id /home/yuchan/laya-models/laya-base/multilingual \
   --data-files data/browser_typed.jsonl --output train_items_browser.pt
 
-# 3) 전체 혼합: EN + KR + Browser
+# 3) Full mixture: EN + KR + Browser
 python -c "import torch; a=torch.load('train_items_en_multi.pt'); b=torch.load('train_items_kr.pt'); c=torch.load('train_items_browser.pt'); torch.save(a+b+c,'train_items_all.pt')"
 
-# 4) ALL 학습 (EPOCHS=1~2 권장 — 117K 시퀀스)
+# 4) Train ALL (EPOCHS=1~2 recommended — 117K sequences)
 EPOCHS=2 torchrun --standalone --nproc_per_node=2 \
   scripts/train_ddp.py \
   /home/yuchan/laya-models/laya-base/multilingual \
@@ -127,22 +127,22 @@ EPOCHS=2 torchrun --standalone --nproc_per_node=2 \
   train_items_all.pt
 ```
 
-### 요구 환경
+### Requirements
 
-- **GPU 2x 이상** (참고: T4 x2 기준 전체 학습 ~4–6분)
-- Python ≥ 3.10, PyTorch ≥ 2.x, CUDA 환경
+- **2× GPU or more** (reference: full training ~4–6 min on 2×T4)
+- Python ≥ 3.10, PyTorch ≥ 2.x, CUDA environment
 
-### 1) 의존성 설치
+### 1) Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2) 데이터 준비
+### 2) Prepare data
 
-기본 벤치마크 데이터셋: [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions)
+Default benchmark dataset: [`LocalLLaMA/typed-decisions`](https://huggingface.co/datasets/LocalLLaMA/typed-decisions)
 
-커스텀 데이터셋을 쓰려면 `data/README.md`의 포맷을 따르세요 (Laya 네이티브 format: `state` + `questions` + `gold`).
+To use a custom dataset, follow the format in `data/README.md` (Laya native format: `state` + `questions` + `gold`).
 
 ```bash
 python scripts/preprocess.py \
@@ -152,7 +152,7 @@ python scripts/preprocess.py \
   --output train_items.pt
 ```
 
-### 3) 학습 (DDP)
+### 3) Training (DDP)
 
 ```bash
 torchrun --standalone --nproc_per_node=2 \
@@ -162,82 +162,81 @@ torchrun --standalone --nproc_per_node=2 \
   ./train_items.pt
 ```
 
-하이퍼파라미터는 `configs/finetune.json`에서 조정하거나 환경변수(`EPOCHS`, `MICRO_BATCH`, `GRAD_ACCUM`, `LR_ENCODER` ...)로 오버라이드할 수 있습니다.
+Hyperparameters can be tuned in `configs/finetune.json` or overridden via environment variables (`EPOCHS`, `MICRO_BATCH`, `GRAD_ACCUM`, `LR_ENCODER`, ...).
 
-### 학습 환경변수 (파라미터 확장)
+### Training environment variables (parameter scaling)
 
-| 변수 | 기본 | 설명 |
+| Variable | Default | Description |
 |---|---|---|
-| `EPOCHS` | 4 | 학습 에폭 |
-| `MICRO_BATCH` | 8 | GPU당 1회 forward 배치 |
-| `GRAD_ACCUM` | 4 | 그래디언트 누적 — 유효 배치 = MICRO_BATCH × GPU 수 × GRAD_ACCUM |
-| `GROUP_SIZE` | 4 | GRPO baseline 샘플 수 |
-| `LR_ENCODER` / `LR_HEAD` | 2.5e-5 / 1e-4 | 인코더/헤드 학습률 |
-| `SIGMA_START` / `SIGMA_END` | 0.4 / 0.1 | 탐색 노이즈 |
-| `CHECKPOINT_EVERY` | 0 | N 에폭마다 체크포인트 저장 (Colab 등 세션 끊김 대비: 1) |
-| `RESUME` | (없음) | 체크포인트 경로 또는 `auto`(output_dir 최신 체크포인트)로 이어서 학습 |
-| `MAX_LEN` | 2048 | **실제 학습 컨텍스트** — 기본 한도는 preprocess/train이 자동으로 **32,768(4096×8)**까지 상향 |
-| `HEAD_MAX_LEN` | 256 | 결정 헤드 마커 윈도우 |
-| `MAX_TOKENS_BATCH` | 4096 | 마이크로배치당 최대 토큰 (메모리 상한 — 컨텍스트↑면 MICRO_BATCH↓) |
-| `CTX_CAP` | 32768 | 인코더 `max_position_embeddings` 상한 (RoPE, 4096×8) |
-| `DTYPE` | fp16 | fp16(T4/V100) · **bf16(A100/H100 — 네이티브, GradScaler 불필요)** |
+| `EPOCHS` | 4 | training epochs |
+| `MICRO_BATCH` | 8 | forward batch per GPU |
+| `GRAD_ACCUM` | 4 | gradient accumulation — effective batch = MICRO_BATCH × #GPUs × GRAD_ACCUM |
+| `GROUP_SIZE` | 4 | number of GRPO baseline samples |
+| `LR_ENCODER` / `LR_HEAD` | 2.5e-5 / 1e-4 | encoder/head learning rate |
+| `SIGMA_START` / `SIGMA_END` | 0.4 / 0.1 | exploration noise |
+| `CHECKPOINT_EVERY` | 0 | save a checkpoint every N epochs (use 1 for Colab etc. to survive session drops) |
+| `RESUME` | (none) | checkpoint path or `auto` (latest checkpoint in output_dir) to resume training |
+| `MAX_LEN` | 2048 | **actual training context** — the default limit is automatically raised by preprocess/train up to **32,768 (4096×8)** |
+| `HEAD_MAX_LEN` | 256 | decision-head marker window |
+| `MAX_TOKENS_BATCH` | 4096 | max tokens per micro-batch (memory ceiling — lower MICRO_BATCH if context ↑) |
+| `CTX_CAP` | 32768 | encoder `max_position_embeddings` cap (RoPE, 4096×8) |
+| `DTYPE` | fp16 | fp16 (T4/V100) · **bf16 (A100/H100 — native, no GradScaler needed)** |
 
-### 🚀 GPU별 권장 설정 (MAX_LEN=4096, 장문 데이터 148K, 유효배치 64 기준)
+### 🚀 Recommended settings per GPU (MAX_LEN=4096, 148K long-context rows, effective batch 64)
 
-| GPU | 메모리 | DTYPE | MICRO_BATCH | GRAD_ACCUM | MAX_TOKENS_BATCH | 예상 1에폭 |
+| GPU | Memory | DTYPE | MICRO_BATCH | GRAD_ACCUM | MAX_TOKENS_BATCH | Est. per epoch |
 |---|---|---|---|---|---|---|
-| T4 (Colab 무료) | 15GB | fp16 | 2 | 32 | 8192 | ~3–4시간 |
-| **A100 (Colab Pro)** | **40GB** | **bf16** | **8** | **8** | **16384** | **~30–60분** |
-| A100 80GB | 80GB | bf16 | 16 | 4 | 32768 | ~25–45분 |
-| H100 | 80GB | bf16 | 16–24 | 2–4 | 32768 | ~15–30분 |
+| T4 (Colab free) | 15GB | fp16 | 2 | 32 | 8192 | ~3–4 h |
+| **A100 (Colab Pro)** | **40GB** | **bf16** | **8** | **8** | **16384** | **~30–60 min** |
+| A100 80GB | 80GB | bf16 | 16 | 4 | 32768 | ~25–45 min |
+| H100 | 80GB | bf16 | 16–24 | 2–4 | 32768 | ~15–30 min |
 
-> A100은 bf16 네이티브 + 메모리가 커서 T4 대비 **3~5배 빠릅니다**. MAX_LEN=8192 초장문 실험은
-> A100에서 MICRO_BATCH=4, MAX_TOKENS_BATCH=16384 로 조정하세요.
+> A100 is **3–5× faster than T4** thanks to native bf16 and more memory. For MAX_LEN=8192 ultra-long-context
+> experiments, use MICRO_BATCH=4, MAX_TOKENS_BATCH=16384 on A100.
 
-### 📏 컨텍스트 확장 방법
+### 📏 How to extend context
 
-0. **기본 한도는 자동 상향됨**: `preprocess.py`와 `train_ddp.py`가 실행 시 `ctx_extend.ensure_long_context()`로
-   인코더 `max_position_embeddings`를 **32,768**까지, `rl_agent_config.max_len`을 기본값으로 올립니다 (멱등).
-   `CTX_CAP` env로 한도 조절 가능.
-1. **전처리와 학습 양쪽에서 동일한 `MAX_LEN` 사용** (토크나이즈 길이가 달라지면 안 됨):
+0. **The default limit is raised automatically**: on startup, `preprocess.py` and `train_ddp.py` call `ctx_extend.ensure_long_context()` to raise the encoder `max_position_embeddings` up to **32,768** and set `rl_agent_config.max_len` to the default (idempotent).
+   Use the `CTX_CAP` env var to adjust the cap.
+1. **Use the same `MAX_LEN` in both preprocessing and training** (the tokenized length must not change):
    ```bash
-   MAX_LEN=8192 python scripts/preprocess.py --model-id <베이스> --data-files data.jsonl --output items.pt
-   MAX_LEN=8192 torchrun --standalone --nproc_per_node=1 scripts/train_ddp.py <베이스> ./output/xeron items.pt
+   MAX_LEN=8192 python scripts/preprocess.py --model-id <base> --data-files data.jsonl --output items.pt
+   MAX_LEN=8192 torchrun --standalone --nproc_per_node=1 scripts/train_ddp.py <base> ./output/xeron items.pt
    ```
-2. **RoPE 기반 베이스 권장** (multilingual/english 모두 ModernBERT): 위치 임베딩 테이블이 없어
-   2048/4096/8192/32768 모두 구조 변경 없이 동작 (4,000 토큰 포워드 검증 완료)
-3. **메모리 트레이드오프**: 시퀀스 2배 = attention 메모리 약 4배 → `MICRO_BATCH`를 반으로 (예: 8→4), `MAX_TOKENS_BATCH` 조정
-4. Colab 노트북 ⚙️ 설정의 `MAX_LEN` 항목만 바꾸면 전 과정 자동 반영
+2. **RoPE-based bases recommended** (both multilingual/english are ModernBERT): there is no position-embedding
+   table, so 2048/4096/8192/32768 all work without any architecture change (4,000-token forward verified)
+3. **Memory trade-off**: 2× sequence length ≈ 4× attention memory → halve `MICRO_BATCH` (e.g. 8→4) and adjust `MAX_TOKENS_BATCH`
+4. Changing only the `MAX_LEN` entry in the Colab notebook's ⚙️ settings propagates through the whole pipeline automatically
 
 ```bash
-# 예: 세션 끊김 대비 1 에폭마다 저장 + 재개 가능한 학습
+# e.g. save every epoch (session-drop resilient) and resume-capable training
 CHECKPOINT_EVERY=1 RESUME=auto torchrun ...
 ```
 
-## 🚀 Google Colab 파인튜닝 (T4 1-GPU)
+## 🚀 Google Colab fine-tuning (T4 1-GPU)
 
-무료 T4에서 돌릴 수 있도록 준비된 노트북: **`notebooks/XERON_finetune_colab.ipynb`**
-([Colab에서 열기](https://colab.research.google.com/github/PIXELZX0/XERON/blob/main/notebooks/XERON_finetune_colab.ipynb))
+Notebook ready to run on a free T4: **`notebooks/XERON_finetune_colab.ipynb`**
+([Open in Colab](https://colab.research.google.com/github/PIXELZX0/XERON/blob/main/notebooks/XERON_finetune_colab.ipynb))
 
-1. **데이터 준비 (3경로 중 1)**:
-   - ☁️ **S3 호환 (권장)**: `scripts/upload_s3.py`로 데이터 업로드 → Colab Secrets에 `S3_ENDPOINT/S3_BUCKET/AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY` 등록
-   - 📁 Drive: `train_items_all_v2.pt`(117MB)를 `xeron/` 폴더에 업로드
-   - 🔧 Colab에서 JSONL 재구성 (백업 경로)
-2. 노트북 셀 1~6 실행 (GPU 확인 → 설치 → 모델 다운로드 → 데이터 확보 → 설정)
-3. 셀 7: 학습 실행 (1 GPU 전용 GRAD_ACCUM 확장, 에폭마다 체크포인트)
-4. 셀 8: 평가 + Drive 복사 · 셀 9: HF 업로드
+1. **Prepare data (one of 3 paths)**:
+   - ☁️ **S3-compatible (recommended)**: upload data with `scripts/upload_s3.py` → register `S3_ENDPOINT/S3_BUCKET/AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY` in Colab Secrets
+   - 📁 Drive: upload `train_items_all_v2.pt` (117MB) into the `xeron/` folder
+   - 🔧 Rebuild from JSONL in Colab (fallback path)
+2. Run notebook cells 1–6 (GPU check → install → download model → obtain data → configure)
+3. Cell 7: run training (single-GPU GRAD_ACCUM scaling, checkpoint every epoch)
+4. Cell 8: evaluate + copy to Drive · Cell 9: upload to HF
 
-**1-GPU 파라미터 확장 실험 매트릭스** (원본 2×T4 유효배치 64와 동일 기준):
+**1-GPU parameter-scaling experiment matrix** (same basis as the original 2×T4 effective batch 64):
 
-| 실험 | EPOCHS | GRAD_ACCUM | 유효배치 | 예상 시간 (T4) |
+| Experiment | EPOCHS | GRAD_ACCUM | Effective batch | Est. time (T4) |
 |---|---|---|---|---|
-| A (빠른 검증) | 1 | 4 | 32 | ~30–45분 |
-| **B (권장)** | **2** | **8** | **64** | ~1.5–3시간 |
-| C (정밀) | 3 | 8 | 64 | Pro 권장 |
+| A (quick validation) | 1 | 4 | 32 | ~30–45 min |
+| **B (recommended)** | **2** | **8** | **64** | ~1.5–3 h |
+| C (thorough) | 3 | 8 | 64 | Pro recommended |
 
-> 💡 Colab 세션이 끊기면: 상단 셀 재실행 후 학습 셀에서 `RESUME="auto"`로 바꿔 실행하면 마지막 에폭 체크포인트부터 이어집니다.
+> 💡 If the Colab session drops: rerun the top cells, then in the training cell set `RESUME="auto"` and run again to resume from the last epoch checkpoint.
 
-### 4) 평가
+### 4) Evaluation
 
 ```bash
 python scripts/evaluate.py \
@@ -246,7 +245,7 @@ python scripts/evaluate.py \
   --split test
 ```
 
-### 5) HuggingFace 업로드
+### 5) HuggingFace upload
 
 ```bash
 HF_TOKEN=... python scripts/upload_hf.py \
@@ -254,7 +253,7 @@ HF_TOKEN=... python scripts/upload_hf.py \
   --repo-id PIXELZX/XERON
 ```
 
-## 📄 라이선스
+## 📄 License
 
-- Base 모델: Apache-2.0 (상업 이용 가능)
-- 본 레포 코드: Apache-2.0
+- Base model: Apache-2.0 (commercial use allowed)
+- This repo's code: Apache-2.0

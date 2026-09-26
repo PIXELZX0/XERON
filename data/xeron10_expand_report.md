@@ -1,44 +1,44 @@
-# XERON-1.0 인코더 확장 리포트
+# XERON-1.0 Encoder Expansion Report
 
-- 생성: 2026-09-25 19:30 (KST) / 스크립트 `scripts/expand_encoder_10.py` (seed 1234)
-- 소스(읽기 전용): `output/xeron-0.9-snapshot` (encoder 768x22, head 1024x4)
-- 산출: `/home/yuchan/laya-models/xeron-1.0-base` (encoder 1536x44, head 1024x4, max_len 8192)
-- config: `configs/xeron-1.0-expand.json` (확장 매니페스트), `rl_agent_config.json` 안에 `expansion` 메타 포함
-- 방식: Net2Net 폭 확장(복제 + 1/2 스케일, 청크 인식) + identity 깊이 삽입(출력 projection 0) + `head_proj` 입력측 확장 — **함수 보존(function preserving)**
+- Generated: 2026-09-25 19:30 (KST) / script `scripts/expand_encoder_10.py` (seed 1234)
+- Source (read-only): `output/xeron-0.9-snapshot` (encoder 768x22, head 1024x4)
+- Output: `/home/yuchan/laya-models/xeron-1.0-base` (encoder 1536x44, head 1024x4, max_len 8192)
+- config: `configs/xeron-1.0-expand.json` (expansion manifest), `expansion` metadata embedded in `rl_agent_config.json`
+- Method: Net2Net width expansion (duplicate + 1/2 scale, chunk-aware) + identity depth insertion (output projection 0) + `head_proj` input-side expansion — **function preserving**
 
-## 1. 파라미터
+## 1. Parameters
 
-| 모델 | encoder | head(+head_proj) | total | bf16 가중치 | AdamW fp32 상태 |
+| Model | encoder | head(+head_proj) | total | bf16 weights | AdamW fp32 state |
 |---|---|---|---|---|---|
 | xeron-0.9 | 306.9M | 52.5M | 359.4M | 685.6 MB | master 1.3 GB + m/v 2.7 GB = 4.0 GB |
 | xeron-1.0 | 1.276B | 53.3M | 1.329B | 2.5 GB | master 5.0 GB + m/v 9.9 GB = 14.9 GB |
 
-- encoder 파라미터: 306.9M -> 1.276B (4.156x; 폭 2x x 깊이 2x = 4x 이론값이지만 임베딩 393M은 한 번만 존재)
-- 전체 대비 head 비중: 4.0% (head_size 1024는 그대로 복사, `head_proj`만 2배)
-- 저장 실측: `model.safetensors` = 2.5 GB (bf16), tokenizer = 32.8 MB
+- encoder params: 306.9M -> 1.276B (4.156x; width 2x × depth 2x = 4x theoretical, but the 393M embedding exists only once)
+- head share of the total: 4.0% (head_size 1024 is copied as-is, only `head_proj` doubles)
+- Measured on disk: `model.safetensors` = 2.5 GB (bf16), tokenizer = 32.8 MB
 
-## 2. 함수 보존 검증 (0.9 vs 1.0, 동일 입력 · CPU fp32)
+## 2. Function-preservation verification (0.9 vs 1.0, same input · CPU fp32)
 
-`h_1.0 = [h ; h]` 구조를 이용해 1.0 인코더 출력의 앞/뒤 절반을 각각 0.9와 비교했다 (반쪽만 일치하면 확장이 잘못된 것). `enc rel`은 0.9 최종 출력의 max|h|로 나눈 값이라 분모가 final_norm 이후의 작은 값이어서 보수적이다(내재 상대오차는 §2b 기준 fp32 <= 3.6e-6, fp64 <= 6.5e-8).
+Leveraging the `h_1.0 = [h ; h]` structure, the first/second halves of the 1.0 encoder output were compared against 0.9 separately (if only one half matched, the expansion would be wrong). `enc rel` is normalized by max|h| of the 0.9 final output, so the denominator is the small post-final_norm value and the figure is conservative (intrinsic relative error is fp32 <= 3.6e-6, fp64 <= 6.5e-8 per §2b).
 
-| 케이스 | B x L | cos(앞 768) | cos(뒤 768) | enc max|d| | enc rel | logits cos | logits max|d| | act cos | act max|d| |
+| Case | B x L | cos(front 768) | cos(back 768) | enc max|d| | enc rel | logits cos | logits max|d| | act cos | act max|d| |
 |---|---|---|---|---|---|---|---|---|---|
 | short | 2 x 64 | 1.000000715 | 1.000000715 | 1.91e-05 | 8.6e-07 | 1.000000000 | 1.19e-06 | 0.999999940 | 2.86e-06 |
 | medium | 2 x 512 | 1.000025988 | 1.000025988 | 4.70e-04 | 2.0e-05 | 1.000000000 | 1.52e-06 | 1.000000119 | 9.54e-07 |
 | long | 1 x 4096 | 1.000184774 | 1.000184774 | 7.39e-04 | 3.1e-05 | 1.000000000 | 5.59e-07 | 0.999999940 | 4.77e-07 |
 
-판정: **PASS** (기준 cosine >= 0.9999, max|d| <= 0.001; 최대 절대오차 7.39e-04). decision logits는 1e-6 수준으로 더 잘 맞는다.
+Verdict: **PASS** (criteria cosine >= 0.9999, max|d| <= 0.001; maximum absolute error 7.39e-04). The decision logits match even more closely, at the 1e-6 level.
 
-## 2b. 남은 잔차의 원인 = fp32 반올림 (float64 대조)
+## 2b. Cause of the residual = fp32 rounding (float64 control)
 
-L=512, seed 1234 고정. 레이어별로 0.9 레이어 j의 출력과 1.0 레이어 2j(뒤따르는 identity 레이어 직전) 출력을 비교.
+L=512, seed 1234 fixed. Per layer, the output of 0.9 layer j was compared with the output of 1.0 layer 2j (just before the following identity layer).
 
-- identity 레이어 21개 비트 검사: Δ = 0.0e+00 (fp32) / 0.0e+00 (fp64) → **정확한 no-op**
-- 1.0 최종 hidden state의 두 절반이 비트 동일: True (fp32) / True (fp64) → 복제 구조가 정확히 유지됨
-- 최종 |Δ|: fp32 3.81e-04 (rel 1.7e-05) → fp64 2.95e-06 (rel 1.3e-07) = 129배 감소
-- 원인: 0.9의 pre-final_norm 잔차가 레이어 19 부근에서 |h|max ≈ 5279까지 커진다(모델 자체의 특성). 절대오차는 이 크기에 비례해 커 보이지만 상대오차는 fp32 <= 1.7e-05, fp64 <= 1.3e-07로 기계 정밀도 수준이다.
+- Bit check of the 21 identity layers: Δ = 0.0e+00 (fp32) / 0.0e+00 (fp64) → **exact no-op**
+- The two halves of the 1.0 final hidden state are bit-identical: True (fp32) / True (fp64) → the duplicate structure is exactly preserved
+- Final |Δ|: fp32 3.81e-04 (rel 1.7e-05) → fp64 2.95e-06 (rel 1.3e-07) = 129× reduction
+- Cause: the 0.9 pre-final_norm residual grows to |h|max ≈ 5279 around layer 19 (a property of the model itself). The absolute error looks large in proportion to that magnitude, but the relative error is fp32 <= 1.7e-05, fp64 <= 1.3e-07 — machine-precision level.
 
-| 레이어 j | 0.9 \|h\|max | fp32 abs | fp32 rel | fp64 abs | fp64 rel |
+| Layer j | 0.9 \|h\|max | fp32 abs | fp32 rel | fp64 abs | fp64 rel |
 |---|---|---|---|---|---|
 | 0 | 21.4 | 6.68e-06 | 3.1e-07 | 5.33e-14 | 2.5e-15 |
 | 1 | 26.3 | 5.72e-06 | 2.2e-07 | 5.68e-14 | 2.2e-15 |
@@ -63,15 +63,15 @@ L=512, seed 1234 고정. 레이어별로 0.9 레이어 j의 출력과 1.0 레이
 | 20 | 5275.5 | 1.83e-02 | 3.5e-06 | 3.17e-04 | 6.0e-08 |
 | 21 | 22.6 | 3.81e-04 | 1.7e-05 | 2.95e-06 | 1.3e-07 |
 
-→ 확장 자체는 수학적으로 정확하고(2^d 복제 + 1/2은 2진 정확), 남은 차이는 연산/저장 정밀도의 반올림뿐이다.
+→ The expansion itself is mathematically exact (2^d duplication + 1/2 is binary-exact); the remaining difference is only compute/storage-precision rounding.
 
-## 3. A100 80GB 활성화 메모리 추정
+## 3. A100 80GB activation memory estimate
 
-가정: bf16 활성화, `attn_implementation="sdpa"` (memory-efficient → score 행렬 미저장), gradient checkpointing on이면 레이어 경계만 저장. static = 가중치(bf16) + grad(bf16) + AdamW(fp32 master + m/v).
+Assumptions: bf16 activations, `attn_implementation="sdpa"` (memory-efficient → score matrix not stored), gradient checkpointing on stores only layer boundaries. static = weights (bf16) + grad (bf16) + AdamW (fp32 master + m/v).
 
 - static(1.0): 2.5 GB + 2.5 GB + 14.9 GB = **19.8 GB**
 
-| L | B | GC on 저장 | GC on 총 | GC off 저장 | GC off 총 |
+| L | B | GC on stored | GC on total | GC off stored | GC off total |
 |---|---|---|---|---|---|
 | 4096 | 1 | 528.0 MB | 582.0 MB | 7.5 GB | 7.5 GB |
 | 4096 | 2 | 1.0 GB | 1.1 GB | 15.0 GB | 15.1 GB |
@@ -80,51 +80,50 @@ L=512, seed 1234 고정. 레이어별로 0.9 레이어 j의 출력과 1.0 레이
 | 8192 | 2 | 2.1 GB | 2.3 GB | 29.9 GB | 30.1 GB |
 | 8192 | 4 | 4.1 GB | 4.5 GB | 59.8 GB | 60.2 GB |
 
-- 참고: score 행렬을 실제로 저장하는 eager/math 백엔드라면 full-attention 레이어 하나가 L=4096에서 768.0 MB, L=8192에서 3.0 GB → full 레이어 15개만으로 수백 GB. **sdpa(memory-efficient) 필수.**
+- Note: with an eager/math backend that actually stores the score matrix, a single full-attention layer costs 768.0 MB at L=4096 and 3.0 GB at L=8192 → the 15 full layers alone would need hundreds of GB. **sdpa (memory-efficient) is mandatory.**
 
-## 4. 8192 토큰 스모크 (CPU, batch 1)
+## 4. 8192-token smoke test (CPU, batch 1)
 
-| 항목 | 값 |
+| Item | Value |
 |---|---|
 | encoder max_position_embeddings | 32768 |
-| 입력 shape | [1, 8192] |
+| input shape | [1, 8192] |
 | last_hidden_state | [1, 8192, 1536] |
 | NaN / Inf | 0 / 0 |
 | finite | True |
 | decision logits | [1, 8] finite=True |
 | act_logits | [1, 2] finite=True |
 | \|h\|max | 22.758 |
-| 소요 | 169.8 s |
+| elapsed | 169.8 s |
 
-## 5. 확장 매핑 요약
+## 5. Expansion mapping summary
 
-| 원본 레이어 j | 1.0 레이어 | 내용 | attention type |
+| Source layer j | 1.0 layer | Content | attention type |
 |---|---|---|---|
-| 0..21 | 2j | Net2Net 확장 사본 (실제 연산) | full iff j%3==0 (유지) |
-| 0..21 | 2j+1 | identity 사본: `attn.Wo=0`, `mlp.Wo=0` | 무관 (출력 0) |
+| 0..21 | 2j | Net2Net expansion copy (real compute) | full iff j%3==0 (preserved) |
+| 0..21 | 2j+1 | identity copy: `attn.Wo=0`, `mlp.Wo=0` | irrelevant (output 0) |
 
-- 삽입(identity) 레이어 인덱스: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43]
-- `layer_types`는 44개 전부 `i%3==0 → full_attention`으로 재생성(`global_attn_every_n_layers=3` 유지). 실제 레이어 j는 2j 위치이므로 `2j%3==0 ⟺ j%3==0` → 패턴이 원본과 동일.
-- 0.9 토크나이저 sha256: `609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f` (변경 없음, vocab 256000 동결)
-- 청크 규칙: `attn.Wqkv` 출력은 q|k|v 3청크, `mlp.Wi` 출력은 input|gate 2청크(GLU)로 청크별 복제; LayerNorm/embedding은 스케일 없이 복제; `head_proj`는 입력측 1/2.
-- `max_len` 4096 → 8192, `head_max_len` 256, `head_layers` 4, `head_size` 1024 (유지)
+- Inserted (identity) layer indices: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43]
+- `layer_types` is regenerated for all 44 as `i%3==0 → full_attention` (keeping `global_attn_every_n_layers=3`). Real layer j sits at position 2j, so `2j%3==0 ⟺ j%3==0` → the pattern is identical to the source.
+- 0.9 tokenizer sha256: `609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f` (unchanged, vocab 256000 frozen)
+- Chunk rules: `attn.Wqkv` output duplicates per 3 chunks q|k|v, `mlp.Wi` output per 2 chunks input|gate (GLU); LayerNorm/embedding are duplicated without scaling; `head_proj` is halved on the input side.
+- `max_len` 4096 → 8192, `head_max_len` 256, `head_layers` 4, `head_size` 1024 (unchanged)
 
-## 6. 리스크 / 다음 단계
+## 6. Risks / next steps
 
-**리스크**
+**Risks**
 
-- identity 레이어(홀수 인덱스)는 `attn.Wo = mlp.Wo = 0`이라 **학습 1스텝차에는** 내부(Wqkv/Wi/norm)로 gradient가 흐르지 않는다. Wo가 갱신된 다음 스텝부터 열린다 → lr warmup(수십 스텝) 권장.
-- 인코더 pre-norm 잔차 크기가 레이어 12 부근에서 ~5e3으로 커진다(0.9에서 물려받은 성질). bf16 학습에서 이 크기는 표현 여유가 크지 않으므로 loss spike 시 이 구간을 의심할 것.
-- 1.0은 0.9와 동일 함수로 출발하므로 '분포 이동' 리스크는 없다. 다만 bf16 저장이라 추론 시 0.9와 완전히 같은 텐서는 아니다(복제·1/2 자체는 2진 정확).
-- 메모리: GC off + L=8192 + B=4는 활성화만 수백 GB로 불가. GC on에서 L=8192는 B<=2, L=4096은 B<=4를 기본으로 잡을 것.
-- 8192 학습에서 attention은 full 레이어 15개에서 2차 비용 → MAX_TOKENS_BATCH로 토큰 예산을 반드시 제한(현재 8192).
-- vocab 256000 동결 → 임베딩이 파라미터의 약 30%(393M)를 차지. vocab pruning/축소는 별도 검토 대상.
-- `rl_agent_config.encoder`를 `PIXELZX/XERON-1.0-base`로 바꿨다. `encoder/` 디렉터리가 있으면 build_model은 그쪽을 쓰므로 학습에는 영향 없음.
+- Identity layers (odd indices) have `attn.Wo = mlp.Wo = 0`, so **for the first training step** no gradient flows into their internals (Wqkv/Wi/norm). They open from the step after Wo is updated → an lr warmup (tens of steps) is recommended.
+- The encoder pre-norm residual magnitude grows to ~5e3 around layer 12 (a trait inherited from 0.9). In bf16 training this magnitude leaves little representational headroom, so suspect this region if you see a loss spike.
+- 1.0 starts as the same function as 0.9, so there is no 'distribution shift' risk. However, since it is stored in bf16, the inference tensors are not exactly identical to 0.9 (duplication/1/2 themselves are binary-exact).
+- Memory: GC off + L=8192 + B=4 is impossible at hundreds of GB of activations alone. With GC on, target L=8192 at B<=2 and L=4096 at B<=4 by default.
+- At 8192 training, attention is quadratic in the 15 full layers → you must cap the token budget with MAX_TOKENS_BATCH (currently 8192).
+- vocab frozen at 256000 → embeddings take ~30% of the params (393M). vocab pruning/reduction is a separate item to review.
+- `rl_agent_config.encoder` was changed to `PIXELZX/XERON-1.0-base`. If an `encoder/` directory exists, build_model uses that instead, so training is unaffected.
 
-**다음 단계 (학습은 별도 담당)**
+**Next steps (training is handled separately)**
 
-- A100에서 1.0 베이스로 1 epoch RLCD 파인튜닝(`scripts/a100/run_a100.sh` 스타일, MAX_LEN 8192 / GC on / DTYPE bf16).
-- 학습 초반 loss가 0.9의 최종 loss와 같은 지점에서 시작하는지 확인 → 확장이 제대로 됐다는 실전 증거.
-- identity 레이어가 '깨어나는' 시점(각 홀수 레이어 Wo의 ||·|| 성장) 모니터링.
-- 필요 시 `hidden 1536 / layers 44` 위에 head_size 확대(예: 1536) 실험 — `WideHeadDecisionModel`이 지원.
-
+- Fine-tune the 1.0 base with 1 epoch of RLCD on A100 (`scripts/a100/run_a100.sh` style, MAX_LEN 8192 / GC on / DTYPE bf16).
+- Check that early-training loss starts at the same point as 0.9's final loss → real-world evidence that the expansion was done properly.
+- Monitor when the identity layers 'wake up' (the growth of ||·|| in each odd layer's Wo).
+- If needed, experiment with enlarging head_size (e.g. 1536) on top of `hidden 1536 / layers 44` — `WideHeadDecisionModel` supports it.
