@@ -37,6 +37,9 @@ os.environ.setdefault("PJRT_DEVICE", "TPU")
 
 import numpy as np
 import torch
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from batch_sampler import plan_epoch as plan_batches_epoch  # noqa: E402
 import torch_xla
 import torch_xla.core.xla_model as xm
 import torch_xla.distributed.parallel_loader as pl
@@ -69,6 +72,10 @@ MAX_LEN = _i("MAX_LEN", 1024)
 HEAD_MAX_LEN = _i("HEAD_MAX_LEN", 256)
 CTX_CAP = _i("CTX_CAP", 32768)
 MAX_TOKENS_BATCH = _i("MAX_TOKENS_BATCH", 32768)
+# Length-bucketed batches (see scripts/batch_sampler.py): groups similar lengths together
+# so per-batch padding stays small and MAX_TOKENS_BATCH is enforced.
+BATCH_MODE = os.environ.get("BATCH_MODE", "length").strip().lower()
+BATCH_BUCKET_MULT = _i("BATCH_BUCKET_MULT", 64)
 
 BASE_DIR = os.environ.get("BASE_DIR", "/kaggle/working/base")
 ITEMS = os.environ.get("ITEMS", "/kaggle/input/xeron-1-0-train-items-8192/train_items_x10_8192.pt")
@@ -199,25 +206,40 @@ def main():
     # 3) 데이터 (길이 버킷 → 등토큰 샤드)
     items = load_shard(ITEMS, SHARD_INDEX, SHARD_COUNT, LEN_MIN, LEN_MAX, MAX_ITEMS)
 
-    class ItemDS(torch.utils.data.Dataset):
-        def __init__(self, rows):
+    class BatchDS(torch.utils.data.Dataset):
+        """Yields one pre-planned micro-batch per index (length-bucketed, budgeted)."""
+
+        def __init__(self, plan, rows):
+            self.plan = plan
             self.rows = rows
 
         def __len__(self):
-            return len(self.rows)
+            return len(self.plan)
 
         def __getitem__(self, i):
-            return collate_train_batch([self.rows[i]], tok.pad_token_id)
+            return collate_train_batch([self.rows[j] for j in self.plan[i]], tok.pad_token_id)
 
     def collate_tuple(rows):
         # rows: list[(ids,att,mpos,mmask,target,qt)] each of shape (1, ...) → cat
         return tuple(torch.cat([r[j] for r in rows], dim=0) for j in range(6))
 
-    loader = torch.utils.data.DataLoader(
-        ItemDS(items), batch_size=MICRO_BATCH, shuffle=False, num_workers=4,
-        collate_fn=collate_tuple, drop_last=True)
-    dev_loader = pl.MpDeviceLoader(
-        loader, dev, input_sharding=xs.ShardingSpec(mesh, ("fsdp", None)))
+    row_lengths = [len(it["ids"]) for it in items]
+
+    def make_loader(epoch: int, device):
+        plan, st = plan_batches_epoch(row_lengths, MICRO_BATCH, MAX_TOKENS_BATCH,
+                                      BATCH_MODE, BATCH_BUCKET_MULT, seed=1000 + epoch)
+        dl = torch.utils.data.DataLoader(
+            BatchDS(plan, items), batch_size=1, shuffle=False, num_workers=4,
+            collate_fn=collate_tuple)
+        return pl.MpDeviceLoader(
+            dl, device, input_sharding=xs.ShardingSpec(mesh, ("fsdp", None))), st
+
+    dev_loader, plan_stats = make_loader(0, dev)
+    print(f"[batch] mode={BATCH_MODE} micro_batch(global)={MICRO_BATCH} "
+          f"max_tokens_batch={MAX_TOKENS_BATCH} items={plan_stats['items']:,} "
+          f"batches={plan_stats['batches']:,} real_tok={plan_stats['real_tokens']:,} "
+          f"padded_tok={plan_stats['padded_tokens']:,} waste={plan_stats['waste_pct']}% "
+          f"max_batch_padded={plan_stats['max_padded_per_batch']:,}", flush=True)
     print(f"[data] {len(items):,} items | micro_batch(global)={MICRO_BATCH} "
           f"grad_accum={GRAD_ACCUM} | steps/epoch={len(items)//MICRO_BATCH}", flush=True)
 
@@ -297,6 +319,11 @@ def main():
         opt.zero_grad(set_to_none=True)
         accum, nstep, t0 = 0, 0, time.time()
         losses = []
+        # rebuild the plan each epoch so bucket order/content is reshuffled
+        if epoch > start_epoch:
+            dev_loader, epoch_stats = make_loader(epoch, dev)
+            print(f"[batch] epoch {epoch+1} plan: batches={epoch_stats['batches']:,} "
+                  f"waste={epoch_stats['waste_pct']}%", flush=True)
         for micro, batch in enumerate(dev_loader):
             ids, att, mpos, mmask, target, qt = batch
             with torch.amp.autocast("cuda", enabled=False):

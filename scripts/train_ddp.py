@@ -26,6 +26,7 @@ from transformers import AutoTokenizer
 
 from laya.common import build_model, proper_reward, QTYPES
 from ctx_extend import ensure_long_context
+from batch_sampler import plan_epoch as plan_batches_epoch
 
 
 # ---------------------------------------------------------------- hyperparams
@@ -55,6 +56,11 @@ RESUME = os.environ.get("RESUME", "")              # checkpoint path or "auto" (
 MAX_LEN = _env_int("MAX_LEN", 2048)                # context: seq length (RoPE up to 32768)
 HEAD_MAX_LEN = _env_int("HEAD_MAX_LEN", 256)       # decision-head marker window
 MAX_TOKENS_BATCH = _env_int("MAX_TOKENS_BATCH", 4096)  # max tokens per micro-batch (memory bound)
+# Batching strategy. "length" groups similar-length items together so padding is minimal
+# and MAX_TOKENS_BATCH is actually enforced; "random" keeps the legacy uniform shuffle.
+BATCH_MODE = os.environ.get("BATCH_MODE", "length").strip().lower()
+BATCH_BUCKET_MULT = _env_int("BATCH_BUCKET_MULT", 64)   # bucket width = MICRO_BATCH * this
+BATCH_SUMMARY = _env_int("BATCH_SUMMARY", 1)           # print the plan stats once
 CTX_CAP = _env_int("CTX_CAP", 32768)                # encoder max_position_embeddings ceiling (4096x8)
 DTYPE = os.environ.get("DTYPE", "fp16").lower()    # fp16 (T4/V100) | bf16 (A100/H100, native, no scaler)
 assert DTYPE in ("fp16", "bf16"), f"DTYPE must be fp16 or bf16, got {DTYPE}"
@@ -225,6 +231,8 @@ def main():
 
     all_items = torch.load(items_path, weights_only=False)
     my_items = all_items[rank::world_size]
+    # sequence lengths are needed every epoch for batch planning; compute once
+    my_lengths = [len(it["ids"]) for it in my_items]
 
     enc_params = [p for n, p in ddp_model.named_parameters() if "encoder." in n]
     head_params = [p for n, p in ddp_model.named_parameters() if "encoder." not in n]
@@ -263,6 +271,9 @@ def main():
         "dtype": DTYPE,
         "micro_batch": MICRO_BATCH,
         "grad_accum": GRAD_ACCUM,
+        "batch_mode": BATCH_MODE,
+        "batch_bucket_mult": BATCH_BUCKET_MULT,
+        "max_tokens_batch": MAX_TOKENS_BATCH,
         "effective_batch": MICRO_BATCH * world_size * GRAD_ACCUM,
         "group_size": GROUP_SIZE,
         "lr_encoder": LR_ENCODER,
@@ -287,7 +298,18 @@ def main():
 
     for epoch in range(start_epoch, EPOCHS):
         random.seed(42 + epoch + rank)
-        random.shuffle(my_items)
+        # Length-bucketed, token-budget aware plan (see scripts/batch_sampler.py).
+        plan, plan_stats = plan_batches_epoch(
+            my_lengths, MICRO_BATCH, MAX_TOKENS_BATCH, BATCH_MODE,
+            BATCH_BUCKET_MULT, seed=42 + epoch * 1000 + rank)
+        if rank == 0 and BATCH_SUMMARY and (epoch == start_epoch):
+            print(f"[batch] mode={BATCH_MODE} micro_batch={MICRO_BATCH} "
+                  f"max_tokens_batch={MAX_TOKENS_BATCH} items={plan_stats['items']:,} "
+                  f"batches={plan_stats['batches']:,} "
+                  f"real_tok={plan_stats['real_tokens']:,} "
+                  f"padded_tok={plan_stats['padded_tokens']:,} "
+                  f"waste={plan_stats['waste_pct']}% "
+                  f"max_batch_padded={plan_stats['max_padded_per_batch']:,}", flush=True)
         epoch_loss, n_batches = 0.0, 0
         optimizer.zero_grad(set_to_none=True)
         accum_step = 0
@@ -309,8 +331,8 @@ def main():
                 mininterval=1.0,
             )
 
-        for b_idx in range(0, len(my_items), MICRO_BATCH):
-            chunk = my_items[b_idx : b_idx + MICRO_BATCH]
+        for b_idx, idxs in enumerate(plan):
+            chunk = [my_items[i] for i in idxs]
             if not chunk:
                 continue
 
@@ -352,7 +374,7 @@ def main():
             scaler.scale(loss).backward()
             accum_step += 1
 
-            if accum_step % GRAD_ACCUM == 0 or (b_idx + MICRO_BATCH) >= len(my_items):
+            if accum_step % GRAD_ACCUM == 0 or (b_idx + 1) >= len(plan):
                 scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(ddp_model.parameters(), 1.0)
                 scaler.step(optimizer)
