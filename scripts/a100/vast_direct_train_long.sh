@@ -132,7 +132,29 @@ echo "[train] done \$(date -Is)"
 ls -la ./output/$RUN_NAME 2>/dev/null | head
 REMOTE_EOF
 )
-echo "$REMOTE" | $SSH 'bash -s' 2>&1 | tee "$LOGDIR/vast_long_train_remote.log"
+# 원격 학습은 **detach** 해서 돌린다 — 로컬 SSH/런처가 죽어도 SIGHUP 으로 학습이 죽지 않게.
+# (2026-09-27 사고: 로컬 런처가 SIGKILL 되자 원격 train_ddp 가 SIGHUP 으로 종료됐고,
+#  인스턴스만 살아남아 계속 과금됨. epoch1 스냅샷은 회수했지만 epoch2 46% 지점에서 유실)
+printf '%s' "$REMOTE" | $SSH 'cat > /root/run_train.sh && chmod +x /root/run_train.sh' \
+  || { echo "[remote] 스크립트 업로드 실패"; exit 1; }
+$SSH 'setsid nohup /root/run_train.sh > /root/train.log 2>&1 < /dev/null & echo "[remote] detached"'
+echo "[remote] detached; 폴링 시작 ($(date -Is))"
+start=$(date +%s)
+while true; do
+  state=$($SSH 'pgrep -f train_ddp >/dev/null 2>&1 && echo RUNNING || echo DONE' 2>/dev/null | tail -1)
+  # 원격 로그의 마지막 진행률을 주기적으로 남긴다
+  $SSH 'tr "\r" "\n" < /root/train.log | grep -aE "^Epoch |TRAIN_EXIT|=== Epoch" | tail -1' 2>/dev/null \
+    | tee -a "$LOGDIR/vast_long_train_remote.log" >/dev/null || true
+  if [ "$state" = "DONE" ]; then
+    echo "[remote] 학습 프로세스 종료 ($(( $(date +%s) - start ))s 폴링)"
+    break
+  fi
+  if [ $(( $(date +%s) - start )) -gt 86400 ]; then
+    echo "[remote] 24h 초과 — 중단하고 회수 단계로"; break
+  fi
+  sleep 60
+done
+$SSH 'tr "\r" "\n" < /root/train.log | tail -25' 2>&1 | tee -a "$LOGDIR/vast_long_train_remote.log" || true
 
 echo "[pull] snapshot back ..."
 mkdir -p "$HOME/XERON/output/$RUN_NAME"
