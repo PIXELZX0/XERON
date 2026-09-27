@@ -14,16 +14,19 @@ set -uo pipefail
 OFFER="${VAST_OFFER:-}"
 DISK="${INSTANCE_DISK:-120}"
 MAX_WAIT="${MAX_WAIT:-1200}"
-EPOCHS="${EPOCHS:-2}"
+EPOCHS="${EPOCHS:-1}"
 MAX_TRAIN_SECS="${MAX_TRAIN_SECS:-36000}"
-MICRO_BATCH="${MICRO_BATCH:-2}"
-GRAD_ACCUM="${GRAD_ACCUM:-16}"
+MICRO_BATCH="${MICRO_BATCH:-8}"
+GRAD_ACCUM="${GRAD_ACCUM:-4}"
 LR_ENCODER="${LR_ENCODER:-2e-5}"
 LR_HEAD="${LR_HEAD:-5e-5}"
 SIGMA_START="${SIGMA_START:-0.3}"
 SIGMA_END="${SIGMA_END:-0.2}"
-RUN_NAME="${RUN_NAME:-xeron-1.0-long}"
-BASE_DIR="${BASE_DIR:-$HOME/XERON/output/xeron-1.0-a1}"
+RUN_NAME="${RUN_NAME:-xeron-1.0-long-e2}"
+BASE_DIR="${BASE_DIR:-$HOME/XERON/output/xeron-1.0-long}"
+BRANCH="${BRANCH:-perf/train-throughput}"
+BATCH_MODE="${BATCH_MODE:-length}"
+BATCH_BUCKET_MULT="${BATCH_BUCKET_MULT:-64}"
 DATA_FILE="${DATA_FILE:-$HOME/XERON/train_items_x10_long1024.pt}"
 IMAGE="${IMAGE:-pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime}"
 API="https://console.vast.ai/api/v0"
@@ -112,7 +115,7 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 pip install -q --upgrade "torch>=2.5" --index-url https://download.pytorch.org/whl/cu124 2>&1 | tail -1 || true
 pip install -q laya transformers datasets safetensors scipy pandas tabulate 2>&1 | tail -2 || true
 pip uninstall -y -q torchvision torchaudio 2>/dev/null || true
-rm -rf /root/XERON && git clone -q --depth 1 https://github.com/PIXELZX0/XERON /root/XERON && echo "[remote] repo ok"
+rm -rf /root/XERON && git clone -q --depth 1 -b $BRANCH https://github.com/PIXELZX0/XERON /root/XERON && echo "[remote] repo $BRANCH ok"
 cd /root/XERON && git log --oneline -1
 python - <<'PY'
 import torch
@@ -122,9 +125,10 @@ print('[data] items', len(items), 'tokens', sum(lens), 'min', min(lens), 'max', 
 PY
 echo "[train] start \$(date -Is)  base=/root/base  epochs=$EPOCHS"
 EPOCHS=$EPOCHS MICRO_BATCH=$MICRO_BATCH GRAD_ACCUM=$GRAD_ACCUM GROUP_SIZE=4 \
+BATCH_MODE=$BATCH_MODE BATCH_BUCKET_MULT=$BATCH_BUCKET_MULT MAX_TOKENS_BATCH=16384 \
 LR_ENCODER=$LR_ENCODER LR_HEAD=$LR_HEAD SIGMA_START=$SIGMA_START SIGMA_END=$SIGMA_END \
 RL_WEIGHT=0.5 WEIGHT_DECAY=0.02 HEAD_LAYERS=4 HEAD_SIZE=1024 HEAD_DROPOUT=0.0 \
-DTYPE=bf16 MAX_LEN=8192 HEAD_MAX_LEN=256 MAX_TOKENS_BATCH=16384 CHECKPOINT_EVERY=1 \
+DTYPE=bf16 MAX_LEN=8192 HEAD_MAX_LEN=256 CHECKPOINT_EVERY=1 \
 PYTHONUNBUFFERED=1 timeout $MAX_TRAIN_SECS torchrun --standalone --nproc_per_node=1 \
   scripts/train_ddp.py /root/base ./output/$RUN_NAME /root/data/train_long.pt
 echo "TRAIN_EXIT=\$?"
