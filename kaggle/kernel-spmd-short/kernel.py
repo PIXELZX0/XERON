@@ -135,7 +135,8 @@ if not os.path.exists(os.path.join(BASE_DIR, "model.safetensors")):
     from huggingface_hub import snapshot_download
     d = snapshot_download(BASE_HF, local_dir=BASE_DIR,
                           allow_patterns=["model.safetensors", "encoder/*", "tokenizer/*",
-                                          "rl_agent_config.json"])
+                                          "rl_agent_config.json"],
+                          token=os.environ.get("HF_TOKEN"))
     log(f"  base_dir={d}")
 sh(f"ls -la {BASE_DIR}; du -sh {BASE_DIR}")
 
