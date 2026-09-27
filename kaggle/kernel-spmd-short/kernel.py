@@ -78,11 +78,11 @@ EPOCHS = _i("EPOCHS", 1)
 MICRO_BATCH = _i("MICRO_BATCH", 32)       # 전역 배치 (8칩에 샤딩됨)
 GRAD_ACCUM = _i("GRAD_ACCUM", 8)          # 유효배치 256
 MAX_LEN = _i("MAX_LEN", 1024)
-MAX_ITEMS = _i("MAX_ITEMS", 0)            # 스모크용 (0=전체)
+MAX_ITEMS = _i("MAX_ITEMS", 20000)            # 스모크용 (0=전체)
 CKPT_MODE = _s("CKPT_MODE", "local")      # local | hf | s3
-BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # A100 롱 파인튜닝 결과
+BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # RUNNER_REWRITES_THIS_LINE
 CKPT_HF = _s("CKPT_HF", "PIXELZX/XERON-1.0-short-ckpt")
-MINUTES = _i("MAX_TRAIN_MIN", 0)          # 0=무제한, 아니면 DCP 저장 후 조기 종료
+MINUTES = _i("MAX_TRAIN_MIN", 40)          # 0=무제한, 아니면 DCP 저장 후 조기 종료
 DATA_PT = None
 
 os.makedirs(EXPORT, exist_ok=True)

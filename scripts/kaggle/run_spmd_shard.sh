@@ -12,14 +12,20 @@ set -euo pipefail
 SHARD="${1:?usage: $0 <shard_index 0..3> [--smoke]}"
 SMOKE="${2:-}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
-KDIR="$DIR/kernel-spmd-short"
+REPO="$(cd "$DIR/../.." && pwd)"
+KDIR="$REPO/kaggle/kernel-spmd-short"
 REF="pistonx/xeron-1-0-short-spmd"
-LOG_DIR="$HOME/XERON/kaggle/logs"
+LOG_DIR="$REPO/kaggle/logs"
 mkdir -p "$LOG_DIR"
 
 # 커널 파일의 SHARD_INDEX 기본값을 이번 세션 샤드로 바꿔 push (push 시 env 주입이 불가하므로)
 sed -i -E "s/^SHARD_INDEX = _i\(\"SHARD_INDEX\", [0-9]+\)/SHARD_INDEX = _i(\"SHARD_INDEX\", ${SHARD})/" "$KDIR/kernel.py"
-grep -n '^SHARD_INDEX' "$KDIR/kernel.py"
+
+# BASE_HF 를 지정하면 그 값으로 베이스를 바꾼다 (미지정 = 커널 기본값 유지)
+if [ -n "${BASE_HF:-}" ]; then
+  sed -i -E "s|^BASE_HF = _s\(\"BASE_HF\", \"[^\"]*\"\)|BASE_HF = _s(\"BASE_HF\", \"${BASE_HF}\")|" "$KDIR/kernel.py"
+fi
+grep -n '^SHARD_INDEX\|^BASE_HF' "$KDIR/kernel.py"
 
 if [ "$SMOKE" = "--smoke" ]; then
   sed -i -E "s/^MAX_ITEMS = _i\(\"MAX_ITEMS\", [0-9]+\)/MAX_ITEMS = _i(\"MAX_ITEMS\", 20000)/" "$KDIR/kernel.py"
