@@ -62,6 +62,11 @@ VOCAB = _i("VOCAB", 256000)
 HEAD_SIZE = _i("HEAD_SIZE", 1024)
 HEAD_LAYERS = _i("HEAD_LAYERS", 4)
 MAX_LEN = _i("MAX_LEN", 8192)
+# Batch source: "length" = length-bucketed + token-budget plan (see scripts/batch_sampler.py),
+# "random" = legacy uniform shuffle. Used to A/B the padding-waste fix on real hardware.
+BATCH_MODE = os.environ.get("BATCH_MODE", "length").strip().lower()
+BATCH_BUCKET_MULT = _i("BATCH_BUCKET_MULT", 64)
+MAX_TOKENS_BATCH = _i("MAX_TOKENS_BATCH", 16384)
 MAXPOS = _i("MAXPOS", 32768)
 LOCAL_ATTENTION = _i("LOCAL_ATTENTION", 128)
 GLOBAL_EVERY = _i("GLOBAL_EVERY", 3)     # mmBERT pattern: every 3rd layer is full attention
@@ -305,13 +310,32 @@ def main():
             eta_min=1e-6)
         scaler = torch.amp.GradScaler("cuda", enabled=(DTYPE == "fp16"))
 
-        rng = random.Random(SEED)
-        order = list(range(len(my_items)))
-        rng.shuffle(order)
-        cursor = 0
+        # ---- batch source: length-bucketed plan (default) or legacy random shuffle
+        lengths = [len(it["ids"]) for it in my_items]
+        plan = None
+        if BATCH_MODE == "length":
+            from batch_sampler import plan_epoch as _plan_epoch
+            plan, plan_stats = _plan_epoch(lengths, MICRO_BATCH, MAX_TOKENS_BATCH,
+                                           "length", BATCH_BUCKET_MULT, seed=SEED)
+            rec["batch_mode"] = "length"
+            rec["plan"] = plan_stats
+        else:
+            plan = None
+            rec["batch_mode"] = "random"
+            rng = random.Random(SEED)
+            order = list(range(len(my_items)))
+            rng.shuffle(order)
+            cursor = 0
+        plan_cursor = 0
 
         def next_batch():
-            nonlocal cursor
+            nonlocal cursor, plan_cursor
+            if plan is not None:
+                if plan_cursor >= len(plan):
+                    plan_cursor = 0
+                chunk = [my_items[i] for i in plan[plan_cursor]]
+                plan_cursor += 1
+                return collate_train_batch(chunk, 0)
             chunk = []
             for _ in range(MICRO_BATCH):
                 if cursor >= len(order):
