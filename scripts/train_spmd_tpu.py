@@ -1,0 +1,359 @@
+#!/usr/bin/env python3
+"""XERON 학습 — Cloud TPU v5e-8 SPMD(FSDPv2) 트레이너.
+
+Kaggle TPU 용. `train_ddp.py`(CUDA/DDP/fp16)의 RLCD 손실·콜레이트·스케줄러를 그대로 이식하고,
+학습 병렬화만 DDP → **SPMD + FSDPv2** 로 바꾼다. 이유:
+
+  v5e는 칩당 HBM이 15.75GiB 뿐이라 1.33B 모델을 DDP로 복제하면 정적 메모리만
+  15.7GB(파라미터2.6+그래드2.6+AdamW fp32 10.5) 라서 **어떤 배치로도 OOM**.
+  파라미터/그래디언트/옵티마이저 상태를 fsdp 축으로 8등분하면 칩당 ~1.3GB → AdamW 그대로 사용 가능.
+  (실측: seq128 68.75 seq/s, seq256 33.0, seq512 14.5, seq1024 8.0)
+
+반드시 지킬 것 (전부 실제로 물려서 확인한 함정):
+  1. **bf16 캐스팅은 FSDPv2 래핑 전에** — 후에 `.to()` 하면 샤딩 메타데이터가 깨져 35배 느려진다.
+  2. 입력 샤딩은 `pl.MpDeviceLoader(input_sharding=xs.ShardingSpec(mesh, ('fsdp', None)))` 로만.
+     직접 `xs.mark_sharding` 하면 HF embedding 안에서 `XLAShardedTensor has no attribute global_tensor`.
+     → 배치는 **모든 텐서가 rank-2** 인 튜플로 만든다(그래서 qtype을 (B,1)로 패딩).
+  3. `xs.set_global_mesh(mesh)` 필수, mesh 축 이름은 반드시 `fsdp`.
+  4. `torch_xla.utils.checkpoint`는 `use_reentrant=True`만 지원.
+  5. SPMD 모드에서 `xm.get_memory_info`는 실패한다.
+
+데이터: 길이 오름차순 파일을 **등시간 샤드**로 나눠 세션당 하나씩 학습한다(길이 버킷팅 →
+collate가 배치 내 최대 길이로 패딩하므로 낭비 최소). `SHARD_INDEX`/`SHARD_COUNT`로 선택.
+
+env: BASE_DIR ITEMS OUT_DIR SHARD_INDEX SHARD_COUNT EPOCHS MICRO_BATCH GRAD_ACCUM
+     LR_ENCODER LR_HEAD SIGMA_START SIGMA_END RL_WEIGHT WEIGHT_DECAY HEAD_LAYERS HEAD_SIZE
+     MAX_LEN HEAD_MAX_LEN MAX_TOKENS_BATCH CKPT_EVERY RESUME_DCP DCP_DIR RESUME_SHARD
+"""
+import functools
+import json
+import math
+import os
+import random
+import sys
+import time
+
+os.environ.setdefault("PJRT_DEVICE", "TPU")
+
+import numpy as np
+import torch
+import torch_xla
+import torch_xla.core.xla_model as xm
+import torch_xla.distributed.parallel_loader as pl
+import torch_xla.distributed.spmd as xs
+import torch_xla.runtime as xr
+
+
+def _i(n, d):
+    return int(os.environ.get(n, d))
+
+
+def _f(n, d):
+    return float(os.environ.get(n, d))
+
+
+EPOCHS = _i("EPOCHS", 1)
+MICRO_BATCH = _i("MICRO_BATCH", 32)          # GLOBAL batch (sharded across chips)
+GRAD_ACCUM = _i("GRAD_ACCUM", 8)
+GROUP_SIZE = _i("GROUP_SIZE", 4)
+LR_ENCODER = _f("LR_ENCODER", 2.0e-5)
+LR_HEAD = _f("LR_HEAD", 5.0e-5)
+SIGMA_START = _f("SIGMA_START", 0.3)
+SIGMA_END = _f("SIGMA_END", 0.2)
+RL_WEIGHT = _f("RL_WEIGHT", 0.5)
+WEIGHT_DECAY = _f("WEIGHT_DECAY", 0.02)
+HEAD_LAYERS = _i("HEAD_LAYERS", 4)
+HEAD_SIZE = _i("HEAD_SIZE", 1024)
+HEAD_DROPOUT = _f("HEAD_DROPOUT", 0.0)
+MAX_LEN = _i("MAX_LEN", 1024)
+HEAD_MAX_LEN = _i("HEAD_MAX_LEN", 256)
+CTX_CAP = _i("CTX_CAP", 32768)
+MAX_TOKENS_BATCH = _i("MAX_TOKENS_BATCH", 32768)
+
+BASE_DIR = os.environ.get("BASE_DIR", "/kaggle/working/base")
+ITEMS = os.environ.get("ITEMS", "/kaggle/input/xeron-1-0-train-items-8192/train_items_x10_8192.pt")
+OUT_DIR = os.environ.get("OUT_DIR", "/kaggle/working/output/xeron-1.0-short")
+DCP_DIR = os.environ.get("DCP_DIR", "/kaggle/working/dcp")
+SHARD_INDEX = _i("SHARD_INDEX", 0)
+SHARD_COUNT = _i("SHARD_COUNT", 4)
+CKPT_EVERY = _i("CKPT_EVERY", 1)
+MAX_ITEMS = _i("MAX_ITEMS", 0)                # 0 = 샤드 전체
+RESUME_SHARD = _i("RESUME_SHARD", 1) == 1
+LEN_MIN = _i("LEN_MIN", 0)
+LEN_MAX = _i("LEN_MAX", 1024)                 # 이 트레이너는 ≤1024(숏) 전용
+
+
+# ---------------------------------------------------------------- data
+def collate_train_batch(items, pad_id):
+    """train_ddp.py 와 동일. 단 모든 텐서를 rank-2 로 유지한다(SPMD 입력 샤딩 제약)."""
+    n, L = len(items), max(len(it["ids"]) for it in items)
+    kmax = max(len(it["markers"]) for it in items)
+    ids = torch.full((n, L), pad_id, dtype=torch.long)
+    att = torch.zeros((n, L), dtype=torch.long)
+    mpos = torch.zeros((n, kmax), dtype=torch.long)
+    mmask = torch.zeros((n, kmax), dtype=torch.bool)
+    target = torch.zeros((n, kmax), dtype=torch.float32)
+    for i, it in enumerate(items):
+        ids[i, : len(it["ids"])] = torch.tensor(it["ids"])
+        att[i, : len(it["ids"])] = 1
+        k = len(it["markers"])
+        mpos[i, :k] = torch.tensor(it["markers"])
+        mmask[i, :k] = True
+        target[i, : len(it["target"])] = torch.tensor(it["target"], dtype=torch.float32)
+    qt = torch.tensor([[it["qtype"]] for it in items], dtype=torch.long)   # (n,1) rank-2
+    return ids, att, mpos, mmask, target, qt
+
+
+def load_shard(path, shard_index, shard_count, len_min, len_max, max_items=0):
+    """긴 항목을 빼고 길이 오름차순 정렬한 뒤 **등토큰(등시간) 샤드**로 자른다."""
+    items = torch.load(path, weights_only=False)
+    print(f"[data] loaded {len(items):,} items from {path}", flush=True)
+    sel = [it for it in items if len_min < len(it["ids"]) <= len_max]
+    del items
+    sel.sort(key=lambda it: len(it["ids"]))
+    print(f"[data] {len_min}<len<={len_max}: {len(sel):,} items "
+          f"({sum(len(it['ids']) for it in sel):,} tokens)", flush=True)
+    # 등토큰 그리디 분배: 길이순으로 훑으며 가장 가벼운 샤드에 넣는다 → 샤드별 학습시간 균등
+    loads = [0] * shard_count
+    buckets = [[] for _ in range(shard_count)]
+    for it in sel:
+        j = min(range(shard_count), key=lambda k: loads[k])
+        buckets[j].append(it)
+        loads[j] += len(it["ids"])
+    del sel
+    mine = buckets[shard_index]
+    print(f"[data] shard {shard_index}/{shard_count}: {len(mine):,} items "
+          f"({loads[shard_index]:,} tokens; all={ [f'{l/1e6:.1f}M' for l in loads] })", flush=True)
+    if max_items:
+        mine = mine[:max_items]
+        print(f"[data] truncated to {len(mine):,} items (MAX_ITEMS)", flush=True)
+    return mine
+
+
+# ---------------------------------------------------------------- model
+def build_model():
+    from transformers import AutoTokenizer
+    from ctx_extend import ensure_long_context
+    from model_xeron import build_wide_model
+    from safetensors.torch import load_file
+
+    cfg = ensure_long_context(BASE_DIR, MAX_LEN, CTX_CAP, HEAD_MAX_LEN)
+    cfg["head_layers"] = HEAD_LAYERS
+    cfg["dropout"] = HEAD_DROPOUT
+    cfg["gradient_checkpointing"] = False   # XLA에서는 별도 래퍼로 처리(아래)
+    cfg["max_tokens_per_batch"] = MAX_TOKENS_BATCH
+    cfg["max_len"] = MAX_LEN
+    cfg["head_max_len"] = HEAD_MAX_LEN
+
+    tok = AutoTokenizer.from_pretrained(os.path.join(BASE_DIR, "tokenizer"))
+    model = build_wide_model(cfg, os.path.join(BASE_DIR, "encoder"),
+                             head_layers=HEAD_LAYERS, head_size=HEAD_SIZE,
+                             dropout=HEAD_DROPOUT)
+    weights = load_file(os.path.join(BASE_DIR, "model.safetensors"))
+    try:
+        model.load_state_dict(weights, strict=True)
+        print("[XERON] loaded all weights", flush=True)
+    except RuntimeError as e:
+        enc_only = {k: v for k, v in weights.items() if k.startswith("encoder.")}
+        missing, _ = model.load_state_dict(enc_only, strict=False)
+        print(f"[XERON] head rebuilt; encoder loaded, {len(missing)} head tensors fresh "
+              f"({str(e).splitlines()[0][:100]})", flush=True)
+    return model, tok, cfg
+
+
+def main():
+    t_start = time.time()
+    xr.use_spmd()
+    ndev = xr.global_runtime_device_count()
+    dev = xm.xla_device()
+    mesh = xs.Mesh(np.arange(ndev), (ndev, 1), ("fsdp", "model"))
+    xs.set_global_mesh(mesh)
+    print(f"[spmd] devices={ndev} mesh=(fsdp,model) pjrt={os.environ.get('PJRT_DEVICE')}",
+          flush=True)
+
+    model, tok, cfg = build_model()
+    nparam = sum(p.numel() for p in model.parameters())
+    print(f"[XERON] params {nparam/1e6:.1f}M  max_len={MAX_LEN} head={HEAD_LAYERS}x{HEAD_SIZE}",
+          flush=True)
+
+    # 1) bf16 먼저 (FSDPv2 래핑 후 캐스팅하면 샤딩이 깨진다)
+    model = model.to(torch.bfloat16)
+
+    # 2) FSDPv2 샤딩 (mesh 축 'fsdp')
+    from torch_xla.experimental.spmd_fully_sharded_data_parallel import (
+        SpmdFullyShardedDataParallel as FSDPv2)
+    from torch_xla.distributed.fsdp.wrap import transformer_auto_wrap_policy
+    from transformers.models.modernbert import modeling_modernbert as mbm
+    layer_cls = getattr(mbm, "ModernBertEncoderLayer", None) or getattr(mbm, "ModernBertLayer")
+
+    def shard_output(out, mesh):
+        logits = out[0] if isinstance(out, (tuple, list)) else out
+        if torch.is_tensor(logits):
+            xs.mark_sharding(logits, mesh, ("fsdp", None, None))
+
+    auto_wrap = functools.partial(transformer_auto_wrap_policy,
+                                  transformer_layer_cls={layer_cls})
+    model = FSDPv2(model, mesh=mesh, auto_wrap_policy=auto_wrap, shard_output=shard_output)
+    model.train()
+
+    # 3) 데이터 (길이 버킷 → 등토큰 샤드)
+    items = load_shard(ITEMS, SHARD_INDEX, SHARD_COUNT, LEN_MIN, LEN_MAX, MAX_ITEMS)
+
+    class ItemDS(torch.utils.data.Dataset):
+        def __init__(self, rows):
+            self.rows = rows
+
+        def __len__(self):
+            return len(self.rows)
+
+        def __getitem__(self, i):
+            return collate_train_batch([self.rows[i]], tok.pad_token_id)
+
+    def collate_tuple(rows):
+        # rows: list[(ids,att,mpos,mmask,target,qt)] each of shape (1, ...) → cat
+        return tuple(torch.cat([r[j] for r in rows], dim=0) for j in range(6))
+
+    loader = torch.utils.data.DataLoader(
+        ItemDS(items), batch_size=MICRO_BATCH, shuffle=False, num_workers=4,
+        collate_fn=collate_tuple, drop_last=True)
+    dev_loader = pl.MpDeviceLoader(
+        loader, dev, input_sharding=xs.ShardingSpec(mesh, ("fsdp", None)))
+    print(f"[data] {len(items):,} items | micro_batch(global)={MICRO_BATCH} "
+          f"grad_accum={GRAD_ACCUM} | steps/epoch={len(items)//MICRO_BATCH}", flush=True)
+
+    # 4) 옵티마이저: encoder/head LR 분리 (train_ddp 와 동일)
+    enc_params = [p for n, p in model.named_parameters() if "encoder." in n]
+    head_params = [p for n, p in model.named_parameters() if "encoder." not in n]
+    print(f"[opt] encoder tensors={len(enc_params)} head tensors={len(head_params)}", flush=True)
+    opt = torch.optim.AdamW(
+        [{"params": enc_params, "lr": LR_ENCODER},
+         {"params": head_params, "lr": LR_HEAD}], weight_decay=WEIGHT_DECAY)
+    steps_per_epoch = max(1, len(items) // MICRO_BATCH)
+    total_updates = steps_per_epoch * EPOCHS
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=total_updates, eta_min=1e-6)
+
+    # 5) DCP 복원
+    start_epoch = 0
+    if RESUME_SHARD and os.path.isdir(DCP_DIR) and os.listdir(DCP_DIR):
+        try:
+            import torch.distributed.checkpoint as dist_cp
+            import torch_xla.experimental.distributed_checkpoint as xc
+            ckpt = os.path.join(DCP_DIR, f"shard{SHARD_INDEX}")
+            if os.path.isdir(ckpt) and os.listdir(ckpt):
+                sd = {"model": model.state_dict(), "optim": opt.state_dict()}
+                dist_cp.load(state_dict=sd, storage_reader=dist_cp.FileSystemReader(ckpt),
+                             planner=xc.SPMDLoadPlanner())
+                model.load_state_dict(sd["model"])
+                opt.load_state_dict(sd["optim"])
+                meta = os.path.join(ckpt, "meta.json")
+                if os.path.exists(meta):
+                    start_epoch = json.load(open(meta)).get("epoch_done", 0)
+                print(f"[dcp] resumed shard{SHARD_INDEX} at epoch {start_epoch}", flush=True)
+        except Exception as ex:
+            print(f"[dcp] resume skipped: {type(ex).__name__}: {str(ex)[:200]}", flush=True)
+
+    from laya.common import proper_reward
+
+    def save_dcp(epoch_done):
+        try:
+            import torch.distributed.checkpoint as dist_cp
+            import torch_xla.experimental.distributed_checkpoint as xc
+            ckpt = os.path.join(DCP_DIR, f"shard{SHARD_INDEX}")
+            os.makedirs(ckpt, exist_ok=True)
+            t0 = time.time()
+            dist_cp.save(state_dict={"model": model.state_dict(), "optim": opt.state_dict()},
+                         storage_writer=dist_cp.FileSystemWriter(ckpt),
+                         planner=xc.SPMDSavePlanner())
+            json.dump({"epoch_done": epoch_done, "shard": SHARD_INDEX,
+                       "shard_count": SHARD_COUNT, "items": len(items),
+                       "max_len": MAX_LEN, "saved_s": round(time.time() - t0, 1)},
+                      open(os.path.join(ckpt, "meta.json"), "w"))
+            print(f"[dcp] saved {ckpt} in {time.time()-t0:.1f}s", flush=True)
+        except Exception as ex:
+            print(f"[dcp] save FAILED: {type(ex).__name__}: {str(ex)[:200]}", flush=True)
+
+    def snapshot(tag=""):
+        """추론용 스냅샷 (HF 포맷) — 평가/HF 업로드용."""
+        from safetensors.torch import save_file
+        os.makedirs(OUT_DIR, exist_ok=True)
+        sd = {k: v.to(torch.float32).cpu() for k, v in model.state_dict().items()}
+        save_file(sd, os.path.join(OUT_DIR, "model.safetensors"))
+        cfg_out = dict(cfg)
+        json.dump(cfg_out, open(os.path.join(OUT_DIR, "rl_agent_config.json"), "w"), indent=2)
+        for sub in ("encoder", "tokenizer"):
+            src = os.path.join(BASE_DIR, sub)
+            if os.path.isdir(src):
+                os.makedirs(os.path.join(OUT_DIR, sub), exist_ok=True)
+                for fn in os.listdir(src):
+                    with open(os.path.join(src, fn), "rb") as fi, \
+                         open(os.path.join(OUT_DIR, sub, fn), "wb") as fo:
+                        fo.write(fi.read())
+        print(f"[snapshot] {OUT_DIR} {tag}", flush=True)
+
+    # 6) 학습 루프 (train_ddp 의 RLCD 손실을 그대로 이식)
+    rng = random.Random(42 + SHARD_INDEX)
+    for epoch in range(start_epoch, EPOCHS):
+        sigma = SIGMA_START + (SIGMA_END - SIGMA_START) * (epoch / max(1, EPOCHS - 1))
+        opt.zero_grad(set_to_none=True)
+        accum, nstep, t0 = 0, 0, time.time()
+        losses = []
+        for micro, batch in enumerate(dev_loader):
+            ids, att, mpos, mmask, target, qt = batch
+            with torch.amp.autocast("cuda", enabled=False):
+                logits, act = model(ids, att, mpos, mmask, qt.squeeze(-1))
+            logits = logits.float()
+            mask = mmask.unsqueeze(-1)
+            k = mask.sum(-2, keepdim=True).float()
+
+            eps = torch.randn((GROUP_SIZE,) + logits.shape, device=logits.device) * sigma * mask
+            eps = (eps - eps.sum(-1, keepdim=True) / k) * mask
+            z = logits.detach().unsqueeze(0) + eps
+            q = torch.softmax(z.masked_fill(~mask, -1e4), -1)
+            with torch.no_grad():
+                r = proper_reward(q, target.unsqueeze(0), qt.squeeze(-1).expand(-1, 2),
+                                  mask, w_sph=0.75, w_rps=1.0)
+                adv = r - r.mean(0, keepdim=True)
+                adv = adv / (adv.std() + 1e-6)
+
+            logp = -(((z - logits.unsqueeze(0)) ** 2) * mask).sum(-1) / (2 * sigma ** 2)
+            loss_rl = -(adv * logp).mean()
+            loss_ce = -(target.unsqueeze(-1) *
+                        torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
+            loss = (RL_WEIGHT * loss_rl + 1.0 * loss_ce) / GRAD_ACCUM
+            loss.backward()
+            accum += 1
+
+            if accum % GRAD_ACCUM == 0:
+                # 근사 클리핑: 로컬 샤드 노름 → 전역 스케일(√ndev)로 보정
+                gn = torch.nn.utils.clip_grad_norm_(model.parameters(),
+                                                    1.0 * math.sqrt(ndev))
+                opt.step()
+                sched.step()
+                opt.zero_grad(set_to_none=True)
+                nstep += 1
+                if nstep % 20 == 0:
+                    el = time.time() - t0
+                    print(f"  ep{epoch+1}/{EPOCHS} step {nstep}/{total_updates//EPOCHS} "
+                          f"loss={loss.item()*GRAD_ACCUM:.4f} reward={r.mean().item():.3f} "
+                          f"gn={float(gn):.2f} lr={sched.get_last_lr()[0]:.2e} "
+                          f"{el/max(1,nstep):.2f}s/step "
+                          f"({MICRO_BATCH*GRAD_ACCUM/max(1e-9, el/max(1,nstep)):.1f} seq/s)",
+                          flush=True)
+            losses.append(loss.item() * GRAD_ACCUM)
+
+        dt = time.time() - t0
+        print(f"=== epoch {epoch+1}/{EPOCHS} done {dt/60:.1f}min | "
+              f"avg loss {sum(losses)/max(1,len(losses)):.4f} | "
+              f"{(len(items)*EPOCHS)/max(1e-9, dt):.1f} seq/s ===", flush=True)
+        if CKPT_EVERY and (epoch + 1) % CKPT_EVERY == 0:
+            save_dcp(epoch + 1)
+            snapshot(f"epoch{epoch+1}")
+
+    save_dcp(EPOCHS)
+    snapshot("final")
+    print(f"TRAIN_DONE shard={SHARD_INDEX}/{SHARD_COUNT} total={(time.time()-t_start)/60:.1f}min",
+          flush=True)
+
+
+if __name__ == "__main__":
+    main()
