@@ -109,6 +109,7 @@ scp -q -r $SSHOPT -P "$PORT" "$BASE_DIR/encoder" "$BASE_DIR/tokenizer" "$BASE_DI
 scp -q $SSHOPT -P "$PORT" "$DATA_FILE" root@$HOST:/root/data/train_long.pt && echo "[upload] data done"
 
 REMOTE=$(cat <<REMOTE_EOF
+#!/bin/bash
 set -uo pipefail
 export PYTHONUNBUFFERED=1
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
@@ -141,11 +142,11 @@ REMOTE_EOF
 #  인스턴스만 살아남아 계속 과금됨. epoch1 스냅샷은 회수했지만 epoch2 46% 지점에서 유실)
 printf '%s' "$REMOTE" | $SSH 'cat > /root/run_train.sh && chmod +x /root/run_train.sh' \
   || { echo "[remote] 스크립트 업로드 실패"; exit 1; }
-$SSH 'setsid nohup /root/run_train.sh > /root/train.log 2>&1 < /dev/null & echo "[remote] detached"'
+$SSH 'setsid nohup bash /root/run_train.sh > /root/train.log 2>&1 < /dev/null & echo "[remote] detached"'
 echo "[remote] detached; 폴링 시작 ($(date -Is))"
 start=$(date +%s)
 while true; do
-  state=$($SSH 'pgrep -f train_ddp >/dev/null 2>&1 && echo RUNNING || echo DONE' 2>/dev/null | tail -1)
+  state=$($SSH 'pgrep -f "train_dd[p]" >/dev/null 2>&1 && echo RUNNING || echo DONE' 2>/dev/null | tail -1)
   # 원격 로그의 마지막 진행률을 주기적으로 남긴다
   $SSH 'tr "\r" "\n" < /root/train.log | grep -aE "^Epoch |TRAIN_EXIT|=== Epoch" | tail -1' 2>/dev/null \
     | tee -a "$LOGDIR/vast_long_train_remote.log" >/dev/null || true
