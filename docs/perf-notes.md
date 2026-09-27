@@ -81,8 +81,9 @@ BATCH_MODE=random EPOCHS=1 MICRO_BATCH=8 MAX_TOKENS_BATCH=16384 torchrun ... scr
 
 ## 4. Still open (not changed here)
 
-- `DDP(..., find_unused_parameters=True)` — torch warns that no parameter is unused; setting it
-  `False` (and considering `static_graph=True`) removes an extra autograd-graph traversal per step.
+- ~~`DDP(..., find_unused_parameters=True)`~~ — **done**: defaults to `False` now
+  (`DDP_FIND_UNUSED=1` restores the old behaviour, `DDP_STATIC_GRAPH=1` opts into static graph).
+  Removes one autograd-graph traversal per step. Needs a GPU A/B run to quantify.
 - TPU: DCP checkpoint saving is synchronous (~75 s per save for the 1.33 B model); `CheckpointManager.save_async`
   or step-based cadence would hide it.
 - TPU gradient clipping currently approximates the global norm as `local_norm * sqrt(ndev)`.

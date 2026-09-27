@@ -227,7 +227,17 @@ def main():
     model.to(device)
     model.train()
 
-    ddp_model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
+    # find_unused_parameters=True costs an extra autograd-graph traversal every step; torch
+    # reports that this model has no unused parameters, so it can be turned off. If a future
+    # change introduces conditionally-unused parameters, DDP fails fast with an explicit error
+    # and DDP_FIND_UNUSED=1 restores the old behaviour. static_graph is opt-in because it also
+    # requires a re-entrant-free backward graph.
+    ddp_model = DDP(model, device_ids=[local_rank],
+                    find_unused_parameters=_env_int("DDP_FIND_UNUSED", 0) == 1,
+                    static_graph=_env_int("DDP_STATIC_GRAPH", 0) == 1)
+    if rank == 0:
+        print(f"[ddp] find_unused_parameters={_env_int('DDP_FIND_UNUSED', 0) == 1} "
+              f"static_graph={_env_int('DDP_STATIC_GRAPH', 0) == 1}", flush=True)
 
     all_items = torch.load(items_path, weights_only=False)
     my_items = all_items[rank::world_size]
