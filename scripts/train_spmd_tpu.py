@@ -342,22 +342,25 @@ def main():
             with torch.amp.autocast("cuda", enabled=False):
                 logits, act = model(ids, att, mpos, mmask, qt.squeeze(-1))
             logits = logits.float()
-            mask = mmask.unsqueeze(-1)
-            k = mask.sum(-2, keepdim=True).float()
+            # logits 은 rank-2 [B, T] (결정 헤드) 이므로 마스크도 rank-2 로 유지한다.
+            # unsqueeze(-1) 하면 eps (G,B,T) * mask (B,T,1) 에서 T vs B 로 밀려
+            # XLA mul 이 "Check failed: dim1 == dim2 ..." 로 죽는다(v3 스모크).
+            mask = mmask
+            k = mask.sum(-1, keepdim=True).float()
 
             eps = torch.randn((GROUP_SIZE,) + logits.shape, device=logits.device) * sigma * mask
             eps = (eps - eps.sum(-1, keepdim=True) / k) * mask
             z = logits.detach().unsqueeze(0) + eps
             q = torch.softmax(z.masked_fill(~mask, -1e4), -1)
             with torch.no_grad():
-                r = proper_reward(q, target.unsqueeze(0), qt.squeeze(-1).expand(-1, 2),
+                r = proper_reward(q, target.unsqueeze(0), qt.squeeze(-1),
                                   mask, w_sph=0.75, w_rps=1.0)
                 adv = r - r.mean(0, keepdim=True)
                 adv = adv / (adv.std() + 1e-6)
 
             logp = -(((z - logits.unsqueeze(0)) ** 2) * mask).sum(-1) / (2 * sigma ** 2)
             loss_rl = -(adv * logp).mean()
-            loss_ce = -(target.unsqueeze(-1) *
+            loss_ce = -(target *
                         torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
             loss = (RL_WEIGHT * loss_rl + 1.0 * loss_ce) / GRAD_ACCUM
             loss.backward()
