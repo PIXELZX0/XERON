@@ -194,9 +194,22 @@ def main():
     layer_cls = getattr(mbm, "ModernBertEncoderLayer", None) or getattr(mbm, "ModernBertLayer")
 
     def shard_output(out, mesh):
-        logits = out[0] if isinstance(out, (tuple, list)) else out
-        if torch.is_tensor(logits):
-            xs.mark_sharding(logits, mesh, ("fsdp", None, None))
+        """Shard every model output along the FSDP axis, matching the tensor rank.
+
+        The decision head returns rank-2 tensors (logits [B, T], act_logits [B, A]),
+        so a fixed 3-entry partition spec asserts out (rank 3 != rank 2).
+        Build the spec from `dim()` instead so it stays correct either way.
+        """
+        def _shard(t):
+            if not torch.is_tensor(t):
+                return
+            xs.mark_sharding(t, mesh, ("fsdp",) + (None,) * (t.dim() - 1))
+
+        if isinstance(out, (tuple, list)):
+            for t in out:
+                _shard(t)
+        else:
+            _shard(out)
 
     auto_wrap = functools.partial(transformer_auto_wrap_policy,
                                   transformer_layer_cls={layer_cls})
