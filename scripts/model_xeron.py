@@ -81,8 +81,12 @@ class WideHeadDecisionModel(DecisionModel):
         ent = -(p * torch.log(p.clamp_min(1e-9))).sum(-1) / torch.log(k)
         top2 = p.topk(2, -1).values
         feats = torch.stack([top2[:, 0], top2[:, 0] - top2[:, 1], ent, k / 255.0], -1)
-        pooled = h[:, 0].float()
-        act_logits = self.act_head(torch.cat([pooled, feats], -1))
+        # act_head 은 모델 전체와 같이 bf16 으로 캐스팅된다. pooled/feats 를 f32 로 두면
+        # dot(bf16 weight, f32 input) + bf16 bias 가 되어 XLA 가
+        # "Seen floating point types of different precisions in %add" 로 죽는다(v4 스모크).
+        adt = self.act_head[0].weight.dtype
+        pooled = h[:, 0].to(adt)
+        act_logits = self.act_head(torch.cat([pooled, feats.to(adt)], -1))
         return logits, act_logits
 
 
