@@ -257,8 +257,14 @@ def main():
           f"batches={plan_stats['batches']:,} real_tok={plan_stats['real_tokens']:,} "
           f"padded_tok={plan_stats['padded_tokens']:,} waste={plan_stats['waste_pct']}% "
           f"max_batch_padded={plan_stats['max_padded_per_batch']:,}", flush=True)
+    # steps_per_epoch must use the planner's actual batch count, not
+    # len(items)//(MICRO_BATCH*GRAD_ACCUM).  When MAX_TOKENS_BATCH caps a batch below
+    # MICRO_BATCH the planner emits more (smaller) batches, so the naive formula
+    # underestimates steps_per_epoch → T_max too small → LR decays too fast.
+    steps_per_epoch = max(1, plan_stats["batches"] // GRAD_ACCUM)
     print(f"[data] {len(items):,} items | micro_batch(global)={MICRO_BATCH} "
-          f"grad_accum={GRAD_ACCUM} | steps/epoch={len(items)//(MICRO_BATCH*GRAD_ACCUM)}", flush=True)
+          f"grad_accum={GRAD_ACCUM} | batches/epoch={plan_stats['batches']:,} "
+          f"steps/epoch={steps_per_epoch}", flush=True)
 
     # 4) 옵티마이저: encoder/head LR 분리 (train_ddp 와 동일)
     enc_params = [p for n, p in model.named_parameters() if "encoder." in n]
@@ -267,10 +273,6 @@ def main():
     opt = torch.optim.AdamW(
         [{"params": enc_params, "lr": LR_ENCODER},
          {"params": head_params, "lr": LR_HEAD}], weight_decay=WEIGHT_DECAY)
-    # 옵티마이저 1스텝이 소비하는 아이템 수 = MICRO_BATCH * GRAD_ACCUM (유효배치).
-    # MICRO_BATCH 로만 나누면 실제 스텝의 GRAD_ACCUM(8)배를 스텝 수로 세고, LR 코사인
-    # 스케줄도 8배 길어져 lr 이 2e-05 에서 거의 감쇠하지 않는다(v6 스모크: 16스텝인데 128로 표기).
-    steps_per_epoch = max(1, len(items) // (MICRO_BATCH * GRAD_ACCUM))
     total_updates = steps_per_epoch * EPOCHS
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=total_updates, eta_min=1e-6)
 
@@ -349,6 +351,7 @@ def main():
     threading.Thread(target=_watch, daemon=True).start()
 
     rng = random.Random(42 + SHARD_INDEX)
+    budget_stop = False
     for epoch in range(start_epoch, EPOCHS):
         sigma = SIGMA_START + (SIGMA_END - SIGMA_START) * (epoch / max(1, EPOCHS - 1))
         opt.zero_grad(set_to_none=True)
@@ -420,7 +423,28 @@ def main():
             if MAX_TRAIN_MIN and (time.time() - t_start) > MAX_TRAIN_MIN * 60:
                 print(f"[budget] MAX_TRAIN_MIN={MAX_TRAIN_MIN} 도달 — micro {micro+1} "
                       f"(step {nstep}) 에서 정상 종료 → DCP 저장", flush=True)
+                budget_stop = True
                 break
+
+        # Flush trailing partial grad-accum group on normal epoch completion (not budget stop).
+        # Each micro-loss was divided by GRAD_ACCUM, so accumulated grads carry a 1/GRAD_ACCUM
+        # factor.  Rescale by GRAD_ACCUM/partial so the update is a proper mean over the
+        # partial group, matching the semantics of a full GRAD_ACCUM step.
+        partial = accum % GRAD_ACCUM
+        if not budget_stop and partial != 0:
+            scale = GRAD_ACCUM / partial
+            for p in model.parameters():
+                if p.grad is not None:
+                    p.grad.mul_(scale)
+            progress["phase"] = "opt-trailing"
+            gn = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0 * math.sqrt(ndev))
+            opt.step()
+            sched.step()
+            opt.zero_grad(set_to_none=True)
+            nstep += 1
+            xm.mark_step()
+            print(f"  [trailing] flushed {partial}/{GRAD_ACCUM} micro-batches as step {nstep} "
+                  f"gn={float(gn):.2f}", flush=True)
 
         dt = time.time() - t0
         print(f"=== epoch {epoch+1}/{EPOCHS} done {dt/60:.1f}min | "
@@ -429,9 +453,15 @@ def main():
         if CKPT_EVERY and (epoch + 1) % CKPT_EVERY == 0:
             save_dcp(epoch + 1)
             snapshot(f"epoch{epoch+1}")
+        if budget_stop:
+            break
 
-    save_dcp(EPOCHS)
-    snapshot("final")
+    # Only run the final save when all epochs completed normally; the epoch-level
+    # save above already covers the budget-truncated path (avoids ~80 s double DCP save).
+    if not budget_stop:
+        save_dcp(EPOCHS)
+        snapshot("final")
+    # TRAIN_DONE must always print: kaggle/kernel/kernel.py gates HF upload on this line.
     print(f"TRAIN_DONE shard={SHARD_INDEX}/{SHARD_COUNT} total={(time.time()-t_start)/60:.1f}min",
           flush=True)
 
