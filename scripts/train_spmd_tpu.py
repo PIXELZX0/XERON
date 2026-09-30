@@ -326,6 +326,21 @@ def main():
         print(f"[snapshot] {OUT_DIR} {tag}", flush=True)
 
     # 6) 학습 루프 (train_ddp 의 RLCD 손실을 그대로 이식)
+    # 진행 감시 스레드: XLA 컴파일/콜렉티브에서 멈추면 stdout 이 완전히 끊겨
+    # "멈춘 것"과 "느린 컴파일"을 구분할 수 없다(v5 스모크: 스텝 로그 0줄로 40분 타임아웃).
+    # 2분마다 현재 위치를 남겨 어느 단계에 물려 있는지 알 수 있게 한다.
+    progress = {"phase": "loop-start", "micro": -1, "nstep": 0}
+
+    def _watch():
+        t0 = time.time()
+        while True:
+            time.sleep(120)
+            print(f"[watch] t={time.time()-t0:.0f}s phase={progress['phase']} "
+                  f"micro={progress['micro']} nstep={progress['nstep']}", flush=True)
+
+    import threading
+    threading.Thread(target=_watch, daemon=True).start()
+
     rng = random.Random(42 + SHARD_INDEX)
     for epoch in range(start_epoch, EPOCHS):
         sigma = SIGMA_START + (SIGMA_END - SIGMA_START) * (epoch / max(1, EPOCHS - 1))
@@ -339,6 +354,8 @@ def main():
                   f"waste={epoch_stats['waste_pct']}%", flush=True)
         for micro, batch in enumerate(dev_loader):
             ids, att, mpos, mmask, target, qt = batch
+            t_micro = time.time()
+            progress.update(phase="fwd", micro=micro)
             with torch.amp.autocast("cuda", enabled=False):
                 logits, act = model(ids, att, mpos, mmask, qt.squeeze(-1))
             logits = logits.float()
@@ -363,10 +380,12 @@ def main():
             loss_ce = -(target *
                         torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
             loss = (RL_WEIGHT * loss_rl + 1.0 * loss_ce) / GRAD_ACCUM
+            progress["phase"] = "bwd"
             loss.backward()
             accum += 1
 
             if accum % GRAD_ACCUM == 0:
+                progress["phase"] = "opt"
                 # 근사 클리핑: 로컬 샤드 노름 → 전역 스케일(√ndev)로 보정
                 gn = torch.nn.utils.clip_grad_norm_(model.parameters(),
                                                     1.0 * math.sqrt(ndev))
@@ -374,7 +393,8 @@ def main():
                 sched.step()
                 opt.zero_grad(set_to_none=True)
                 nstep += 1
-                if nstep % 20 == 0:
+                progress.update(phase="step-done", nstep=nstep)
+                if nstep <= 5 or nstep % 20 == 0:
                     el = time.time() - t0
                     print(f"  ep{epoch+1}/{EPOCHS} step {nstep}/{total_updates//EPOCHS} "
                           f"loss={loss.item()*GRAD_ACCUM:.4f} reward={r.mean().item():.3f} "
@@ -382,6 +402,13 @@ def main():
                           f"{el/max(1,nstep):.2f}s/step "
                           f"({MICRO_BATCH*GRAD_ACCUM/max(1e-9, el/max(1,nstep)):.1f} seq/s)",
                           flush=True)
+            # XLA 는 마지막 mark_step 이후의 연산을 **하나의 그래프**로 묶는다. 마이크로배치마다
+            # 끊지 않으면 GRAD_ACCUM(8)회 fwd+bwd 가 한 HLO 로 전개되어 컴파일이 수십 분 걸리거나
+            # 끝나지 않는다(v5 스모크: 스텝 로그 0줄 상태로 40분 타임아웃). 1회 fwd+bwd 로 제한한다.
+            xm.mark_step()
+            if micro < 3:
+                print(f"  [micro {micro}] {time.time()-t_micro:.1f}s "
+                      f"loss={float(loss)*GRAD_ACCUM:.4f} accum={accum}", flush=True)
             losses.append(loss.item() * GRAD_ACCUM)
 
         dt = time.time() - t0

@@ -78,7 +78,7 @@ EPOCHS = _i("EPOCHS", 1)
 MICRO_BATCH = _i("MICRO_BATCH", 32)       # 전역 배치 (8칩에 샤딩됨)
 GRAD_ACCUM = _i("GRAD_ACCUM", 8)          # 유효배치 256
 MAX_LEN = _i("MAX_LEN", 1024)
-MAX_ITEMS = _i("MAX_ITEMS", 20000)            # 스모크용 (0=전체)
+MAX_ITEMS = _i("MAX_ITEMS", 4096)             # 스모크용 (0=전체) — 40분 안에 1에폭+DCP 저장까지 끝나도록 축소
 CKPT_MODE = _s("CKPT_MODE", "local")      # local | hf | s3
 BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # RUNNER_REWRITES_THIS_LINE
 CKPT_HF = _s("CKPT_HF", "PIXELZX/XERON-1.0-short-ckpt")
