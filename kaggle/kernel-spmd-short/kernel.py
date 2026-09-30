@@ -194,6 +194,7 @@ TRAIN_ENV = {
     "HEAD_MAX_LEN": "256",
     "MAX_TOKENS_BATCH": "32768",
     "CKPT_EVERY": "1",
+    "MAX_TRAIN_MIN": str(MINUTES),   # 0=제한없음(본런). 트레이너가 스텝 경계에서 정상 종료
     "RESUME_SHARD": "1",
     "PYTHONUNBUFFERED": "1",
 }
@@ -202,7 +203,11 @@ if MAX_ITEMS:
 
 log(f"=== train shard {SHARD_INDEX}/{SHARD_COUNT} ===")
 log("  env=" + json.dumps(TRAIN_ENV, indent=2))
-timeout = MINUTES * 60 if MINUTES else None
+# 트레이너의 MAX_TRAIN_MIN 은 '스텝 경계에서 정상 종료'(DCP 저장 + 스냅샷 + HF 업로드) 예산이다.
+# 하드 타임아웃을 같은 값으로 걸면 저장/업로드 도중 SIGKILL 되어 커널이 ERROR 로 끝난다
+# (v6 스모크: epoch 완료 직후 [dcp] saved/[snapshot] 까지 찍고 2400s 에서 kill → TRAIN_DONE·업로드 소실).
+# 저장(~80s)+스냅샷+업로드 여유로 15분을 더 준다.
+timeout = (MINUTES * 60 + 900) if MINUTES else None
 sh(f"{sys.executable} -u scripts/train_spmd_tpu.py", cwd=REPO, env=TRAIN_ENV, timeout=timeout)
 
 # ---------------------------------------------------------------- 7) 업로드 (세션 간 이어받기)

@@ -85,6 +85,10 @@ SHARD_INDEX = _i("SHARD_INDEX", 0)
 SHARD_COUNT = _i("SHARD_COUNT", 4)
 CKPT_EVERY = _i("CKPT_EVERY", 1)
 MAX_ITEMS = _i("MAX_ITEMS", 0)                # 0 = 샤드 전체
+# 0 = 무제한. >0 이면 이 분(min)을 넘긴 **스텝 경계**에서 루프를 빠져나와 정상 종료한다
+# (DCP 저장 + 스냅샷 + TRAIN_DONE 까지 수행). 커널이 같은 값을 하드 타임아웃으로 걸면
+# 저장 도중 SIGKILL 되어 커널이 ERROR 로 끝난다(v6 스모크).
+MAX_TRAIN_MIN = _i("MAX_TRAIN_MIN", 0)
 RESUME_SHARD = _i("RESUME_SHARD", 1) == 1
 LEN_MIN = _i("LEN_MIN", 0)
 LEN_MAX = _i("LEN_MAX", 1024)                 # 이 트레이너는 ≤1024(숏) 전용
@@ -254,7 +258,7 @@ def main():
           f"padded_tok={plan_stats['padded_tokens']:,} waste={plan_stats['waste_pct']}% "
           f"max_batch_padded={plan_stats['max_padded_per_batch']:,}", flush=True)
     print(f"[data] {len(items):,} items | micro_batch(global)={MICRO_BATCH} "
-          f"grad_accum={GRAD_ACCUM} | steps/epoch={len(items)//MICRO_BATCH}", flush=True)
+          f"grad_accum={GRAD_ACCUM} | steps/epoch={len(items)//(MICRO_BATCH*GRAD_ACCUM)}", flush=True)
 
     # 4) 옵티마이저: encoder/head LR 분리 (train_ddp 와 동일)
     enc_params = [p for n, p in model.named_parameters() if "encoder." in n]
@@ -263,7 +267,10 @@ def main():
     opt = torch.optim.AdamW(
         [{"params": enc_params, "lr": LR_ENCODER},
          {"params": head_params, "lr": LR_HEAD}], weight_decay=WEIGHT_DECAY)
-    steps_per_epoch = max(1, len(items) // MICRO_BATCH)
+    # 옵티마이저 1스텝이 소비하는 아이템 수 = MICRO_BATCH * GRAD_ACCUM (유효배치).
+    # MICRO_BATCH 로만 나누면 실제 스텝의 GRAD_ACCUM(8)배를 스텝 수로 세고, LR 코사인
+    # 스케줄도 8배 길어져 lr 이 2e-05 에서 거의 감쇠하지 않는다(v6 스모크: 16스텝인데 128로 표기).
+    steps_per_epoch = max(1, len(items) // (MICRO_BATCH * GRAD_ACCUM))
     total_updates = steps_per_epoch * EPOCHS
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=total_updates, eta_min=1e-6)
 
@@ -410,6 +417,10 @@ def main():
                 print(f"  [micro {micro}] {time.time()-t_micro:.1f}s "
                       f"loss={float(loss)*GRAD_ACCUM:.4f} accum={accum}", flush=True)
             losses.append(loss.item() * GRAD_ACCUM)
+            if MAX_TRAIN_MIN and (time.time() - t_start) > MAX_TRAIN_MIN * 60:
+                print(f"[budget] MAX_TRAIN_MIN={MAX_TRAIN_MIN} 도달 — micro {micro+1} "
+                      f"(step {nstep}) 에서 정상 종료 → DCP 저장", flush=True)
+                break
 
         dt = time.time() - t0
         print(f"=== epoch {epoch+1}/{EPOCHS} done {dt/60:.1f}min | "
