@@ -92,13 +92,26 @@ MAX_TRAIN_MIN = _i("MAX_TRAIN_MIN", 0)
 RESUME_SHARD = _i("RESUME_SHARD", 1) == 1
 LEN_MIN = _i("LEN_MIN", 0)
 LEN_MAX = _i("LEN_MAX", 1024)                 # 이 트레이너는 ≤1024(숏) 전용
+# XLA는 **텐서 shape 마다** 그래프를 새로 컴파일한다. 길이순 정렬 데이터는 micro-batch 마다
+# 패딩 길이(=batch 내 최장)가 달라져서 거의 모든 micro-batch 가 새 그래프가 된다 —
+# v8 스모크: 128 micro 에 2154s(1.9 seq/s, ~10-60 s/micro)로 실측 peak(8칩 ~8.5K tok/s)의
+# 1/90 수준. shape 를 성글게 고정해 컴파일 횟수를 한 자릿수로 줄인다.
+PAD_L_BUCKET = _i("PAD_L_BUCKET", 16)         # 토큰 축을 이 배수로 올림 패딩 (0=비활성)
+MARKER_PAD = _i("MARKER_PAD", 16)             # 결정 헤드 폭 고정(실측 최대 마커 14)
 
 
 # ---------------------------------------------------------------- data
-def collate_train_batch(items, pad_id):
-    """train_ddp.py 와 동일. 단 모든 텐서를 rank-2 로 유지한다(SPMD 입력 샤딩 제약)."""
+def collate_train_batch(items, pad_id, l_bucket=0, k_pad=0):
+    """train_ddp.py 와 동일. 단 모든 텐서를 rank-2 로 유지한다(SPMD 입력 샤딩 제약).
+
+    l_bucket/k_pad 는 XLA 재컴파일을 줄이기 위한 shape 고정용이다(손실에는 영향 없음).
+    """
     n, L = len(items), max(len(it["ids"]) for it in items)
     kmax = max(len(it["markers"]) for it in items)
+    if l_bucket:
+        L = math.ceil(L / l_bucket) * l_bucket     # 데이터가 ≤LEN_MAX 로 필터되어 있다
+    if k_pad:
+        kmax = max(k_pad, kmax)
     ids = torch.full((n, L), pad_id, dtype=torch.long)
     att = torch.zeros((n, L), dtype=torch.long)
     mpos = torch.zeros((n, kmax), dtype=torch.long)
@@ -234,7 +247,8 @@ def main():
             return len(self.plan)
 
         def __getitem__(self, i):
-            return collate_train_batch([self.rows[j] for j in self.plan[i]], tok.pad_token_id)
+            return collate_train_batch([self.rows[j] for j in self.plan[i]], tok.pad_token_id,
+                                       PAD_L_BUCKET, MARKER_PAD)
 
     def collate_tuple(rows):
         # rows: list[(ids,att,mpos,mmask,target,qt)] each of shape (1, ...) → cat
@@ -249,14 +263,26 @@ def main():
             BatchDS(plan, items), batch_size=1, shuffle=False, num_workers=4,
             collate_fn=collate_tuple)
         return pl.MpDeviceLoader(
-            dl, device, input_sharding=xs.ShardingSpec(mesh, ("fsdp", None))), st
+            dl, device, input_sharding=xs.ShardingSpec(mesh, ("fsdp", None))), st, plan
 
-    dev_loader, plan_stats = make_loader(0, dev)
+    dev_loader, plan_stats, plan = make_loader(0, dev)
     print(f"[batch] mode={BATCH_MODE} micro_batch(global)={MICRO_BATCH} "
           f"max_tokens_batch={MAX_TOKENS_BATCH} items={plan_stats['items']:,} "
           f"batches={plan_stats['batches']:,} real_tok={plan_stats['real_tokens']:,} "
           f"padded_tok={plan_stats['padded_tokens']:,} waste={plan_stats['waste_pct']}% "
           f"max_batch_padded={plan_stats['max_padded_per_batch']:,}", flush=True)
+    # XLA 컴파일 횟수 = 서로 다른 (토큰 패딩, 마커 패딩) shape 의 개수.
+    def _shapes_report(plan):
+        if PAD_L_BUCKET or MARKER_PAD:
+            l_b = {max(row_lengths[j] for j in b) for b in plan}
+            if PAD_L_BUCKET:
+                l_b = {math.ceil(m / PAD_L_BUCKET) * PAD_L_BUCKET for m in l_b}
+            return f"[shapes] distinct padded token widths={sorted(l_b)[:20]}{'...' if len(l_b) > 20 else ''} " \
+                   f"(count={len(l_b)}) marker_pad={MARKER_PAD}\n"
+        return f"[shapes] dynamic padding, distinct batch widths={len({max(row_lengths[j] for j in b) for b in plan})}\n"
+
+    print(_shapes_report(plan)[:-1], flush=True)
+
     # steps_per_epoch must use the planner's actual batch count, not
     # len(items)//(MICRO_BATCH*GRAD_ACCUM).  When MAX_TOKENS_BATCH caps a batch below
     # MICRO_BATCH the planner emits more (smaller) batches, so the naive formula
@@ -357,13 +383,15 @@ def main():
         opt.zero_grad(set_to_none=True)
         accum, nstep, t0 = 0, 0, time.time()
         losses = []
+        tok_seen = 0
         # rebuild the plan each epoch so bucket order/content is reshuffled
         if epoch > start_epoch:
-            dev_loader, epoch_stats = make_loader(epoch, dev)
+            dev_loader, epoch_stats, plan = make_loader(epoch, dev)
             print(f"[batch] epoch {epoch+1} plan: batches={epoch_stats['batches']:,} "
                   f"waste={epoch_stats['waste_pct']}%", flush=True)
         for micro, batch in enumerate(dev_loader):
             ids, att, mpos, mmask, target, qt = batch
+            tok_seen += ids.numel()          # 패딩 포함 토큰(장치가 실제로 계산하는 양)
             t_micro = time.time()
             progress.update(phase="fwd", micro=micro)
             with torch.amp.autocast("cuda", enabled=False):
@@ -386,6 +414,9 @@ def main():
                 adv = adv / (adv.std() + 1e-6)
 
             logp = -(((z - logits.unsqueeze(0)) ** 2) * mask).sum(-1) / (2 * sigma ** 2)
+            # logp·adv 는 마커 축으로 이미 축약되어 (G,B) 다. 결정 헤드 폭을 MARKER_PAD 로
+            # 넓혀도 패딩 위치는 mask=0 이라 logp 에 0 을 더할 뿐이라 손실은 동일하다.
+            # (로컬 CPU 검증: 자연폭(5) vs 패딩(16) rl/ce 차이 < 1e-6)
             loss_rl = -(adv * logp).mean()
             loss_ce = -(target *
                         torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
@@ -419,6 +450,13 @@ def main():
             if micro < 3:
                 print(f"  [micro {micro}] {time.time()-t_micro:.1f}s "
                       f"loss={float(loss)*GRAD_ACCUM:.4f} accum={accum}", flush=True)
+            # shape 별 처리량을 직접 볼 수 있게 주기적으로 속도를 남긴다
+            # (스모크에서 micro 당 고정비용이 지배적인지를 판단하는 근거).
+            if (micro + 1) % 200 == 0:
+                el = time.time() - t0
+                print(f"  [rate] micro={micro+1} {el/(micro+1):.2f}s/micro "
+                      f"{tok_seen/max(1e-9, el):.0f} tok/s shape={tuple(int(s) for s in ids.shape)}",
+                      flush=True)
             losses.append(loss.item() * GRAD_ACCUM)
             if MAX_TRAIN_MIN and (time.time() - t_start) > MAX_TRAIN_MIN * 60:
                 print(f"[budget] MAX_TRAIN_MIN={MAX_TRAIN_MIN} 도달 — micro {micro+1} "
@@ -456,9 +494,9 @@ def main():
         if budget_stop:
             break
 
-    # Only run the final save when all epochs completed normally; the epoch-level
-    # save above already covers the budget-truncated path (avoids ~80 s double DCP save).
-    if not budget_stop:
+    # epoch 단위 저장이 마지막 epoch 를 이미 덮었는데(EPOCHS % CKPT_EVERY == 0) final 저장을
+    # 한 번 더 하면 DCP 저장(~700s, v8 실측 694.9s)이 중복되어 커널 하드 타임아웃에 잘린다.
+    if not budget_stop and (CKPT_EVERY <= 0 or EPOCHS % CKPT_EVERY != 0):
         save_dcp(EPOCHS)
         snapshot("final")
     # TRAIN_DONE must always print: kaggle/kernel/kernel.py gates HF upload on this line.

@@ -1,12 +1,15 @@
 #!/bin/bash
 # XERON-1.0 숏컨텍스트 — Kaggle TPU v5e-8 4세션 파이프라인 러너.
 #
-#   ./run_spmd_shard.sh 0        # 0번 샤드 세션 push (9h)
-#   ./run_spmd_shard.sh 0 --smoke  # 스모크: 2만 seq만
+#   ./run_spmd_shard.sh 0            # 0번 샤드 본런 (DCP 를 HF 로 올려 이어받기)
+#   ./run_spmd_shard.sh 0 --smoke    # 스모크: 2만 seq, 20분 예산, DCP 는 로컬만
 #
 # 커널은 매 세션마다 자기 샤드의 DCP 체크포인트를 HF(CKPT_HF)에서 이어받고,
 # 끝나면 다시 올린다. Kaggle 제약: 주 20h / 1세션 최대 9h / 동시 1세션.
 #   → 4샤드 × ~9h = 1에폭, 약 1.8주 (20h/주 한도)
+#
+# 본런 시간 예산(MAX_TRAIN_MIN): 9h 세션 한도 안에서 DCP 저장(~12분)+HF 업로드(7.9GB)를
+# 끝내야 하므로 기본 420분(7h).  예: MAX_TRAIN_MIN=480 ./run_spmd_shard.sh 0
 set -euo pipefail
 
 SHARD="${1:?usage: $0 <shard_index 0..3> [--smoke]}"
@@ -28,15 +31,20 @@ fi
 grep -n '^SHARD_INDEX\|^BASE_HF' "$KDIR/kernel.py"
 
 if [ "$SMOKE" = "--smoke" ]; then
-  sed -i -E "s/^MAX_ITEMS = _i\(\"MAX_ITEMS\", [0-9]+\)/MAX_ITEMS = _i(\"MAX_ITEMS\", 20000)/" "$KDIR/kernel.py"
-  sed -i -E "s/^MINUTES = _i\(\"MAX_TRAIN_MIN\", [0-9]+\)/MINUTES = _i(\"MAX_TRAIN_MIN\", 40)/" "$KDIR/kernel.py"
-  echo "[smoke] MAX_ITEMS=20000 MAX_TRAIN_MIN=40"
+  ITEMS="${SMOKE_ITEMS:-20000}"
+  MINS="${SMOKE_MIN:-20}"
+  MODE="${SMOKE_CKPT:-local}"
 else
-  sed -i -E "s/^MAX_ITEMS = _i\(\"MAX_ITEMS\", [0-9]+\)/MAX_ITEMS = _i(\"MAX_ITEMS\", 0)/" "$KDIR/kernel.py"
-  sed -i -E "s/^MINUTES = _i\(\"MAX_TRAIN_MIN\", [0-9]+\)/MINUTES = _i(\"MAX_TRAIN_MIN\", 0)/" "$KDIR/kernel.py"
+  ITEMS="${MAIN_ITEMS:-0}"
+  MINS="${MAX_TRAIN_MIN:-420}"
+  MODE="${MAIN_CKPT:-hf}"
 fi
 
-echo "[push] $REF (shard $SHARD)"
+sed -i -E "s/^MAX_ITEMS = _i\(\"MAX_ITEMS\", [0-9]+\)/MAX_ITEMS = _i(\"MAX_ITEMS\", ${ITEMS})/" "$KDIR/kernel.py"
+sed -i -E "s/^MINUTES = _i\(\"MAX_TRAIN_MIN\", [0-9]+\)/MINUTES = _i(\"MAX_TRAIN_MIN\", ${MINS})/" "$KDIR/kernel.py"
+sed -i -E "s/^CKPT_MODE = _s\(\"CKPT_MODE\", \"[a-z0-9]*\"\)/CKPT_MODE = _s(\"CKPT_MODE\", \"${MODE}\")/" "$KDIR/kernel.py"
+grep -n '^MAX_ITEMS\|^MINUTES\|^CKPT_MODE' "$KDIR/kernel.py"
+echo "[push] $REF (shard $SHARD, MAX_ITEMS=$ITEMS, MAX_TRAIN_MIN=$MINS, CKPT_MODE=$MODE)"
 kaggle kernels push -p "$KDIR" 2>&1 | tee -a "$LOG_DIR/shard${SHARD}.log"
 
 # Kaggle CLI 는 push 후 상태 폴링만 제공: 상태/로그 확인용 안내

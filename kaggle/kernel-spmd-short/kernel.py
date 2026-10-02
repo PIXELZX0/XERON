@@ -55,15 +55,36 @@ def _s(n, d):
 def _load_token():
     """Kaggle 스크립트 커널은 push 시 env 주입이 안 된다.
     HF_TOKEN 을 ① env ② 마운트된 비공개 데이터셋 파일 순으로 찾는다.
-    예: /kaggle/input/xeron-creds/hf_token.txt (비공개 데이터셋으로 만들어 둘 것)"""
+
+    주의: Kaggle 의 데이터셋 마운트 경로는 두 가지다 —
+      /kaggle/input/<slug>/                  (구 경로)
+      /kaggle/input/datasets/<owner>/<slug>/ (TPU VM 런이 쓰는 경로)
+    v8 스모크는 데이터셋을 붙였는데도 후자를 못 찾아 'HF_TOKEN 없음' 을 찍었다.
+    """
+    import glob as _glob
     if os.environ.get("HF_TOKEN"):
         return os.environ["HF_TOKEN"]
-    for cand in ("/kaggle/input/xeron-creds/hf_token.txt",
-                 "/kaggle/input/xeron-creds/HF_TOKEN.txt"):
-        if os.path.exists(cand):
+    cands = []
+    for pat in ("/kaggle/input/xeron-creds/hf_token.txt",
+                "/kaggle/input/datasets/*/xeron-creds/hf_token.txt",
+                "/kaggle/input/*creds*/hf_token.txt",
+                "/kaggle/input/datasets/*/*creds*/hf_token.txt"):
+        cands += sorted(_glob.glob(pat))
+    for cand in cands:
+        try:
             tok = open(cand).read().strip()
+        except Exception as ex:
+            log(f"  [!] {cand} 읽기 실패 ({type(ex).__name__})")
+            continue
+        if tok:
             os.environ["HF_TOKEN"] = tok
-            log(f"  HF_TOKEN 을 {cand} 에서 읽었습니다")
+            log(f"  HF_TOKEN 을 {cand} 에서 읽었습니다 ({len(tok)}자)")
+            try:   # 토큰이 '있는 것' 과 '유효한 것' 은 다르다 — 미리 확인해 둔다
+                from huggingface_hub import HfApi
+                who = HfApi(token=tok).whoami()
+                log(f"  HF whoami: {who.get('name')} ({who.get('type')})")
+            except Exception as ex:
+                log(f"  [!] HF 토큰 검증 실패: {type(ex).__name__}: {str(ex)[:120]}")
             return tok
     log("  HF_TOKEN 없음 — 공개 베이스만 사용 가능, DCP 업로드는 실패합니다")
     return None
@@ -78,7 +99,7 @@ EPOCHS = _i("EPOCHS", 1)
 MICRO_BATCH = _i("MICRO_BATCH", 32)       # 전역 배치 (8칩에 샤딩됨)
 GRAD_ACCUM = _i("GRAD_ACCUM", 8)          # 유효배치 256
 MAX_LEN = _i("MAX_LEN", 1024)
-MAX_ITEMS = _i("MAX_ITEMS", 4096)             # 스모크용 (0=전체) — 40분 안에 1에폭+DCP 저장까지 끝나도록 축소
+MAX_ITEMS = _i("MAX_ITEMS", 0)                # 0=샤드 전체. >0 이면 길이 오름차순 앞에서 자름(스모크)
 CKPT_MODE = _s("CKPT_MODE", "local")      # local | hf | s3
 BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # RUNNER_REWRITES_THIS_LINE
 CKPT_HF = _s("CKPT_HF", "PIXELZX/XERON-1.0-short-ckpt")
@@ -205,9 +226,10 @@ log(f"=== train shard {SHARD_INDEX}/{SHARD_COUNT} ===")
 log("  env=" + json.dumps(TRAIN_ENV, indent=2))
 # 트레이너의 MAX_TRAIN_MIN 은 '스텝 경계에서 정상 종료'(DCP 저장 + 스냅샷 + HF 업로드) 예산이다.
 # 하드 타임아웃을 같은 값으로 걸면 저장/업로드 도중 SIGKILL 되어 커널이 ERROR 로 끝난다
-# (v6 스모크: epoch 완료 직후 [dcp] saved/[snapshot] 까지 찍고 2400s 에서 kill → TRAIN_DONE·업로드 소실).
-# 저장(~80s)+스냅샷+업로드 여유로 15분을 더 준다.
-timeout = (MINUTES * 60 + 900) if MINUTES else None
+# (v6: 2400s 에서 kill / v8: 저장을 마치고 TRAIN_DONE 직전 3300s 에서 kill).
+# v8 실측 DCP 저장 = **694.9s**(≈11.6분) — 주석의 "~80s" 가정보다 8배 느려서 +900s 로는 부족했다.
+# 저장 2회가 겹치던 중복 저장(train_spmd_tpu.py 에서 수정)까지 고려해 30분 여유를 둔다.
+timeout = (MINUTES * 60 + 1800) if MINUTES else None
 sh(f"{sys.executable} -u scripts/train_spmd_tpu.py", cwd=REPO, env=TRAIN_ENV, timeout=timeout)
 
 # ---------------------------------------------------------------- 7) 업로드 (세션 간 이어받기)
