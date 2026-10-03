@@ -104,6 +104,7 @@ CKPT_MODE = _s("CKPT_MODE", "local")      # local | hf | s3
 BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # RUNNER_REWRITES_THIS_LINE
 CKPT_HF = _s("CKPT_HF", "PIXELZX/XERON-1.0-short-ckpt")
 MINUTES = _i("MAX_TRAIN_MIN", 40)          # 0=무제한, 아니면 DCP 저장 후 조기 종료
+DIAG = _i("DIAG", 0)                       # RUNNER_REWRITES_THIS_LINE (1=학습 전 처리량 진단)
 DATA_PT = None
 
 os.makedirs(EXPORT, exist_ok=True)
@@ -221,6 +222,10 @@ TRAIN_ENV = {
 }
 if MAX_ITEMS:
     TRAIN_ENV["MAX_ITEMS"] = str(MAX_ITEMS)
+DIAG = str(DIAG)
+TRAIN_ENV["DIAG"] = DIAG
+if DIAG not in ("0", "", "false"):
+    TRAIN_ENV["DIAG_MICROS"] = _s("DIAG_MICROS", "4")
 
 log(f"=== train shard {SHARD_INDEX}/{SHARD_COUNT} ===")
 log("  env=" + json.dumps(TRAIN_ENV, indent=2))
@@ -230,6 +235,9 @@ log("  env=" + json.dumps(TRAIN_ENV, indent=2))
 # v8 실측 DCP 저장 = **694.9s**(≈11.6분) — 주석의 "~80s" 가정보다 8배 느려서 +900s 로는 부족했다.
 # 저장 2회가 겹치던 중복 저장(train_spmd_tpu.py 에서 수정)까지 고려해 30분 여유를 둔다.
 timeout = (MINUTES * 60 + 1800) if MINUTES else None
+if DIAG not in ("0", "", "false"):
+    # 진단은 학습 전에 변형별 micro 를 돌리므로 예산을 따로 준다(변형당 컴파일 포함).
+    timeout = (MINUTES * 60 + 3600) if MINUTES else 3600
 sh(f"{sys.executable} -u scripts/train_spmd_tpu.py", cwd=REPO, env=TRAIN_ENV, timeout=timeout)
 
 # ---------------------------------------------------------------- 7) 업로드 (세션 간 이어받기)

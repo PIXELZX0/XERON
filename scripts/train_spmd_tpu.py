@@ -283,6 +283,117 @@ def main():
 
     print(_shapes_report(plan)[:-1], flush=True)
 
+    # ------------------------------------------------------------ 3b) 처리량 진단 (DIAG=1)
+    def run_diagnostics():
+        """변형별 micro 시간 + XLA 컴파일 카운터로 처리량 킬러를 가른다.
+
+        대조군: GCP SPMD 벤치(같은 FSDPv2+auto_wrap, seq128×전역배치128) 1.86s/step
+        vs Kaggle 스모크 30~60s/micro(mb32 × ≤80 tok) — 형상은 같은데 60~100배 느리다.
+        후보: (a) micro 마다 재컴파일, (b) 손실 그래프(randn/proper_reward/.item),
+              (c) 입력 경로(MpDeviceLoader). 변형별 delta 로 가른다.
+        """
+        import torch_xla.debug.metrics as xm_metrics  # noqa: F401  (전체 리포트용)
+        from laya.common import proper_reward as _proper_reward
+
+        def _counters():
+            out, cur = {}, None
+            try:
+                import torch_xla.debug.metrics as xm_metrics
+                rep = xm_metrics.metrics_report()
+            except Exception as ex:            # 진단 카운터가 없어도 진단은 계속한다
+                print(f"[diag] metrics_report 실패 {type(ex).__name__}: {str(ex)[:120]}", flush=True)
+                return {}
+            for ln in rep.splitlines():
+                s = ln.strip()
+                if s.startswith(("Metric:", "Counter:")):
+                    cur = s.split(":", 1)[1].strip()
+                elif cur and s.startswith("Value:"):
+                    out[cur] = s.split(":", 1)[1].strip()
+                elif cur and s.startswith("Accumulator:"):
+                    out[cur + ".acc"] = s.split(":", 1)[1].strip()
+            return out
+
+        def _delta(a, b):
+            return {k: f"{a.get(k, '-')}→{b.get(k, '-')}" for k in sorted(set(a) | set(b))
+                    if a.get(k) != b.get(k)}
+
+        def _loss(batch, mode, eps_fixed):
+            ids, att, mpos, mmask, target, qt = batch
+            with torch.amp.autocast("cuda", enabled=False):
+                logits, _act = model(ids, att, mpos, mmask, qt.squeeze(-1))
+            logits = logits.float()
+            mask = mmask
+            ce = -(target * torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
+            if mode == "fwd":
+                return logits.sum()
+            if mode == "ce":
+                return ce
+            k = mask.sum(-1, keepdim=True).float()
+            if eps_fixed is None:
+                eps = torch.randn((GROUP_SIZE,) + logits.shape,
+                                  device=logits.device) * SIGMA_START * mask
+            else:
+                eps = eps_fixed * SIGMA_START * mask
+            eps = (eps - eps.sum(-1, keepdim=True) / k) * mask
+            z = logits.detach().unsqueeze(0) + eps
+            q = torch.softmax(z.masked_fill(~mask, -1e4), -1)
+            with torch.no_grad():
+                r = _proper_reward(q, target.unsqueeze(0), qt.squeeze(-1), mask,
+                                   w_sph=0.75, w_rps=1.0)
+                adv = r - r.mean(0, keepdim=True)
+                adv = adv / (adv.std() + 1e-6)
+            logp = -(((z - logits.unsqueeze(0)) ** 2) * mask).sum(-1) / (2 * SIGMA_START ** 2)
+            return RL_WEIGHT * (-(adv * logp).mean()) + ce
+
+        n_micro = max(2, _i("DIAG_MICROS", 4))
+        try:
+            dl, _st, _pl = make_loader(0, dev)
+            it = iter(dl)
+            batches = [next(it) for _ in range(n_micro)]   # 모든 변형이 같은 배치를 쓴다
+        except Exception as ex:
+            print(f"[diag] 배치 준비 실패 {type(ex).__name__}: {str(ex)[:300]}", flush=True)
+            return
+        print(f"[diag] shapes={[tuple(int(s) for s in b[0].shape) for b in batches]}", flush=True)
+
+        # 변형 목록. full 을 두 번 돌려 캐시가 따뜻해진 뒤의 속도를 본다.
+        variants = [("full", "full", batches), ("full2", "full", batches),
+                    ("ce", "ce", batches), ("full_fixed_eps", "full", batches),
+                    ("fwd", "fwd", batches)]
+        # cat4: 같은 shape 인 앞 4 micro 를 하나로 합쳐 "고정비용 vs 연산량" 을 가른다.
+        if len(batches) >= 4 and len({tuple(int(s) for s in b[0].shape) for b in batches[:4]}) == 1:
+            cat = tuple(torch.cat([b[i] for b in batches[:4]], 0) for i in range(6))
+            variants.append(("cat4_full", "full", [cat]))
+
+        for mode, lm, use in variants:
+            eps_fixed = None
+            if mode == "full_fixed_eps":
+                b0 = batches[0]
+                eps_fixed = torch.randn((GROUP_SIZE,) + tuple(b0[3].shape), device=b0[0].device)
+            base = _counters()
+            build, sync, total = [], [], []
+            try:
+                for b in use:
+                    model.zero_grad(set_to_none=True)
+                    t0 = time.time()
+                    loss = _loss(b, lm, eps_fixed)
+                    if lm != "fwd":
+                        loss.backward()
+                    t1 = time.time()
+                    xm.mark_step()
+                    t2 = time.time()
+                    build.append(t1 - t0)
+                    sync.append(t2 - t1)
+                    total.append(t2 - t0)
+            except Exception as ex:
+                print(f"[diag] {mode} FAILED {type(ex).__name__}: {str(ex)[:300]}", flush=True)
+                continue
+            print(f"[diag] {mode}: total={[round(t, 1) for t in total]} "
+                  f"mean={sum(total) / len(total):.1f}s build={sum(build) / len(build):.2f}s "
+                  f"sync={sum(sync) / len(sync):.2f}s", flush=True)
+            print(f"[diag] {mode}: metrics {json.dumps(_delta(base, _counters()))}", flush=True)
+
+        print("[diag] === full metrics report ===\n" + xm_metrics.metrics_report(), flush=True)
+
     # steps_per_epoch must use the planner's actual batch count, not
     # len(items)//(MICRO_BATCH*GRAD_ACCUM).  When MAX_TOKENS_BATCH caps a batch below
     # MICRO_BATCH the planner emits more (smaller) batches, so the naive formula
@@ -291,6 +402,15 @@ def main():
     print(f"[data] {len(items):,} items | micro_batch(global)={MICRO_BATCH} "
           f"grad_accum={GRAD_ACCUM} | batches/epoch={plan_stats['batches']:,} "
           f"steps/epoch={steps_per_epoch}", flush=True)
+
+    # 3b) 처리량 진단 (DIAG=1) — 원인 규명용. 학습은 하지 않고 변형별 micro 만 돌린다.
+    if _i("DIAG", 0):
+        try:
+            run_diagnostics()
+        except Exception as ex:
+            print(f"[diag] FAILED {type(ex).__name__}: {str(ex)[:300]}", flush=True)
+        print("DIAG_DONE", flush=True)
+        return
 
     # 4) 옵티마이저: encoder/head LR 분리 (train_ddp 와 동일)
     enc_params = [p for n, p in model.named_parameters() if "encoder." in n]
