@@ -469,6 +469,33 @@ def main():
 
     from laya.common import proper_reward
 
+    # XLA-safe drop-in: inlines proper_reward without `if is_score.any():`
+    # That Python branch forces aten::_local_scalar_dense (device→host sync) every micro
+    # and creates data-dependent graph structure → different XLA graph per batch.
+    # Fix: always compute rps, multiply by is_score (0 for non-score types → noop).
+    # Controlled by STATIC_REWARD (default 1). Set to 0 to revert to laya's version.
+    _QTYPE_SCORE = 1   # laya.common.QTYPES["score"]
+    _STATIC_REWARD = _i("STATIC_REWARD", 1) == 1
+
+    def _proper_reward_static(q, target, qtype, mask, w_sph=0.75, w_rps=1.0):
+        """proper_reward without if is_score.any() host sync (XLA-safe)."""
+        q = q * mask
+        logq = torch.log(q.clamp_min(1e-12)).clamp_min(-9.21)
+        log_score = (target * logq).sum(-1)
+        sph = (target * q).sum(-1) / q.norm(dim=-1).clamp_min(1e-9)
+        r = log_score + w_sph * sph
+        is_score = (qtype == _QTYPE_SCORE).float()   # (B,) — no .any(), no host sync
+        k = mask.sum(-1).clamp(min=2).float()
+        cdf_q = torch.cumsum(q, -1)
+        cdf_t = torch.cumsum(target, -1)
+        rps = (((cdf_q - cdf_t) ** 2) * mask).sum(-1) / (k - 1)
+        r = r - w_rps * rps * is_score               # is_score=0 for non-score → noop
+        return r
+
+    _reward_fn = _proper_reward_static if _STATIC_REWARD else proper_reward
+    if _STATIC_REWARD:
+        print("[reward] using static proper_reward (no is_score.any() host sync)", flush=True)
+
     def save_dcp(epoch_done):
         try:
             import torch.distributed.checkpoint as dist_cp
@@ -573,8 +600,8 @@ def main():
             z = logits.detach().unsqueeze(0) + eps
             q = torch.softmax(z.masked_fill(~mask, -1e4), -1)
             with torch.no_grad():
-                r = proper_reward(q, target.unsqueeze(0), qt.squeeze(-1),
-                                  mask, w_sph=0.75, w_rps=1.0)
+                r = _reward_fn(q, target.unsqueeze(0), qt.squeeze(-1),
+                               mask, w_sph=0.75, w_rps=1.0)
                 adv = r - r.mean(0, keepdim=True)
                 adv = adv / (adv.std() + 1e-6)
 

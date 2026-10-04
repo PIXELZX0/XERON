@@ -103,8 +103,8 @@ MAX_ITEMS = _i("MAX_ITEMS", 2000)                # 0=샤드 전체. >0 이면 �
 CKPT_MODE = _s("CKPT_MODE", "local")      # local | hf | s3
 BASE_HF = _s("BASE_HF", "PIXELZX/XERON-1.0-long")   # RUNNER_REWRITES_THIS_LINE
 CKPT_HF = _s("CKPT_HF", "PIXELZX/XERON-1.0-short-ckpt")
-MINUTES = _i("MAX_TRAIN_MIN", 1)          # 0=무제한, 아니면 DCP 저장 후 조기 종료
-DIAG = _i("DIAG", 1)                       # RUNNER_REWRITES_THIS_LINE (1=학습 전 처리량 진단)
+MINUTES = _i("MAX_TRAIN_MIN", 30)          # 0=무제한, 아니면 DCP 저장 후 조기 종료
+DIAG = _i("DIAG", 0)                       # RUNNER_REWRITES_THIS_LINE (1=학습 전 처리량 진단)
 DATA_PT = None
 
 os.makedirs(EXPORT, exist_ok=True)
@@ -231,10 +231,10 @@ if DIAG not in ("0", "", "false"):
 # data 대기 / fwd / loss / bwd / opt / mark_step 을 각각 찍고 PROBE_N 개에서 정상 종료.
 # PROBE_METRICS=1 이면 micro 마다 XLA 카운터(CachedCompile/UncachedCompile/ExecuteReplicated)
 # 도 같이 남긴다 → "매 micro 재컴파일" vs "입력 경로" 를 가른다.
-_probe = _s("PROBE_N", "0")
+_probe = _s("PROBE_N", "24")
 if _probe not in ("0", "", "false"):
     TRAIN_ENV["PROBE_N"] = _probe
-    TRAIN_ENV["PROBE_METRICS"] = _s("PROBE_METRICS", "0")
+    TRAIN_ENV["PROBE_METRICS"] = _s("PROBE_METRICS", "1")
     TRAIN_ENV["RATE_EVERY"] = _s("RATE_EVERY", "8")
 
 log(f"=== train shard {SHARD_INDEX}/{SHARD_COUNT} ===")
