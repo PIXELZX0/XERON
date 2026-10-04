@@ -89,6 +89,13 @@ MAX_ITEMS = _i("MAX_ITEMS", 0)                # 0 = 샤드 전체
 # (DCP 저장 + 스냅샷 + TRAIN_DONE 까지 수행). 커널이 같은 값을 하드 타임아웃으로 걸면
 # 저장 도중 SIGKILL 되어 커널이 ERROR 로 끝난다(v6 스모크).
 MAX_TRAIN_MIN = _i("MAX_TRAIN_MIN", 0)
+# 처리량 프로브: >0 이면 처음 PROBE_N 개 micro 만 돌리고 단계별 시간(데이터 대기/fwd/loss/bwd/
+# mark_step/opt)을 micro 마다 찍은 뒤 정상 종료한다(DCP 저장 없음).
+#   PROBE_N=24 PROBE_METRICS=1 MAX_ITEMS=2000 ./run_spmd_shard.sh 0
+# 학습 루프 **그 자체**를 재므로 복사본을 재는 오류가 없다.
+PROBE_N = _i("PROBE_N", 0)
+PROBE_METRICS = _i("PROBE_METRICS", 0) == 1
+RATE_EVERY = _i("RATE_EVERY", 200)
 RESUME_SHARD = _i("RESUME_SHARD", 1) == 1
 LEN_MIN = _i("LEN_MIN", 0)
 LEN_MAX = _i("LEN_MAX", 1024)                 # 이 트레이너는 ≤1024(숏) 전용
@@ -442,6 +449,24 @@ def main():
         except Exception as ex:
             print(f"[dcp] resume skipped: {type(ex).__name__}: {str(ex)[:200]}", flush=True)
 
+    def _xla_counters():
+        """XLA 카운터 스냅샷(재컴파일 여부 판별용). 실패해도 학습은 계속한다."""
+        out, cur = {}, None
+        try:
+            import torch_xla.debug.metrics as xm_metrics
+            rep = xm_metrics.metrics_report()
+        except Exception:
+            return out
+        for ln in rep.splitlines():
+            s = ln.strip()
+            if s.startswith(("Metric:", "Counter:")):
+                cur = s.split(":", 1)[1].strip()
+            elif cur and s.startswith("Value:"):
+                out[cur] = s.split(":", 1)[1].strip()
+            elif cur and s.startswith("Accumulator:"):
+                out[cur + ".acc"] = s.split(":", 1)[1].strip()
+        return out
+
     from laya.common import proper_reward
 
     def save_dcp(epoch_done):
@@ -504,18 +529,38 @@ def main():
         accum, nstep, t0 = 0, 0, time.time()
         losses = []
         tok_seen = 0
+        nseq_seen = 0                       # 실제로 처리한 시퀀스 수(예산 정지/조기 종료에 정확)
+        probe = []                          # (micro, t_data, t_fwd, t_loss, t_bwd, t_step, t_opt)
+        probe_counters = []
         # rebuild the plan each epoch so bucket order/content is reshuffled
         if epoch > start_epoch:
             dev_loader, epoch_stats, plan = make_loader(epoch, dev)
             print(f"[batch] epoch {epoch+1} plan: batches={epoch_stats['batches']:,} "
                   f"waste={epoch_stats['waste_pct']}%", flush=True)
-        for micro, batch in enumerate(dev_loader):
+        # 수동 이터레이션: `for ... in dev_loader` 로는 **데이터 대기 시간**이 보이지 않는다.
+        # 학습이 30s/micro 인데 캐시가 데워진 그래프는 0.4s/micro 라면(진단 실측),
+        # 남은 29.6s 는 입력 경로(MpDeviceLoader/H2D)이거나 매 micro 재컴파일이다.
+        _loader_iter = iter(dev_loader)
+        micro = -1
+        while True:
+            t_data0 = time.time()
+            try:
+                batch = next(_loader_iter)
+            except StopIteration:
+                break
+            t_data = time.time() - t_data0
+            micro += 1
             ids, att, mpos, mmask, target, qt = batch
             tok_seen += ids.numel()          # 패딩 포함 토큰(장치가 실제로 계산하는 양)
+            nseq_seen += len(plan[micro]) if micro < len(plan) else 0
             t_micro = time.time()
+            _c0 = None
+            if PROBE_METRICS and (micro < PROBE_N):
+                _c0 = _xla_counters()
             progress.update(phase="fwd", micro=micro)
             with torch.amp.autocast("cuda", enabled=False):
                 logits, act = model(ids, att, mpos, mmask, qt.squeeze(-1))
+            t_fwd = time.time() - t_micro
             logits = logits.float()
             # logits 은 rank-2 [B, T] (결정 헤드) 이므로 마스크도 rank-2 로 유지한다.
             # unsqueeze(-1) 하면 eps (G,B,T) * mask (B,T,1) 에서 T vs B 로 밀려
@@ -541,9 +586,12 @@ def main():
             loss_ce = -(target *
                         torch.log_softmax(logits.masked_fill(~mask, -1e4), -1)).sum(-1).mean()
             loss = (RL_WEIGHT * loss_rl + 1.0 * loss_ce) / GRAD_ACCUM
+            t_loss = time.time() - t_micro - t_fwd
             progress["phase"] = "bwd"
             loss.backward()
+            t_bwd = time.time() - t_micro - t_fwd - t_loss
             accum += 1
+            t_opt = 0.0
 
             if accum % GRAD_ACCUM == 0:
                 progress["phase"] = "opt"
@@ -554,6 +602,7 @@ def main():
                 sched.step()
                 opt.zero_grad(set_to_none=True)
                 nstep += 1
+                t_opt = time.time() - t_micro - t_fwd - t_loss - t_bwd
                 progress.update(phase="step-done", nstep=nstep)
                 if nstep <= 5 or nstep % 20 == 0:
                     el = time.time() - t0
@@ -566,18 +615,40 @@ def main():
             # XLA 는 마지막 mark_step 이후의 연산을 **하나의 그래프**로 묶는다. 마이크로배치마다
             # 끊지 않으면 GRAD_ACCUM(8)회 fwd+bwd 가 한 HLO 로 전개되어 컴파일이 수십 분 걸리거나
             # 끝나지 않는다(v5 스모크: 스텝 로그 0줄 상태로 40분 타임아웃). 1회 fwd+bwd 로 제한한다.
+            _t_mark0 = time.time()
             xm.mark_step()
-            if micro < 3:
-                print(f"  [micro {micro}] {time.time()-t_micro:.1f}s "
+            t_step = time.time() - _t_mark0
+            t_tot = time.time() - t_micro
+            if PROBE_N and micro < PROBE_N:
+                probe.append((micro, t_data, t_fwd, t_loss, t_bwd, t_opt, t_step, t_tot))
+                print(f"  [probe] micro={micro} total={t_tot:.2f}s data={t_data:.2f} fwd={t_fwd:.2f} "
+                      f"loss={t_loss:.2f} bwd={t_bwd:.2f} opt={t_opt:.2f} step={t_step:.2f} "
+                      f"nstep={nstep} shape={tuple(int(s) for s in ids.shape)}", flush=True)
+                if _c0 is not None:
+                    _c1 = _xla_counters()
+                    probe_counters.append((micro, _c1.get("CachedCompile"),
+                                           _c1.get("UncachedCompile"), _c1.get("ExecuteReplicated"),
+                                           _c1.get("CompileTime.acc")))
+                    print(f"  [probe-m] micro={micro} CachedCompile={_c1.get('CachedCompile')} "
+                          f"UncachedCompile={_c1.get('UncachedCompile')} "
+                          f"ExecuteReplicated={_c1.get('ExecuteReplicated')} "
+                          f"CompileTime.acc={_c1.get('CompileTime.acc')}", flush=True)
+            elif micro < 3:
+                print(f"  [micro {micro}] {t_tot:.1f}s "
                       f"loss={float(loss)*GRAD_ACCUM:.4f} accum={accum}", flush=True)
             # shape 별 처리량을 직접 볼 수 있게 주기적으로 속도를 남긴다
             # (스모크에서 micro 당 고정비용이 지배적인지를 판단하는 근거).
-            if (micro + 1) % 200 == 0:
+            if RATE_EVERY and (micro + 1) % RATE_EVERY == 0:
                 el = time.time() - t0
                 print(f"  [rate] micro={micro+1} {el/(micro+1):.2f}s/micro "
-                      f"{tok_seen/max(1e-9, el):.0f} tok/s shape={tuple(int(s) for s in ids.shape)}",
+                      f"{nseq_seen/max(1e-9, el):.2f} seq/s "
+                      f"{tok_seen/max(1e-9, el):.0f} local-tok/s shape={tuple(int(s) for s in ids.shape)}",
                       flush=True)
             losses.append(loss.item() * GRAD_ACCUM)
+            if PROBE_N and micro + 1 >= PROBE_N:
+                print(f"[budget] PROBE_N={PROBE_N} 도달 — micro {micro+1} 에서 종료", flush=True)
+                budget_stop = True
+                break
             if MAX_TRAIN_MIN and (time.time() - t_start) > MAX_TRAIN_MIN * 60:
                 print(f"[budget] MAX_TRAIN_MIN={MAX_TRAIN_MIN} 도달 — micro {micro+1} "
                       f"(step {nstep}) 에서 정상 종료 → DCP 저장", flush=True)
@@ -605,9 +676,23 @@ def main():
                   f"gn={float(gn):.2f}", flush=True)
 
         dt = time.time() - t0
+        # ⚠️ 예전 지표는 `len(items)/dt` 였다 — **계획된** 아이템 수를 경과시간으로 나눠서
+        # 예산 정지(예: 20,000 중 960 만 처리)에서도 19.3 seq/s 라고 보고했다. 실제는 0.93.
+        # 이제 실제 처리량(nseq_seen)만 보고한다.
         print(f"=== epoch {epoch+1}/{EPOCHS} done {dt/60:.1f}min | "
+              f"processed {micro+1}/{plan_stats['batches']} micros ({nseq_seen:,} seq) | "
               f"avg loss {sum(losses)/max(1,len(losses)):.4f} | "
-              f"{(len(items)*EPOCHS)/max(1e-9, dt):.1f} seq/s ===", flush=True)
+              f"{nseq_seen/max(1e-9, dt):.2f} seq/s ===", flush=True)
+        if probe:
+            n = len(probe)
+            agg = {k: sum(p[i] for p in probe) / n for i, k in enumerate(
+                ("data", "fwd", "loss", "bwd", "opt", "step", "total"), start=1)}
+            print("  [probe-avg] " + " ".join(f"{k}={v:.2f}s" for k, v in agg.items())
+                  + f"  (n={n})", flush=True)
+            print("  [probe-avg] data-share="
+                  f"{100*agg['data']/max(1e-9, agg['total']):.1f}%  "
+                  f"compile-events={probe_counters[0][2] if probe_counters else '?'}→"
+                  f"{probe_counters[-1][2] if probe_counters else '?'}", flush=True)
         if CKPT_EVERY and (epoch + 1) % CKPT_EVERY == 0:
             save_dcp(epoch + 1)
             snapshot(f"epoch{epoch+1}")
