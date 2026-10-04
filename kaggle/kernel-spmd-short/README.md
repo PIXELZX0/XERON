@@ -79,6 +79,44 @@ XLA는 **텐서 shape 마다** 그래프를 새로 컴파일한다. 길이순 �
 평균되므로 패딩 열은 정확히 0을 더한다. 토큰 축 패딩은 `attention_mask`/`src_key_padding_mask`
 로 마스킹된다. (로컬 CPU 검증: 자연폭 K=5 vs 패딩 K=16 에서 rl/ce 차이 < 1e-6)
 
+## Measured throughput is NOT what the smoke log said (2026-10-04)
+
+> **Do not trust `N seq/s` from a budget-stopped run.** The epoch summary used to print
+> `len(items) * EPOCHS / elapsed`, i.e. **planned** items divided by elapsed time. The v8
+> smoke stopped at `[budget] micro 30 (step 3)` after processing **960 of 20,000** sequences
+> but still printed `19.3 seq/s`. The real rate was **0.93 seq/s** (20x overstated).
+> Fixed in `cf418d8`: the summary now reports processed micros and processed sequences, and
+> the `[rate]` line reports `seq/s` (processed) instead of planned items.
+
+Same run, per-step wall time: **255.4 / 220.7 / 276.3 s per 8 micro-batches = ~30 s/micro,
+flat across steps** — so it is not a compile warm-up that fades away.
+
+`DIAG=1` on the same hardware measured a *warm, same-shape* micro at **0.4 s/micro**
+(`full2: total=[0.4,0.4,0.4,0.4] sync=0.03s`). Whole-run counters: `UncachedCompile=11`
+(~56 s each, 6m10s total), `ExecuteReplicatedTime=12.2s over 75 executions`.
+So device math is nearly free and compile/host dominates — but DIAG **pre-fetched** its batches,
+so it never measured the input path.
+
+That leaves two candidates for the missing ~29.6 s/micro:
+
+1. **input path** — `pl.MpDeviceLoader` / `send_cpu_data_to_device` H2D + input sharding
+2. **recompile every micro** — a shape that still varies per batch
+
+Local CPU benchmark rules out the Python data path: `collate_train_batch` = **1.03 ms/micro**,
+`DataLoader(num_workers=4)` = **1.55 ms/micro** on the real 20,000-item plan (625 batches).
+
+`PROBE_N` instruments the **training loop itself** (not a copy) and separates
+`data` wait / `fwd` / `loss` / `bwd` / `opt` / `mark_step`, printing XLA counters
+(`CachedCompile`, `UncachedCompile`, `ExecuteReplicated`, `CompileTime.acc`) per micro:
+
+```bash
+./scripts/kaggle/run_spmd_probe.sh              # PROBE_N=24, PROBE_METRICS=1, 2000 items
+PROBE_N=48 ./scripts/kaggle/run_spmd_probe.sh
+```
+
+Do not push the 7h shard run (`MAIN_ITEMS=0`, `MAX_TRAIN_MIN=420`, `CKPT_MODE=hf`) until the
+probe explains the gap: at 30 s/micro a 9h session yields ~34,500 seq, i.e. 3% of a shard.
+
 ## 검증 상태 및 남은 리스크
 
 - ✅ SPMD 처리량/메모리/입력 샤딩/FSDPv2 순서 함정은 **GCP v5litepod-8에서 실측 검증**
