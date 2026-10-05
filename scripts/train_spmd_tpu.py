@@ -620,6 +620,7 @@ def main():
             accum += 1
             t_opt = 0.0
 
+            _log_step = False
             if accum % GRAD_ACCUM == 0:
                 progress["phase"] = "opt"
                 # 근사 클리핑: 로컬 샤드 노름 → 전역 스케일(√ndev)로 보정
@@ -631,14 +632,7 @@ def main():
                 nstep += 1
                 t_opt = time.time() - t_micro - t_fwd - t_loss - t_bwd
                 progress.update(phase="step-done", nstep=nstep)
-                if nstep <= 5 or nstep % 20 == 0:
-                    el = time.time() - t0
-                    print(f"  ep{epoch+1}/{EPOCHS} step {nstep}/{total_updates//EPOCHS} "
-                          f"loss={loss.item()*GRAD_ACCUM:.4f} reward={r.mean().item():.3f} "
-                          f"gn={float(gn):.2f} lr={sched.get_last_lr()[0]:.2e} "
-                          f"{el/max(1,nstep):.2f}s/step "
-                          f"({MICRO_BATCH*GRAD_ACCUM/max(1e-9, el/max(1,nstep)):.1f} seq/s)",
-                          flush=True)
+                _log_step = (nstep <= 5 or nstep % 20 == 0)
             # XLA 는 마지막 mark_step 이후의 연산을 **하나의 그래프**로 묶는다. 마이크로배치마다
             # 끊지 않으면 GRAD_ACCUM(8)회 fwd+bwd 가 한 HLO 로 전개되어 컴파일이 수십 분 걸리거나
             # 끝나지 않는다(v5 스모크: 스텝 로그 0줄 상태로 40분 타임아웃). 1회 fwd+bwd 로 제한한다.
@@ -646,6 +640,26 @@ def main():
             xm.mark_step()
             t_step = time.time() - _t_mark0
             t_tot = time.time() - t_micro
+            # ⚠️ 스텝 로그는 반드시 mark_step **이후**에 찍는다. `.item()`/`float()` 은 host sync 를
+            # 강제하므로 mark_step 이전에 부르면 그 시점까지 pending 인 그래프(= 옵티마이저 스텝 포함)를
+            # 암묵적으로 flush 해 실행·컴파일 시간이 로그 구간에 숨는다 — v10 프로브 micro7 은
+            # total 184.62s 인데 계측합이 70.80s 였고, 나머지 113.8s 가 정확히 이 지점이었다.
+            # 여기서는 sync 시간을 따로 재서 `sync=` 로 노출한다(측정 왜곡 제거 + 재컴파일 감시).
+            if _log_step:
+                _t_log0 = time.time()
+                _loss_v = loss.item() * GRAD_ACCUM
+                _rew_v = r.mean().item()
+                _gn_v = float(gn)
+                _sync = time.time() - _t_log0
+                _unc = _xla_counters().get("UncachedCompile", "?")
+                el = time.time() - t0
+                _sp = el / max(1, nstep)
+                print(f"  ep{epoch+1}/{EPOCHS} step {nstep}/{total_updates//EPOCHS} "
+                      f"loss={_loss_v:.4f} reward={_rew_v:.3f} gn={_gn_v:.2f} "
+                      f"lr={sched.get_last_lr()[0]:.2e} {_sp:.2f}s/step "
+                      f"({MICRO_BATCH*GRAD_ACCUM/max(1e-9, _sp):.1f} seq/s) "
+                      f"step_t={t_step:.2f}s micro={t_tot:.2f}s sync={_sync:.2f}s "
+                      f"uncached={_unc}", flush=True)
             if PROBE_N and micro < PROBE_N:
                 probe.append((micro, t_data, t_fwd, t_loss, t_bwd, t_opt, t_step, t_tot))
                 print(f"  [probe] micro={micro} total={t_tot:.2f}s data={t_data:.2f} fwd={t_fwd:.2f} "
