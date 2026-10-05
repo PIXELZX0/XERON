@@ -231,7 +231,7 @@ if DIAG not in ("0", "", "false"):
 # data 대기 / fwd / loss / bwd / opt / mark_step 을 각각 찍고 PROBE_N 개에서 정상 종료.
 # PROBE_METRICS=1 이면 micro 마다 XLA 카운터(CachedCompile/UncachedCompile/ExecuteReplicated)
 # 도 같이 남긴다 → "매 micro 재컴파일" vs "입력 경로" 를 가른다.
-_probe = _s("PROBE_N", "24")
+_probe = _s("PROBE_N", "0")   # RUNNER_REWRITES_THIS_LINE (본런 0 / 프로브 >0)
 if _probe not in ("0", "", "false"):
     TRAIN_ENV["PROBE_N"] = _probe
     TRAIN_ENV["PROBE_METRICS"] = _s("PROBE_METRICS", "1")

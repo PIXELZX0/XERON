@@ -43,7 +43,11 @@ fi
 sed -i -E "s/^MAX_ITEMS = _i\(\"MAX_ITEMS\", [0-9]+\)/MAX_ITEMS = _i(\"MAX_ITEMS\", ${ITEMS})/" "$KDIR/kernel.py"
 sed -i -E "s/^MINUTES = _i\(\"MAX_TRAIN_MIN\", [0-9]+\)/MINUTES = _i(\"MAX_TRAIN_MIN\", ${MINS})/" "$KDIR/kernel.py"
 sed -i -E "s/^CKPT_MODE = _s\(\"CKPT_MODE\", \"[a-z0-9]*\"\)/CKPT_MODE = _s(\"CKPT_MODE\", \"${MODE}\")/" "$KDIR/kernel.py"
-grep -n '^MAX_ITEMS\|^MINUTES\|^CKPT_MODE' "$KDIR/kernel.py"
+# 프로브 잔여 설정 제거: 본런은 PROBE_N=0 이어야 한다(프로브 커널이 남긴 값이 그대로 따라오면
+# 24 micro 에서 조기 종료해 DCP 저장 경로를 타지 않는다).
+PN="${PROBE_N:-0}"
+sed -i -E "s/^_probe = _s\(\"PROBE_N\", \"[0-9]*\"\)/_probe = _s(\"PROBE_N\", \"${PN}\")/" "$KDIR/kernel.py"
+grep -n '^SHARD_INDEX\|^MAX_ITEMS\|^MINUTES\|^CKPT_MODE\|^_probe' "$KDIR/kernel.py"
 echo "[push] $REF (shard $SHARD, MAX_ITEMS=$ITEMS, MAX_TRAIN_MIN=$MINS, CKPT_MODE=$MODE)"
 kaggle kernels push -p "$KDIR" 2>&1 | tee -a "$LOG_DIR/shard${SHARD}.log"
 
